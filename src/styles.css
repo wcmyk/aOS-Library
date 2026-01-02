@@ -211,15 +211,15 @@ button {
 }
 
 .dock-indicator {
-  width: 8px;
-  height: 8px;
+  width: 4px;
+  height: 4px;
   border-radius: 999px;
-  background: #70cfff;
+  background: rgba(255, 255, 255, 0.9);
   position: absolute;
-  bottom: 6px;
+  bottom: -8px;
   left: 50%;
   transform: translateX(-50%);
-  box-shadow: 0 0 0 2px rgba(12, 18, 24, 0.9);
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
 }
 
 .window {
