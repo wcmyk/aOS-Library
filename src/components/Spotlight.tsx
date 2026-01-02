@@ -70,7 +70,7 @@ export function Spotlight({ open, query, onQueryChange, commands, onClose }: Spo
               onClick={command.action}
               type="button"
             >
-              {command.icon?.startsWith('/') ? (
+              {command.icon?.includes('/') || command.icon?.includes('.png') || command.icon?.includes('.svg') ? (
                 <img src={command.icon} alt="" className="command-icon" style={{ width: 24, height: 24, borderRadius: 6 }} />
               ) : (
                 <span className="command-icon">{command.icon ?? '⌘'}</span>
