@@ -94,6 +94,19 @@ const powerTools = [
   { name: 'Collaboration', detail: 'Comments/notes, version-aware recalculation, and change highlighting per cell.' },
 ];
 
+const accelAhead = [
+  { title: 'AI Formula Coach', detail: 'Explains formulas, suggests fixes for #REF!/#VALUE!, and tests logic against sample data.' },
+  { title: 'Smart Autofill+', detail: 'Learns patterns beyond Flash Fill with preview/rollback for series and text shaping.' },
+  { title: 'Inline Transform History', detail: 'Stepwise, undoable data shaping (split, dedupe, type-fix) with instant diff view.' },
+  { title: 'Scenario Sandboxes', detail: 'Branch worksheets, compare deltas, and merge winning what-if models safely.' },
+  { title: 'Solver++', detail: 'Multi-objective, stochastic, and nonlinear optimizers with constraint heatmaps and sensitivity.' },
+  { title: 'Chart Composer', detail: 'Templateable charts/dashboards with theme tokens and auto-layout from selected ranges.' },
+  { title: 'In-cell mini visuals', detail: 'Data bars, bullet graphs, variance arrows, and micro heatmaps alongside values.' },
+  { title: 'Provenance & Audit', detail: 'Track sources, transformations, and formula lineage with time travel and rollback.' },
+  { title: 'Secure Automation', detail: 'Sandboxed TypeScript/JS actions with event hooks and guardrails for on-change/on-refresh.' },
+  { title: 'Collab & Governance', detail: 'Presence cursors, per-cell permissions, DLP policies, and branch/merge of sheets.' },
+];
+
 const TemplateIcon = ({ type }: { type: string }) => {
   if (type === 'blank') {
     return (
@@ -587,6 +600,34 @@ export function AccelApp() {
         </div>
 
         {/* Spreadsheet Grid */}
+        <div style={{ flex: 1, overflow: 'auto' }}>
+          {/* Formatting Ribbon */}
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.22)', position: 'sticky', top: 0, zIndex: 1 }}>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <button style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontWeight: 700 }}>B</button>
+              <button style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontStyle: 'italic' }}>I</button>
+              <button style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', textDecoration: 'underline' }}>U</button>
+            </div>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <button style={{ padding: '0 10px', height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Fill ▾</button>
+              <button style={{ padding: '0 10px', height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Border ▾</button>
+            </div>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <button style={{ padding: '0 8px', height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Align ⬅️</button>
+              <button style={{ padding: '0 8px', height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Align ⬇️</button>
+              <button style={{ padding: '0 8px', height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Wrap</button>
+              <button style={{ padding: '0 8px', height: 28, borderRadius: 8, background: 'rgba(212,160,23,0.22)', border: '1px solid rgba(212,160,23,0.4)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Merge</button>
+            </div>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <div style={{ fontSize: 11, opacity: 0.75 }}>Cell size</div>
+              <input type="range" min="40" max="140" defaultValue="100" style={{ accentColor: '#d4a017', width: 110 }} />
+              <button style={{ padding: '0 8px', height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Auto-fit</button>
+            </div>
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <button style={{ padding: '0 10px', height: 28, borderRadius: 8, background: 'rgba(124,140,255,0.12)', border: '1px solid rgba(124,140,255,0.32)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Data ▾</button>
+              <button style={{ padding: '0 10px', height: 28, borderRadius: 8, background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.32)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Review ▾</button>
+              <button style={{ padding: '0 10px', height: 28, borderRadius: 8, background: 'rgba(244,114,182,0.12)', border: '1px solid rgba(244,114,182,0.32)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Solver</button>
+            </div>
         <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
           {/* Toolbar */}
           <div style={{ height: '40px', background: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', padding: '0 12px', gap: '8px' }}>
@@ -898,6 +939,21 @@ export function AccelApp() {
           </div>
           <div style={{ fontSize: '12px', opacity: 0.75 }}>
             Accel preserves Excel-style text formatting, cell merging, column/row resizing, drag-fill gestures, data shaping, and Solver-style optimization primitives within the AngelOS environment.
+          </div>
+        </div>
+
+        <div className="card" style={{ background: 'rgba(212,160,23,0.08)', borderColor: 'rgba(212,160,23,0.18)', padding: '18px', display: 'grid', gap: '12px' }}>
+          <div style={{ fontSize: '14px', fontWeight: 700 }}>Where Accel goes beyond Excel</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
+            {accelAhead.map((item) => (
+              <div key={item.title} style={{ padding: '12px', background: 'rgba(0,0,0,0.14)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.12)', display: 'grid', gap: '6px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 700 }}>{item.title}</div>
+                <div style={{ fontSize: '12px', opacity: 0.85 }}>{item.detail}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: '12px', opacity: 0.8 }}>
+            These next-gen capabilities focus on explainability, automation guardrails, richer visuals, and governance so Accel can surpass traditional spreadsheets while keeping Excel familiarity.
           </div>
         </div>
       </div>
