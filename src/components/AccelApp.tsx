@@ -1,4 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { ExcelFormulas } from '../excel/formulas';
+import { AutoFillEngine } from '../excel/autofill';
+import { CellFormatter } from '../excel/formatting';
+import type { CellData, CellAddress } from '../excel/types';
+
+// ============================================================================
+// TEMPLATE DATA
+// ============================================================================
 
 const accelTemplates = [
   { name: 'Blank workbook', type: 'blank' },
@@ -116,13 +124,474 @@ const TemplateIcon = ({ type }: { type: string }) => {
   );
 };
 
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+function colToLetter(col: number): string {
+  let result = '';
+  while (col >= 0) {
+    result = String.fromCharCode(65 + (col % 26)) + result;
+    col = Math.floor(col / 26) - 1;
+  }
+  return result;
+}
+
+function getCellAddress(row: number, col: number): string {
+  return `${colToLetter(col)}${row + 1}`;
+}
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
 export function AccelApp() {
   const [view, setView] = useState<'home' | 'spreadsheet'>('home');
   const [selectedSidebar, setSelectedSidebar] = useState('home');
+  const [cells, setCells] = useState<Map<string, CellData>>(new Map());
+  const [selectedCell, setSelectedCell] = useState<CellAddress | null>(null);
+  const [selectionStart, setSelectionStart] = useState<CellAddress | null>(null);
+  const [selectionEnd, setSelectionEnd] = useState<CellAddress | null>(null);
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [formulaBarValue, setFormulaBarValue] = useState('');
+  const [editingCell, setEditingCell] = useState<CellAddress | null>(null);
+  const [isDraggingFill, setIsDraggingFill] = useState(false);
+  const [dragFillStart, setDragFillStart] = useState<CellAddress | null>(null);
+  const [dragFillEnd, setDragFillEnd] = useState<CellAddress | null>(null);
+  const [copiedRange, setCopiedRange] = useState<{ start: CellAddress; end: CellAddress } | null>(null);
+  const [isTableMode, setIsTableMode] = useState(false);
+  const [tableRange, setTableRange] = useState<{ start: CellAddress; end: CellAddress } | null>(null);
+
+  const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
+  const autoFillEngine = useRef(new AutoFillEngine());
+  const formatter = useRef(new CellFormatter());
+
+  // Get cell data or create empty
+  const getCell = (row: number, col: number): CellData => {
+    const address = getCellAddress(row, col);
+    return cells.get(address) || { value: '', displayValue: '' };
+  };
+
+  // Update cell data with formula recalculation
+  const updateCell = useCallback((row: number, col: number, data: Partial<CellData>) => {
+    const address = getCellAddress(row, col);
+    setCells(prev => {
+      const newCells = new Map(prev);
+      const existing = newCells.get(address) || { value: '', displayValue: '' };
+      newCells.set(address, { ...existing, ...data });
+
+      // Recalculate ALL formulas in the spreadsheet
+      const formulas = new ExcelFormulas(newCells);
+      newCells.forEach((cell, addr) => {
+        if (cell.formula) {
+          try {
+            const result = evaluateFormula(cell.formula, newCells, formulas);
+            cell.displayValue = result.toString();
+          } catch (error) {
+            cell.displayValue = '#ERROR!';
+          }
+        }
+      });
+
+      return newCells;
+    });
+  }, []);
+
+  // Evaluate formula using Excel formula engine
+  const evaluateFormula = (formula: string, cellMap: Map<string, CellData>, formulas: ExcelFormulas): any => {
+    // Remove leading =
+    let expr = formula.startsWith('=') ? formula.substring(1).toUpperCase() : formula.toUpperCase();
+
+    // Replace cell references with actual values
+    expr = expr.replace(/([A-Z]+\d+):([A-Z]+\d+)/g, (match, start, end) => {
+      const values = getRangeValues(start, end, cellMap);
+      return `[${values.join(',')}]`;
+    });
+
+    expr = expr.replace(/([A-Z]+\d+)/g, (match) => {
+      const cell = cellMap.get(match);
+      if (!cell) return '0';
+
+      const num = parseFloat(cell.value);
+      if (!isNaN(num)) return num.toString();
+      return `"${cell.value}"`;
+    });
+
+    // Evaluate Excel functions
+    return evaluateExcelFunctions(expr, formulas);
+  };
+
+  // Get values from a range
+  const getRangeValues = (start: string, end: string, cellMap: Map<string, CellData>): number[] => {
+    const startMatch = start.match(/([A-Z]+)(\d+)/);
+    const endMatch = end.match(/([A-Z]+)(\d+)/);
+
+    if (!startMatch || !endMatch) return [];
+
+    const startCol = letterToCol(startMatch[1]);
+    const startRow = parseInt(startMatch[2]) - 1;
+    const endCol = letterToCol(endMatch[1]);
+    const endRow = parseInt(endMatch[2]) - 1;
+
+    const values: number[] = [];
+    for (let row = startRow; row <= endRow; row++) {
+      for (let col = startCol; col <= endCol; col++) {
+        const cell = cellMap.get(getCellAddress(row, col));
+        const num = parseFloat(cell?.value || '0');
+        values.push(isNaN(num) ? 0 : num);
+      }
+    }
+
+    return values;
+  };
+
+  // Convert letter to column index
+  const letterToCol = (letter: string): number => {
+    let col = 0;
+    for (let i = 0; i < letter.length; i++) {
+      col = col * 26 + (letter.charCodeAt(i) - 64);
+    }
+    return col - 1;
+  };
+
+  // Evaluate Excel functions
+  const evaluateExcelFunctions = (expr: string, formulas: ExcelFormulas): any => {
+    // Parse array notation
+    const parseArray = (str: string): number[] => {
+      if (!str.startsWith('[') || !str.endsWith(']')) return [];
+      return str.slice(1, -1).split(',').map(v => parseFloat(v.trim()) || 0);
+    };
+
+    // Handle SUM
+    expr = expr.replace(/SUM\(([^)]+)\)/g, (_, args) => {
+      const arr = parseArray(args);
+      return formulas.SUM(...arr).toString();
+    });
+
+    // Handle AVERAGE
+    expr = expr.replace(/AVERAGE\(([^)]+)\)/g, (_, args) => {
+      const arr = parseArray(args);
+      return formulas.AVERAGE(...arr).toString();
+    });
+
+    // Handle COUNT
+    expr = expr.replace(/COUNT\(([^)]+)\)/g, (_, args) => {
+      const arr = parseArray(args);
+      return formulas.COUNT(...arr).toString();
+    });
+
+    // Handle MAX
+    expr = expr.replace(/MAX\(([^)]+)\)/g, (_, args) => {
+      const arr = parseArray(args);
+      return formulas.MAX(...arr).toString();
+    });
+
+    // Handle MIN
+    expr = expr.replace(/MIN\(([^)]+)\)/g, (_, args) => {
+      const arr = parseArray(args);
+      return formulas.MIN(...arr).toString();
+    });
+
+    // Handle IF
+    expr = expr.replace(/IF\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g, (_, condition, trueVal, falseVal) => {
+      const cond = evaluateCondition(condition);
+      return cond ? trueVal : falseVal;
+    });
+
+    // Evaluate basic math
+    try {
+      const sanitized = expr.replace(/[^0-9+\-*/().]/g, '');
+      if (sanitized) {
+        return Function('"use strict"; return (' + sanitized + ')')();
+      }
+    } catch {}
+
+    return expr;
+  };
+
+  // Evaluate condition
+  const evaluateCondition = (condition: string): boolean => {
+    const match = condition.match(/([^>=<]+)\s*([>=<]+)\s*([^>=<]+)/);
+    if (!match) return false;
+
+    const left = parseFloat(match[1].trim());
+    const operator = match[2].trim();
+    const right = parseFloat(match[3].trim());
+
+    switch (operator) {
+      case '>': return left > right;
+      case '<': return left < right;
+      case '>=': return left >= right;
+      case '<=': return left <= right;
+      case '=': case '==': return left === right;
+      case '!=': case '<>': return left !== right;
+      default: return false;
+    }
+  };
+
+  // Handle cell input
+  const handleCellInput = (row: number, col: number, value: string) => {
+    const isFormula = value.startsWith('=');
+
+    if (isFormula) {
+      updateCell(row, col, {
+        value: value,
+        formula: value,
+        displayValue: value
+      });
+    } else {
+      updateCell(row, col, {
+        value: value,
+        formula: undefined,
+        displayValue: value
+      });
+    }
+
+    setFormulaBarValue(value);
+  };
+
+  // Handle cell click
+  const handleCellClick = (row: number, col: number, event: React.MouseEvent) => {
+    if (event.shiftKey && selectedCell) {
+      setSelectionEnd({ row, col });
+    } else {
+      setSelectedCell({ row, col });
+      setSelectionStart({ row, col });
+      setSelectionEnd({ row, col });
+      setEditingCell(null);
+
+      const cell = getCell(row, col);
+      setFormulaBarValue(cell.formula || cell.value);
+    }
+  };
+
+  // Handle cell double-click for editing
+  const handleCellDoubleClick = (row: number, col: number) => {
+    setEditingCell({ row, col });
+
+    setTimeout(() => {
+      const address = getCellAddress(row, col);
+      const input = inputRefs.current.get(address);
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }, 0);
+  };
+
+  // Handle mouse down for drag selection
+  const handleMouseDown = (row: number, col: number, event: React.MouseEvent) => {
+    if (event.button === 0) {
+      setIsSelecting(true);
+      setSelectionStart({ row, col });
+      setSelectionEnd({ row, col });
+      setSelectedCell({ row, col });
+    }
+  };
+
+  // Handle mouse enter for drag selection
+  const handleMouseEnter = (row: number, col: number) => {
+    if (isSelecting) {
+      setSelectionEnd({ row, col });
+    } else if (isDraggingFill && dragFillStart) {
+      setDragFillEnd({ row, col });
+    }
+  };
+
+  // Handle mouse up
+  const handleMouseUp = () => {
+    if (isDraggingFill && dragFillStart && dragFillEnd) {
+      performAutoFill(dragFillStart, dragFillEnd);
+      setIsDraggingFill(false);
+      setDragFillStart(null);
+      setDragFillEnd(null);
+    }
+    setIsSelecting(false);
+  };
+
+  // Handle drag fill start
+  const handleDragFillStart = (row: number, col: number, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setIsDraggingFill(true);
+    setDragFillStart({ row, col });
+    setDragFillEnd({ row, col });
+  };
+
+  // Perform auto-fill with smart pattern detection
+  const performAutoFill = (start: CellAddress, end: CellAddress) => {
+    const startCell = getCell(start.row, start.col);
+    const startValue = startCell.value;
+
+    // Determine direction
+    const isVertical = Math.abs(end.row - start.row) > Math.abs(end.col - start.col);
+    const isIncreasing = isVertical ? end.row > start.row : end.col > start.col;
+
+    // Check if value is a number
+    const num = parseFloat(startValue);
+    const isNumber = !isNaN(num);
+
+    if (isNumber) {
+      // Auto-increment numbers
+      const step = isIncreasing ? 1 : -1;
+      let currentValue = num;
+
+      if (isVertical) {
+        const minRow = Math.min(start.row, end.row);
+        const maxRow = Math.max(start.row, end.row);
+
+        for (let row = minRow; row <= maxRow; row++) {
+          if (row !== start.row) {
+            currentValue += step;
+            handleCellInput(row, start.col, currentValue.toString());
+          }
+        }
+      } else {
+        const minCol = Math.min(start.col, end.col);
+        const maxCol = Math.max(start.col, end.col);
+
+        for (let col = minCol; col <= maxCol; col++) {
+          if (col !== start.col) {
+            currentValue += step;
+            handleCellInput(start.row, col, currentValue.toString());
+          }
+        }
+      }
+    } else {
+      // Copy value for non-numbers
+      if (isVertical) {
+        const minRow = Math.min(start.row, end.row);
+        const maxRow = Math.max(start.row, end.row);
+
+        for (let row = minRow; row <= maxRow; row++) {
+          if (row !== start.row) {
+            handleCellInput(row, start.col, startValue);
+          }
+        }
+      } else {
+        const minCol = Math.min(start.col, end.col);
+        const maxCol = Math.max(start.col, end.col);
+
+        for (let col = minCol; col <= maxCol; col++) {
+          if (col !== start.col) {
+            handleCellInput(start.row, col, startValue);
+          }
+        }
+      }
+    }
+  };
+
+  // Copy selected range
+  const handleCopy = () => {
+    if (selectionStart && selectionEnd) {
+      setCopiedRange({ start: selectionStart, end: selectionEnd });
+    }
+  };
+
+  // Paste copied range
+  const handlePaste = () => {
+    if (!copiedRange || !selectedCell) return;
+
+    const rowOffset = selectedCell.row - copiedRange.start.row;
+    const colOffset = selectedCell.col - copiedRange.start.col;
+
+    for (let row = copiedRange.start.row; row <= copiedRange.end.row; row++) {
+      for (let col = copiedRange.start.col; col <= copiedRange.end.col; col++) {
+        const sourceCell = getCell(row, col);
+        const targetRow = row + rowOffset;
+        const targetCol = col + colOffset;
+
+        handleCellInput(targetRow, targetCol, sourceCell.value);
+      }
+    }
+  };
+
+  // Convert to table
+  const handleConvertToTable = () => {
+    if (!selectionStart || !selectionEnd) return;
+
+    setIsTableMode(true);
+    setTableRange({ start: selectionStart, end: selectionEnd });
+
+    // Apply table styling to selected range
+    const minRow = Math.min(selectionStart.row, selectionEnd.row);
+    const maxRow = Math.max(selectionStart.row, selectionEnd.row);
+    const minCol = Math.min(selectionStart.col, selectionEnd.col);
+    const maxCol = Math.max(selectionStart.col, selectionEnd.col);
+
+    // Style header row
+    for (let col = minCol; col <= maxCol; col++) {
+      const address = getCellAddress(minRow, col);
+      setCells(prev => {
+        const newCells = new Map(prev);
+        const cell = newCells.get(address) || { value: '', displayValue: '' };
+        cell.format = {
+          ...cell.format,
+          bold: true,
+          backgroundColor: 'rgba(212, 160, 23, 0.3)',
+          borderBottom: { style: 'medium', color: 'rgba(212, 160, 23, 0.8)' }
+        };
+        newCells.set(address, cell);
+        return newCells;
+      });
+    }
+  };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+        handleCopy();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+        handlePaste();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+        e.preventDefault();
+        handleConvertToTable();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectionStart, selectionEnd, selectedCell, copiedRange]);
+
+  // Check if cell is in selected range
+  const isCellSelected = (row: number, col: number): boolean => {
+    if (!selectionStart || !selectionEnd) return false;
+
+    const minRow = Math.min(selectionStart.row, selectionEnd.row);
+    const maxRow = Math.max(selectionStart.row, selectionEnd.row);
+    const minCol = Math.min(selectionStart.col, selectionEnd.col);
+    const maxCol = Math.max(selectionStart.col, selectionEnd.col);
+
+    return row >= minRow && row <= maxRow && col >= minCol && col <= maxCol;
+  };
+
+  // Check if cell is in table
+  const isCellInTable = (row: number, col: number): boolean => {
+    if (!tableRange) return false;
+
+    const minRow = Math.min(tableRange.start.row, tableRange.end.row);
+    const maxRow = Math.max(tableRange.start.row, tableRange.end.row);
+    const minCol = Math.min(tableRange.start.col, tableRange.end.col);
+    const maxCol = Math.max(tableRange.start.col, tableRange.end.col);
+
+    return row >= minRow && row <= maxRow && col >= minCol && col <= maxCol;
+  };
+
+  // Handle formula bar change
+  const handleFormulaBarChange = (value: string) => {
+    setFormulaBarValue(value);
+    if (selectedCell) {
+      handleCellInput(selectedCell.row, selectedCell.col, value);
+    }
+  };
+
+  // ============================================================================
+  // RENDER SPREADSHEET VIEW
+  // ============================================================================
 
   if (view === 'spreadsheet') {
     return (
-      <div style={{ display: 'flex', height: '100%', background: 'rgba(14, 16, 22, 0.55)' }}>
+      <div style={{ display: 'flex', height: '100%', background: 'rgba(14, 16, 22, 0.55)' }} onMouseUp={handleMouseUp}>
         {/* Sidebar */}
         <div style={{ width: '48px', background: 'rgba(212, 160, 23, 0.15)', borderRight: '1px solid rgba(212, 160, 23, 0.3)', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '16px', gap: '12px' }}>
           <button onClick={() => { setView('home'); setSelectedSidebar('home'); }} style={{ width: '32px', height: '32px', background: selectedSidebar === 'home' ? 'rgba(212, 160, 23, 0.3)' : 'transparent', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '18px' }}>
@@ -159,46 +628,181 @@ export function AccelApp() {
               <button style={{ padding: '0 10px', height: 28, borderRadius: 8, background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.32)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Review ▾</button>
               <button style={{ padding: '0 10px', height: 28, borderRadius: 8, background: 'rgba(244,114,182,0.12)', border: '1px solid rgba(244,114,182,0.32)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Solver</button>
             </div>
+        <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+          {/* Toolbar */}
+          <div style={{ height: '40px', background: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', padding: '0 12px', gap: '8px' }}>
+            <button style={{ padding: '4px 12px', background: 'rgba(212, 160, 23, 0.2)', border: '1px solid rgba(212, 160, 23, 0.3)', borderRadius: '4px', color: '#fff', fontSize: '11px', cursor: 'pointer' }}>
+              <strong>B</strong>
+            </button>
+            <button style={{ padding: '4px 12px', background: 'rgba(212, 160, 23, 0.2)', border: '1px solid rgba(212, 160, 23, 0.3)', borderRadius: '4px', color: '#fff', fontSize: '11px', cursor: 'pointer' }}>
+              <em>I</em>
+            </button>
+            <button style={{ padding: '4px 12px', background: 'rgba(212, 160, 23, 0.2)', border: '1px solid rgba(212, 160, 23, 0.3)', borderRadius: '4px', color: '#fff', fontSize: '11px', cursor: 'pointer' }}>
+              <u>U</u>
+            </button>
+            <div style={{ width: '1px', height: '20px', background: 'rgba(255, 255, 255, 0.1)' }}></div>
+            <button style={{ padding: '4px 12px', background: 'rgba(212, 160, 23, 0.2)', border: '1px solid rgba(212, 160, 23, 0.3)', borderRadius: '4px', color: '#fff', fontSize: '11px', cursor: 'pointer' }}>
+              Merge
+            </button>
+            <div style={{ width: '1px', height: '20px', background: 'rgba(255, 255, 255, 0.1)' }}></div>
+            <button
+              onClick={handleConvertToTable}
+              style={{ padding: '4px 12px', background: 'rgba(212, 160, 23, 0.2)', border: '1px solid rgba(212, 160, 23, 0.3)', borderRadius: '4px', color: '#fff', fontSize: '11px', cursor: 'pointer' }}
+              title="Convert to Table (Ctrl+T)"
+            >
+              📊 Table
+            </button>
           </div>
 
           {/* Formula Bar */}
           <div style={{ height: '32px', background: 'rgba(255, 255, 255, 0.05)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', padding: '0 12px', gap: '12px' }}>
-            <span style={{ fontSize: '12px', opacity: 0.7 }}>fx</span>
-            <input type="text" placeholder="Enter formula" style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '12px' }} />
+            <span style={{ fontSize: '12px', opacity: 0.7, fontWeight: 600 }}>fx</span>
+            <input
+              type="text"
+              value={formulaBarValue}
+              onChange={(e) => handleFormulaBarChange(e.target.value)}
+              placeholder="Enter formula or value"
+              style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '12px' }}
+            />
           </div>
 
-          {/* Grid */}
-          <div style={{ position: 'relative' }}>
-            {/* Column Headers */}
-            <div style={{ display: 'flex', position: 'sticky', top: 0, background: 'rgba(255, 255, 255, 0.05)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-              <div style={{ width: '40px', height: '28px', borderRight: '1px solid rgba(255, 255, 255, 0.08)' }}></div>
-              {Array.from({ length: 26 }, (_, i) => (
-                <div key={i} style={{ width: '100px', height: '28px', borderRight: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 600 }}>
-                  {String.fromCharCode(65 + i)}
-                </div>
-              ))}
-            </div>
-
-            {/* Rows */}
-            {Array.from({ length: 50 }, (_, rowIndex) => (
-              <div key={rowIndex} style={{ display: 'flex', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                {/* Row Number */}
-                <div style={{ width: '40px', height: '28px', borderRight: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 600, background: 'rgba(255, 255, 255, 0.05)' }}>
-                  {rowIndex + 1}
-                </div>
-                {/* Cells */}
-                {Array.from({ length: 26 }, (_, colIndex) => (
-                  <div key={colIndex} style={{ width: '100px', height: '28px', borderRight: '1px solid rgba(255, 255, 255, 0.08)', padding: '4px 8px' }}>
-                    <input type="text" style={{ width: '100%', height: '100%', background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '12px' }} />
+          {/* Grid Container */}
+          <div style={{ flex: 1, overflow: 'auto' }}>
+            <div style={{ position: 'relative', minWidth: 'fit-content' }}>
+              {/* Column Headers */}
+              <div style={{ display: 'flex', position: 'sticky', top: 0, background: 'rgba(255, 255, 255, 0.05)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', zIndex: 10 }}>
+                <div style={{ width: '50px', minWidth: '50px', height: '28px', borderRight: '1px solid rgba(255, 255, 255, 0.08)', background: 'rgba(255, 255, 255, 0.05)' }}></div>
+                {Array.from({ length: 26 }, (_, i) => (
+                  <div key={i} style={{ width: '100px', minWidth: '100px', height: '28px', borderRight: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 600 }}>
+                    {colToLetter(i)}
                   </div>
                 ))}
               </div>
-            ))}
+
+              {/* Rows */}
+              {Array.from({ length: 100 }, (_, rowIndex) => (
+                <div key={rowIndex} style={{ display: 'flex', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                  {/* Row Number */}
+                  <div style={{ width: '50px', minWidth: '50px', height: '28px', borderRight: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 600, background: 'rgba(255, 255, 255, 0.05)', position: 'sticky', left: 0, zIndex: 5 }}>
+                    {rowIndex + 1}
+                  </div>
+
+                  {/* Cells */}
+                  {Array.from({ length: 26 }, (_, colIndex) => {
+                    const cell = getCell(rowIndex, colIndex);
+                    const isSelected = isCellSelected(rowIndex, colIndex);
+                    const isActive = selectedCell?.row === rowIndex && selectedCell?.col === colIndex;
+                    const isEditing = editingCell?.row === rowIndex && editingCell?.col === colIndex;
+                    const isInTable = isCellInTable(rowIndex, colIndex);
+                    const address = getCellAddress(rowIndex, colIndex);
+
+                    return (
+                      <div
+                        key={colIndex}
+                        style={{
+                          width: '100px',
+                          minWidth: '100px',
+                          height: '28px',
+                          borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+                          padding: '0',
+                          position: 'relative',
+                          background: isSelected ? 'rgba(212, 160, 23, 0.2)' :
+                                     isInTable ? 'rgba(212, 160, 23, 0.05)' :
+                                     cell.format?.backgroundColor || 'transparent',
+                          border: isActive ? '2px solid rgba(212, 160, 23, 0.8)' : undefined,
+                          cursor: 'cell'
+                        }}
+                        onClick={(e) => handleCellClick(rowIndex, colIndex, e)}
+                        onDoubleClick={() => handleCellDoubleClick(rowIndex, colIndex)}
+                        onMouseDown={(e) => handleMouseDown(rowIndex, colIndex, e)}
+                        onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)}
+                      >
+                        <input
+                          ref={(el) => {
+                            if (el) inputRefs.current.set(address, el);
+                          }}
+                          type="text"
+                          value={isEditing ? (cell.formula || cell.value) : (cell.displayValue || cell.value)}
+                          onChange={(e) => {
+                            if (isEditing) {
+                              handleCellInput(rowIndex, colIndex, e.target.value);
+                            }
+                          }}
+                          onBlur={() => setEditingCell(null)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              setEditingCell(null);
+                              setSelectedCell({ row: rowIndex + 1, col: colIndex });
+                              setSelectionStart({ row: rowIndex + 1, col: colIndex });
+                              setSelectionEnd({ row: rowIndex + 1, col: colIndex });
+                            } else if (e.key === 'Tab') {
+                              e.preventDefault();
+                              setEditingCell(null);
+                              const nextCol = colIndex + 1;
+                              setSelectedCell({ row: rowIndex, col: nextCol });
+                              setSelectionStart({ row: rowIndex, col: nextCol });
+                              setSelectionEnd({ row: rowIndex, col: nextCol });
+                            }
+                          }}
+                          readOnly={!isEditing}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            background: 'transparent',
+                            border: 'none',
+                            outline: 'none',
+                            color: '#fff',
+                            fontSize: '12px',
+                            padding: '4px 8px',
+                            fontWeight: cell.format?.bold ? 'bold' : 'normal',
+                            fontStyle: cell.format?.italic ? 'italic' : 'normal',
+                            textDecoration: cell.format?.underline ? 'underline' : 'none',
+                            textAlign: cell.format?.alignment || 'left',
+                            cursor: isEditing ? 'text' : 'cell'
+                          }}
+                        />
+
+                        {/* Drag fill handle */}
+                        {isActive && !isEditing && (
+                          <div
+                            style={{
+                              position: 'absolute',
+                              bottom: -3,
+                              right: -3,
+                              width: '8px',
+                              height: '8px',
+                              background: 'rgba(212, 160, 23, 1)',
+                              cursor: 'crosshair',
+                              zIndex: 10,
+                              borderRadius: '1px'
+                            }}
+                            onMouseDown={(e) => handleDragFillStart(rowIndex, colIndex, e)}
+                          ></div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Status Bar */}
+          <div style={{ height: '24px', background: 'rgba(255, 255, 255, 0.03)', borderTop: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', padding: '0 12px', fontSize: '11px', opacity: 0.7 }}>
+            {selectedCell && `${getCellAddress(selectedCell.row, selectedCell.col)}`}
+            {selectionStart && selectionEnd && (selectionStart.row !== selectionEnd.row || selectionStart.col !== selectionEnd.col) &&
+              ` : ${getCellAddress(selectionStart.row, selectionStart.col)}:${getCellAddress(selectionEnd.row, selectionEnd.col)}`
+            }
+            {isTableMode && ' • Table Mode'}
           </div>
         </div>
       </div>
     );
   }
+
+  // ============================================================================
+  // RENDER HOME VIEW
+  // ============================================================================
 
   return (
     <div style={{ display: 'flex', height: '100%', background: 'rgba(14, 16, 22, 0.55)' }}>
