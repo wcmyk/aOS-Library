@@ -11,7 +11,7 @@ export const apps: ShellApp[] = [
   {
     id: 'artifact-explorer',
     name: 'Artifact Explorer',
-    icon: '🗂️',
+    icon: '/assets/apps/artifact-explorer.png',
     description: 'Browse artifacts, previews, and metadata',
     accent: '#7c8cff',
     defaultSize: { width: 820, height: 520 },
@@ -19,7 +19,7 @@ export const apps: ShellApp[] = [
   {
     id: 'job-monitor',
     name: 'Job Monitor',
-    icon: '📊',
+    icon: '/assets/apps/job-monitor.png',
     description: 'Queued and running jobs with live logs',
     accent: '#4ade80',
     defaultSize: { width: 720, height: 460 },
@@ -27,7 +27,7 @@ export const apps: ShellApp[] = [
   {
     id: 'agent-console',
     name: 'Agent Console',
-    icon: '🤖',
+    icon: '/assets/apps/agent-console.png',
     description: 'Conversation and command console for agents',
     accent: '#f59e0b',
     defaultSize: { width: 680, height: 420 },
@@ -35,7 +35,7 @@ export const apps: ShellApp[] = [
   {
     id: 'settings',
     name: 'Settings',
-    icon: '⚙️',
+    icon: '/assets/apps/settings.png',
     description: 'Workspace, wallpaper, and keyboard shortcuts',
     accent: '#60a5fa',
     defaultSize: { width: 520, height: 420 },
