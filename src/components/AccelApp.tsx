@@ -76,6 +76,16 @@ const workbookStats = [
   { label: 'Linked sheets', value: '7', hint: 'Cross-sheet references preserved' },
 ];
 
+const powerTools = [
+  { name: 'Formatting ribbon', detail: 'Bold, italic, underline, fill/outline colors, borders, and alignment controls.' },
+  { name: 'Cell sizing', detail: 'Drag headers to resize columns/rows; auto-fit based on content width/height.' },
+  { name: 'Named ranges', detail: 'Define reusable ranges for formulas, data validation, and charts.' },
+  { name: 'Data tools', detail: 'Sort/Filter, slicers, text-to-columns, flash fill, remove duplicates, and validation lists.' },
+  { name: 'Analysis', detail: 'Pivot tables, grouping, subtotals, What-If analysis, Goal Seek, and Solver optimizations.' },
+  { name: 'Charts & visuals', detail: 'Columns, bars, lines, combo charts, sparklines, and conditional formatting heatmaps.' },
+  { name: 'Collaboration', detail: 'Comments/notes, version-aware recalculation, and change highlighting per cell.' },
+];
+
 const TemplateIcon = ({ type }: { type: string }) => {
   if (type === 'blank') {
     return (
@@ -109,6 +119,35 @@ export function AccelApp() {
 
         {/* Spreadsheet Grid */}
         <div style={{ flex: 1, overflow: 'auto' }}>
+          {/* Formatting Ribbon */}
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.22)', position: 'sticky', top: 0, zIndex: 1 }}>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <button style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontWeight: 700 }}>B</button>
+              <button style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontStyle: 'italic' }}>I</button>
+              <button style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', textDecoration: 'underline' }}>U</button>
+            </div>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <button style={{ padding: '0 10px', height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Fill ▾</button>
+              <button style={{ padding: '0 10px', height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Border ▾</button>
+            </div>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <button style={{ padding: '0 8px', height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Align ⬅️</button>
+              <button style={{ padding: '0 8px', height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Align ⬇️</button>
+              <button style={{ padding: '0 8px', height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Wrap</button>
+              <button style={{ padding: '0 8px', height: 28, borderRadius: 8, background: 'rgba(212,160,23,0.22)', border: '1px solid rgba(212,160,23,0.4)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Merge</button>
+            </div>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <div style={{ fontSize: 11, opacity: 0.75 }}>Cell size</div>
+              <input type="range" min="40" max="140" defaultValue="100" style={{ accentColor: '#d4a017', width: 110 }} />
+              <button style={{ padding: '0 8px', height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Auto-fit</button>
+            </div>
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <button style={{ padding: '0 10px', height: 28, borderRadius: 8, background: 'rgba(124,140,255,0.12)', border: '1px solid rgba(124,140,255,0.32)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Data ▾</button>
+              <button style={{ padding: '0 10px', height: 28, borderRadius: 8, background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.32)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Review ▾</button>
+              <button style={{ padding: '0 10px', height: 28, borderRadius: 8, background: 'rgba(244,114,182,0.12)', border: '1px solid rgba(244,114,182,0.32)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Solver</button>
+            </div>
+          </div>
+
           {/* Formula Bar */}
           <div style={{ height: '32px', background: 'rgba(255, 255, 255, 0.05)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', padding: '0 12px', gap: '12px' }}>
             <span style={{ fontSize: '12px', opacity: 0.7 }}>fx</span>
@@ -259,6 +298,30 @@ export function AccelApp() {
                 <li style={{ fontSize: '12px', opacity: 0.85 }}>Cross-sheet references with dependency tracking</li>
               </ul>
             </div>
+            <div style={{ padding: '10px', background: 'rgba(0,0,0,0.18)', borderRadius: '10px', border: '1px dashed rgba(255,255,255,0.12)' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, marginBottom: '6px' }}>Analysis & solver</div>
+              <ul style={{ paddingLeft: '18px', margin: 0, display: 'grid', gap: '4px' }}>
+                <li style={{ fontSize: '12px', opacity: 0.85 }}>Pivot tables with slicers, grouping, and field lists</li>
+                <li style={{ fontSize: '12px', opacity: 0.85 }}>Goal Seek plus Solver constraints for optimization</li>
+                <li style={{ fontSize: '12px', opacity: 0.85 }}>Scenario Manager for what-if comparisons</li>
+                <li style={{ fontSize: '12px', opacity: 0.85 }}>Line, bar, combo charts and cell-level sparklines</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div className="card" style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.1)', padding: '18px', display: 'grid', gap: '10px' }}>
+          <div style={{ fontSize: '14px', fontWeight: 700 }}>Accel vs Excel coverage</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
+            {powerTools.map((tool) => (
+              <div key={tool.name} style={{ padding: '10px', background: 'rgba(0,0,0,0.16)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div style={{ fontSize: '12px', fontWeight: 700 }}>{tool.name}</div>
+                <div style={{ fontSize: '12px', opacity: 0.8 }}>{tool.detail}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: '12px', opacity: 0.75 }}>
+            Accel preserves Excel-style text formatting, cell merging, column/row resizing, drag-fill gestures, data shaping, and Solver-style optimization primitives within the AngelOS environment.
           </div>
         </div>
       </div>
