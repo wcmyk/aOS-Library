@@ -52,10 +52,10 @@ export const apps: ShellApp[] = [
   },
   {
     id: 'archive',
-    name: 'Archive',
+    name: 'Accel',
     icon: `${BASE_URL}assets/apps/Archive.png`,
     description: 'Spreadsheet and data analysis',
-    accent: '#217346',
+    accent: '#d4a017',
     defaultSize: { width: 1000, height: 650 },
   },
   {

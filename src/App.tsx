@@ -27,6 +27,23 @@ const agentLog = [
   { time: '08:26', text: 'Pushing status updates to menu bar' },
 ];
 
+const accelTemplates = [
+  { name: 'Blank workbook', icon: '📄' },
+  { name: 'Inventory list', icon: '📊' },
+  { name: 'Personal monthly budget', icon: '💰' },
+  { name: 'Loan amortization schedule', icon: '📈' },
+  { name: 'Weekly chore schedule', icon: '✓' },
+  { name: 'Any year custom calendar', icon: '📅' },
+  { name: 'College expense estimator', icon: '🎓' },
+];
+
+const accelRecentFiles = [
+  { name: 'Q4 Sales Report.xlsx', path: 'Documents > Reports', modified: 'Just now' },
+  { name: 'Budget 2026.xlsx', path: 'Documents > Finance', modified: '1 day ago' },
+  { name: 'Inventory Tracker.xlsx', path: 'Documents > Business', modified: '2 days ago' },
+  { name: 'Project Timeline.xlsx', path: 'Documents > Projects', modified: 'Last week' },
+];
+
 const getStatusColor = (status: string) => {
   if (status === 'Running') return '#34d399';
   if (status === 'Queued') return '#facc15';
@@ -120,6 +137,65 @@ function renderWindowContent(window: WindowState) {
           <div className="card-title">Workspace Context</div>
           <div className="card-subtitle">
             AngelOS keeps a local index of prompts, artifacts, and live jobs. Everything stays client-side during phase 1.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (window.appId === 'archive') {
+    return (
+      <div style={{ padding: '24px', height: '100%', overflow: 'auto' }}>
+        <h2 style={{ margin: '0 0 20px', fontSize: '28px', fontWeight: 600 }}>Good afternoon</h2>
+
+        <div style={{ marginBottom: '32px' }}>
+          <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px', opacity: 0.7 }}>Templates</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px' }}>
+            {accelTemplates.map((template) => (
+              <div
+                key={template.name}
+                className="card"
+                style={{
+                  padding: '16px 12px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  background: 'rgba(212, 160, 23, 0.08)',
+                  borderColor: 'rgba(212, 160, 23, 0.2)',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div style={{ fontSize: '32px', marginBottom: '8px' }}>{template.icon}</div>
+                <div style={{ fontSize: '11px', lineHeight: 1.3 }}>{template.name}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px', opacity: 0.7 }}>Recent</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {accelRecentFiles.map((file) => (
+              <div
+                key={file.name}
+                className="card"
+                style={{
+                  padding: '12px 16px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  borderColor: 'rgba(212, 160, 23, 0.15)',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 600, marginBottom: '4px' }}>{file.name}</div>
+                  <div style={{ fontSize: '12px', opacity: 0.6 }}>{file.path}</div>
+                </div>
+                <div style={{ fontSize: '12px', opacity: 0.5 }}>{file.modified}</div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
