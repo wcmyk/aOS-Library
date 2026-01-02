@@ -1,464 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-
-// ============================================================================
-// TYPES
-// ============================================================================
-
-interface CellData {
-  value: string;
-  formula?: string;
-  displayValue?: string;
-  format?: {
-    bold?: boolean;
-    italic?: boolean;
-    underline?: boolean;
-    alignment?: 'left' | 'center' | 'right';
-    fontSize?: number;
-    color?: string;
-    backgroundColor?: string;
-  };
-  mergedWith?: string; // Cell address it's merged with (e.g., "B2:C3")
-  isMerged?: boolean; // If this cell is part of a merge
-}
-
-interface CellAddress {
-  row: number;
-  col: number;
-}
-
-// ============================================================================
-// EXCEL FORMULA ENGINE
-// ============================================================================
-
-class FormulaEngine {
-  cells: Map<string, CellData>;
-
-  constructor(cells: Map<string, CellData>) {
-    this.cells = cells;
-  }
-
-  // Convert column index to letter (0 -> A, 1 -> B, etc.)
-  static colToLetter(col: number): string {
-    let result = '';
-    while (col >= 0) {
-      result = String.fromCharCode(65 + (col % 26)) + result;
-      col = Math.floor(col / 26) - 1;
-    }
-    return result;
-  }
-
-  // Convert letter to column index (A -> 0, B -> 1, etc.)
-  static letterToCol(letter: string): number {
-    let col = 0;
-    for (let i = 0; i < letter.length; i++) {
-      col = col * 26 + (letter.charCodeAt(i) - 64);
-    }
-    return col - 1;
-  }
-
-  // Get cell address as string (e.g., "A1")
-  static getCellAddress(row: number, col: number): string {
-    return `${this.colToLetter(col)}${row + 1}`;
-  }
-
-  // Parse cell address to row/col
-  static parseCellAddress(address: string): CellAddress | null {
-    const match = address.match(/^([A-Z]+)(\d+)$/);
-    if (!match) return null;
-    return {
-      col: this.letterToCol(match[1]),
-      row: parseInt(match[2]) - 1
-    };
-  }
-
-  // Get cell value
-  getCellValue(address: string): number | string {
-    const cell = this.cells.get(address);
-    if (!cell) return 0;
-
-    if (cell.formula) {
-      return this.evaluateFormula(cell.formula);
-    }
-
-    const num = parseFloat(cell.value);
-    return isNaN(num) ? cell.value : num;
-  }
-
-  // Parse range (e.g., "A1:B5")
-  parseRange(range: string): CellAddress[] {
-    const [start, end] = range.split(':');
-    const startAddr = FormulaEngine.parseCellAddress(start);
-    const endAddr = FormulaEngine.parseCellAddress(end || start);
-
-    if (!startAddr || !endAddr) return [];
-
-    const cells: CellAddress[] = [];
-    for (let row = startAddr.row; row <= endAddr.row; row++) {
-      for (let col = startAddr.col; col <= endAddr.col; col++) {
-        cells.push({ row, col });
-      }
-    }
-    return cells;
-  }
-
-  // Get values from range
-  getRangeValues(range: string): (number | string)[] {
-    const addresses = this.parseRange(range);
-    return addresses.map(addr => {
-      const cellAddr = FormulaEngine.getCellAddress(addr.row, addr.col);
-      return this.getCellValue(cellAddr);
-    });
-  }
-
-  // Evaluate formula
-  evaluateFormula(formula: string): number | string {
-    try {
-      // Remove leading =
-      const expr = formula.startsWith('=') ? formula.substring(1) : formula;
-
-      // Replace cell references with values
-      let processedExpr = expr.replace(/([A-Z]+\d+):([A-Z]+\d+)/g, (match) => {
-        return `RANGE("${match}")`;
-      });
-
-      processedExpr = processedExpr.replace(/([A-Z]+\d+)/g, (match) => {
-        const value = this.getCellValue(match);
-        return typeof value === 'number' ? value.toString() : `"${value}"`;
-      });
-
-      // Evaluate functions
-      return this.evaluateFunctions(processedExpr);
-    } catch (error) {
-      return '#ERROR!';
-    }
-  }
-
-  // Evaluate Excel functions
-  evaluateFunctions(expr: string): number | string {
-    // Math & Trig Functions
-    expr = expr.replace(/SUM\(([^)]+)\)/g, (_, args) => {
-      const values = this.parseArgs(args);
-      return this.SUM(values).toString();
-    });
-
-    expr = expr.replace(/AVERAGE\(([^)]+)\)/g, (_, args) => {
-      const values = this.parseArgs(args);
-      return this.AVERAGE(values).toString();
-    });
-
-    expr = expr.replace(/COUNT\(([^)]+)\)/g, (_, args) => {
-      const values = this.parseArgs(args);
-      return this.COUNT(values).toString();
-    });
-
-    expr = expr.replace(/MAX\(([^)]+)\)/g, (_, args) => {
-      const values = this.parseArgs(args);
-      return this.MAX(values).toString();
-    });
-
-    expr = expr.replace(/MIN\(([^)]+)\)/g, (_, args) => {
-      const values = this.parseArgs(args);
-      return this.MIN(values).toString();
-    });
-
-    expr = expr.replace(/ROUND\(([^,]+),\s*(\d+)\)/g, (_, num, decimals) => {
-      return this.ROUND(parseFloat(num), parseInt(decimals)).toString();
-    });
-
-    expr = expr.replace(/ABS\(([^)]+)\)/g, (_, num) => {
-      return Math.abs(parseFloat(num)).toString();
-    });
-
-    expr = expr.replace(/SQRT\(([^)]+)\)/g, (_, num) => {
-      return Math.sqrt(parseFloat(num)).toString();
-    });
-
-    expr = expr.replace(/POWER\(([^,]+),\s*([^)]+)\)/g, (_, base, exp) => {
-      return Math.pow(parseFloat(base), parseFloat(exp)).toString();
-    });
-
-    // Logical Functions
-    expr = expr.replace(/IF\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g, (_, condition, trueVal, falseVal) => {
-      const cond = this.evaluateCondition(condition);
-      return cond ? trueVal : falseVal;
-    });
-
-    expr = expr.replace(/AND\(([^)]+)\)/g, (_, args) => {
-      const conditions = args.split(',').map((c: string) => this.evaluateCondition(c.trim()));
-      return conditions.every((c: boolean) => c).toString().toUpperCase();
-    });
-
-    expr = expr.replace(/OR\(([^)]+)\)/g, (_, args) => {
-      const conditions = args.split(',').map((c: string) => this.evaluateCondition(c.trim()));
-      return conditions.some((c: boolean) => c).toString().toUpperCase();
-    });
-
-    expr = expr.replace(/NOT\(([^)]+)\)/g, (_, condition) => {
-      return (!this.evaluateCondition(condition)).toString().toUpperCase();
-    });
-
-    // Text Functions
-    expr = expr.replace(/CONCATENATE\(([^)]+)\)/g, (_, args) => {
-      const values = this.parseArgs(args);
-      return `"${values.join('')}"`;
-    });
-
-    expr = expr.replace(/LEFT\("?([^,"]+)"?,\s*(\d+)\)/g, (_, text, count) => {
-      const str = text.replace(/"/g, '');
-      return `"${str.substring(0, parseInt(count))}"`;
-    });
-
-    expr = expr.replace(/RIGHT\("?([^,"]+)"?,\s*(\d+)\)/g, (_, text, count) => {
-      const str = text.replace(/"/g, '');
-      return `"${str.substring(str.length - parseInt(count))}"`;
-    });
-
-    expr = expr.replace(/LEN\("?([^)"]+)"?\)/g, (_, text) => {
-      const str = text.replace(/"/g, '');
-      return str.length.toString();
-    });
-
-    expr = expr.replace(/UPPER\("?([^)"]+)"?\)/g, (_, text) => {
-      const str = text.replace(/"/g, '');
-      return `"${str.toUpperCase()}"`;
-    });
-
-    expr = expr.replace(/LOWER\("?([^)"]+)"?\)/g, (_, text) => {
-      const str = text.replace(/"/g, '');
-      return `"${str.toLowerCase()}"`;
-    });
-
-    expr = expr.replace(/TRIM\("?([^)"]+)"?\)/g, (_, text) => {
-      const str = text.replace(/"/g, '');
-      return `"${str.trim()}"`;
-    });
-
-    // Date & Time Functions
-    expr = expr.replace(/TODAY\(\)/g, () => {
-      return `"${new Date().toLocaleDateString()}"`;
-    });
-
-    expr = expr.replace(/NOW\(\)/g, () => {
-      return `"${new Date().toLocaleString()}"`;
-    });
-
-    expr = expr.replace(/YEAR\(\)/g, () => {
-      return new Date().getFullYear().toString();
-    });
-
-    expr = expr.replace(/MONTH\(\)/g, () => {
-      return (new Date().getMonth() + 1).toString();
-    });
-
-    expr = expr.replace(/DAY\(\)/g, () => {
-      return new Date().getDate().toString();
-    });
-
-    // Statistical Functions
-    expr = expr.replace(/MEDIAN\(([^)]+)\)/g, (_, args) => {
-      const values = this.parseArgs(args);
-      return this.MEDIAN(values).toString();
-    });
-
-    expr = expr.replace(/MODE\(([^)]+)\)/g, (_, args) => {
-      const values = this.parseArgs(args);
-      return this.MODE(values).toString();
-    });
-
-    expr = expr.replace(/STDEV\(([^)]+)\)/g, (_, args) => {
-      const values = this.parseArgs(args);
-      return this.STDEV(values).toString();
-    });
-
-    expr = expr.replace(/VAR\(([^)]+)\)/g, (_, args) => {
-      const values = this.parseArgs(args);
-      return this.VAR(values).toString();
-    });
-
-    // Financial Functions
-    expr = expr.replace(/PMT\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g, (_, rate, nper, pv) => {
-      return this.PMT(parseFloat(rate), parseFloat(nper), parseFloat(pv)).toString();
-    });
-
-    expr = expr.replace(/FV\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g, (_, rate, nper, pmt) => {
-      return this.FV(parseFloat(rate), parseFloat(nper), parseFloat(pmt)).toString();
-    });
-
-    // Lookup Functions
-    expr = expr.replace(/VLOOKUP\(([^,]+),\s*([^,]+),\s*([^,)]+)\)/g, (_, lookup, range, col) => {
-      return this.VLOOKUP(lookup, range, parseInt(col)).toString();
-    });
-
-    // Handle RANGE function (internal)
-    expr = expr.replace(/RANGE\("([^"]+)"\)/g, (_, range) => {
-      const values = this.getRangeValues(range);
-      return `[${values.join(',')}]`;
-    });
-
-    // Evaluate mathematical expressions
-    try {
-      // Remove quotes for final evaluation if it's a string
-      if (expr.startsWith('"') && expr.endsWith('"')) {
-        return expr.slice(1, -1);
-      }
-
-      // Safely evaluate mathematical expression
-      const result = this.safeEval(expr);
-      return result;
-    } catch {
-      return expr;
-    }
-  }
-
-  // Parse function arguments
-  parseArgs(args: string): any[] {
-    if (args.startsWith('[') && args.endsWith(']')) {
-      return args.slice(1, -1).split(',').map(v => parseFloat(v.trim()));
-    }
-    return args.split(',').map(arg => {
-      const trimmed = arg.trim();
-      if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
-        return trimmed.slice(1, -1);
-      }
-      const num = parseFloat(trimmed);
-      return isNaN(num) ? trimmed : num;
-    });
-  }
-
-  // Safe eval for math expressions
-  safeEval(expr: string): number {
-    // Only allow numbers and basic operators
-    const sanitized = expr.replace(/[^0-9+\-*/(). ]/g, '');
-    return Function('"use strict"; return (' + sanitized + ')')();
-  }
-
-  // Evaluate condition for IF statements
-  evaluateCondition(condition: string): boolean {
-    try {
-      const match = condition.match(/([^>=<]+)\s*([>=<]+)\s*([^>=<]+)/);
-      if (!match) return false;
-
-      const left = parseFloat(match[1].trim());
-      const operator = match[2].trim();
-      const right = parseFloat(match[3].trim());
-
-      switch (operator) {
-        case '>': return left > right;
-        case '<': return left < right;
-        case '>=': return left >= right;
-        case '<=': return left <= right;
-        case '=': case '==': return left === right;
-        case '!=': case '<>': return left !== right;
-        default: return false;
-      }
-    } catch {
-      return false;
-    }
-  }
-
-  // ============================================================================
-  // EXCEL FUNCTIONS IMPLEMENTATION
-  // ============================================================================
-
-  // Math & Trig Functions
-  SUM(values: any[]): number {
-    return values.reduce((sum, val) => {
-      const num = typeof val === 'number' ? val : parseFloat(val);
-      return sum + (isNaN(num) ? 0 : num);
-    }, 0);
-  }
-
-  AVERAGE(values: any[]): number {
-    const nums = values.filter(v => !isNaN(parseFloat(v)));
-    return nums.length > 0 ? this.SUM(nums) / nums.length : 0;
-  }
-
-  COUNT(values: any[]): number {
-    return values.filter(v => !isNaN(parseFloat(v))).length;
-  }
-
-  MAX(values: any[]): number {
-    const nums = values.map(v => parseFloat(v)).filter(n => !isNaN(n));
-    return nums.length > 0 ? Math.max(...nums) : 0;
-  }
-
-  MIN(values: any[]): number {
-    const nums = values.map(v => parseFloat(v)).filter(n => !isNaN(n));
-    return nums.length > 0 ? Math.min(...nums) : 0;
-  }
-
-  ROUND(num: number, decimals: number): number {
-    return Math.round(num * Math.pow(10, decimals)) / Math.pow(10, decimals);
-  }
-
-  // Statistical Functions
-  MEDIAN(values: any[]): number {
-    const nums = values.map(v => parseFloat(v)).filter(n => !isNaN(n)).sort((a, b) => a - b);
-    if (nums.length === 0) return 0;
-    const mid = Math.floor(nums.length / 2);
-    return nums.length % 2 === 0 ? (nums[mid - 1] + nums[mid]) / 2 : nums[mid];
-  }
-
-  MODE(values: any[]): number {
-    const nums = values.map(v => parseFloat(v)).filter(n => !isNaN(n));
-    const frequency: { [key: number]: number } = {};
-    let maxFreq = 0;
-    let mode = 0;
-
-    nums.forEach(num => {
-      frequency[num] = (frequency[num] || 0) + 1;
-      if (frequency[num] > maxFreq) {
-        maxFreq = frequency[num];
-        mode = num;
-      }
-    });
-
-    return mode;
-  }
-
-  STDEV(values: any[]): number {
-    const avg = this.AVERAGE(values);
-    const nums = values.map(v => parseFloat(v)).filter(n => !isNaN(n));
-    const squareDiffs = nums.map(num => Math.pow(num - avg, 2));
-    return Math.sqrt(this.SUM(squareDiffs) / nums.length);
-  }
-
-  VAR(values: any[]): number {
-    const stdev = this.STDEV(values);
-    return stdev * stdev;
-  }
-
-  // Financial Functions
-  PMT(rate: number, nper: number, pv: number): number {
-    if (rate === 0) return -pv / nper;
-    return (rate * pv) / (1 - Math.pow(1 + rate, -nper));
-  }
-
-  FV(rate: number, nper: number, pmt: number): number {
-    if (rate === 0) return -pmt * nper;
-    return -pmt * (Math.pow(1 + rate, nper) - 1) / rate;
-  }
-
-  // Lookup Functions
-  VLOOKUP(lookup: any, range: string, colIndex: number): any {
-    const addresses = this.parseRange(range);
-    const startCol = addresses[0].col;
-
-    for (const addr of addresses) {
-      if (addr.col === startCol) {
-        const cellAddr = FormulaEngine.getCellAddress(addr.row, addr.col);
-        const value = this.getCellValue(cellAddr);
-
-        if (value === lookup) {
-          const targetAddr = FormulaEngine.getCellAddress(addr.row, startCol + colIndex - 1);
-          return this.getCellValue(targetAddr);
-        }
-      }
-    }
-
-    return '#N/A';
-  }
-}
+import { ExcelFormulas } from '../excel/formulas';
+import { AutoFillEngine } from '../excel/autofill';
+import { CellFormatter } from '../excel/formatting';
+import type { CellData, CellAddress } from '../excel/types';
 
 // ============================================================================
 // TEMPLATE DATA
@@ -568,6 +112,23 @@ const TemplateIcon = ({ type }: { type: string }) => {
 };
 
 // ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+function colToLetter(col: number): string {
+  let result = '';
+  while (col >= 0) {
+    result = String.fromCharCode(65 + (col % 26)) + result;
+    col = Math.floor(col / 26) - 1;
+  }
+  return result;
+}
+
+function getCellAddress(row: number, col: number): string {
+  return `${colToLetter(col)}${row + 1}`;
+}
+
+// ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
@@ -581,31 +142,41 @@ export function AccelApp() {
   const [isSelecting, setIsSelecting] = useState(false);
   const [formulaBarValue, setFormulaBarValue] = useState('');
   const [editingCell, setEditingCell] = useState<CellAddress | null>(null);
-  const [dragStart, setDragStart] = useState<CellAddress | null>(null);
+  const [isDraggingFill, setIsDraggingFill] = useState(false);
+  const [dragFillStart, setDragFillStart] = useState<CellAddress | null>(null);
+  const [dragFillEnd, setDragFillEnd] = useState<CellAddress | null>(null);
   const [copiedRange, setCopiedRange] = useState<{ start: CellAddress; end: CellAddress } | null>(null);
+  const [isTableMode, setIsTableMode] = useState(false);
+  const [tableRange, setTableRange] = useState<{ start: CellAddress; end: CellAddress } | null>(null);
 
   const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
+  const autoFillEngine = useRef(new AutoFillEngine());
+  const formatter = useRef(new CellFormatter());
 
   // Get cell data or create empty
   const getCell = (row: number, col: number): CellData => {
-    const address = FormulaEngine.getCellAddress(row, col);
+    const address = getCellAddress(row, col);
     return cells.get(address) || { value: '', displayValue: '' };
   };
 
-  // Update cell data
+  // Update cell data with formula recalculation
   const updateCell = useCallback((row: number, col: number, data: Partial<CellData>) => {
-    const address = FormulaEngine.getCellAddress(row, col);
+    const address = getCellAddress(row, col);
     setCells(prev => {
       const newCells = new Map(prev);
       const existing = newCells.get(address) || { value: '', displayValue: '' };
       newCells.set(address, { ...existing, ...data });
 
-      // Recalculate formulas
-      const engine = new FormulaEngine(newCells);
+      // Recalculate ALL formulas in the spreadsheet
+      const formulas = new ExcelFormulas(newCells);
       newCells.forEach((cell, addr) => {
         if (cell.formula) {
-          const result = engine.evaluateFormula(cell.formula);
-          cell.displayValue = result.toString();
+          try {
+            const result = evaluateFormula(cell.formula, newCells, formulas);
+            cell.displayValue = result.toString();
+          } catch (error) {
+            cell.displayValue = '#ERROR!';
+          }
         }
       });
 
@@ -613,17 +184,147 @@ export function AccelApp() {
     });
   }, []);
 
+  // Evaluate formula using Excel formula engine
+  const evaluateFormula = (formula: string, cellMap: Map<string, CellData>, formulas: ExcelFormulas): any => {
+    // Remove leading =
+    let expr = formula.startsWith('=') ? formula.substring(1).toUpperCase() : formula.toUpperCase();
+
+    // Replace cell references with actual values
+    expr = expr.replace(/([A-Z]+\d+):([A-Z]+\d+)/g, (match, start, end) => {
+      const values = getRangeValues(start, end, cellMap);
+      return `[${values.join(',')}]`;
+    });
+
+    expr = expr.replace(/([A-Z]+\d+)/g, (match) => {
+      const cell = cellMap.get(match);
+      if (!cell) return '0';
+
+      const num = parseFloat(cell.value);
+      if (!isNaN(num)) return num.toString();
+      return `"${cell.value}"`;
+    });
+
+    // Evaluate Excel functions
+    return evaluateExcelFunctions(expr, formulas);
+  };
+
+  // Get values from a range
+  const getRangeValues = (start: string, end: string, cellMap: Map<string, CellData>): number[] => {
+    const startMatch = start.match(/([A-Z]+)(\d+)/);
+    const endMatch = end.match(/([A-Z]+)(\d+)/);
+
+    if (!startMatch || !endMatch) return [];
+
+    const startCol = letterToCol(startMatch[1]);
+    const startRow = parseInt(startMatch[2]) - 1;
+    const endCol = letterToCol(endMatch[1]);
+    const endRow = parseInt(endMatch[2]) - 1;
+
+    const values: number[] = [];
+    for (let row = startRow; row <= endRow; row++) {
+      for (let col = startCol; col <= endCol; col++) {
+        const cell = cellMap.get(getCellAddress(row, col));
+        const num = parseFloat(cell?.value || '0');
+        values.push(isNaN(num) ? 0 : num);
+      }
+    }
+
+    return values;
+  };
+
+  // Convert letter to column index
+  const letterToCol = (letter: string): number => {
+    let col = 0;
+    for (let i = 0; i < letter.length; i++) {
+      col = col * 26 + (letter.charCodeAt(i) - 64);
+    }
+    return col - 1;
+  };
+
+  // Evaluate Excel functions
+  const evaluateExcelFunctions = (expr: string, formulas: ExcelFormulas): any => {
+    // Parse array notation
+    const parseArray = (str: string): number[] => {
+      if (!str.startsWith('[') || !str.endsWith(']')) return [];
+      return str.slice(1, -1).split(',').map(v => parseFloat(v.trim()) || 0);
+    };
+
+    // Handle SUM
+    expr = expr.replace(/SUM\(([^)]+)\)/g, (_, args) => {
+      const arr = parseArray(args);
+      return formulas.SUM(...arr).toString();
+    });
+
+    // Handle AVERAGE
+    expr = expr.replace(/AVERAGE\(([^)]+)\)/g, (_, args) => {
+      const arr = parseArray(args);
+      return formulas.AVERAGE(...arr).toString();
+    });
+
+    // Handle COUNT
+    expr = expr.replace(/COUNT\(([^)]+)\)/g, (_, args) => {
+      const arr = parseArray(args);
+      return formulas.COUNT(...arr).toString();
+    });
+
+    // Handle MAX
+    expr = expr.replace(/MAX\(([^)]+)\)/g, (_, args) => {
+      const arr = parseArray(args);
+      return formulas.MAX(...arr).toString();
+    });
+
+    // Handle MIN
+    expr = expr.replace(/MIN\(([^)]+)\)/g, (_, args) => {
+      const arr = parseArray(args);
+      return formulas.MIN(...arr).toString();
+    });
+
+    // Handle IF
+    expr = expr.replace(/IF\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g, (_, condition, trueVal, falseVal) => {
+      const cond = evaluateCondition(condition);
+      return cond ? trueVal : falseVal;
+    });
+
+    // Evaluate basic math
+    try {
+      const sanitized = expr.replace(/[^0-9+\-*/().]/g, '');
+      if (sanitized) {
+        return Function('"use strict"; return (' + sanitized + ')')();
+      }
+    } catch {}
+
+    return expr;
+  };
+
+  // Evaluate condition
+  const evaluateCondition = (condition: string): boolean => {
+    const match = condition.match(/([^>=<]+)\s*([>=<]+)\s*([^>=<]+)/);
+    if (!match) return false;
+
+    const left = parseFloat(match[1].trim());
+    const operator = match[2].trim();
+    const right = parseFloat(match[3].trim());
+
+    switch (operator) {
+      case '>': return left > right;
+      case '<': return left < right;
+      case '>=': return left >= right;
+      case '<=': return left <= right;
+      case '=': case '==': return left === right;
+      case '!=': case '<>': return left !== right;
+      default: return false;
+    }
+  };
+
   // Handle cell input
   const handleCellInput = (row: number, col: number, value: string) => {
     const isFormula = value.startsWith('=');
 
     if (isFormula) {
-      const engine = new FormulaEngine(cells);
-      const result = engine.evaluateFormula(value);
       updateCell(row, col, {
         value: value,
         formula: value,
-        displayValue: result.toString()
+        displayValue: value
       });
     } else {
       updateCell(row, col, {
@@ -639,7 +340,6 @@ export function AccelApp() {
   // Handle cell click
   const handleCellClick = (row: number, col: number, event: React.MouseEvent) => {
     if (event.shiftKey && selectedCell) {
-      // Range selection
       setSelectionEnd({ row, col });
     } else {
       setSelectedCell({ row, col });
@@ -655,11 +355,9 @@ export function AccelApp() {
   // Handle cell double-click for editing
   const handleCellDoubleClick = (row: number, col: number) => {
     setEditingCell({ row, col });
-    const cell = getCell(row, col);
 
-    // Focus the input
     setTimeout(() => {
-      const address = FormulaEngine.getCellAddress(row, col);
+      const address = getCellAddress(row, col);
       const input = inputRefs.current.get(address);
       if (input) {
         input.focus();
@@ -670,7 +368,7 @@ export function AccelApp() {
 
   // Handle mouse down for drag selection
   const handleMouseDown = (row: number, col: number, event: React.MouseEvent) => {
-    if (event.button === 0) { // Left click
+    if (event.button === 0) {
       setIsSelecting(true);
       setSelectionStart({ row, col });
       setSelectionEnd({ row, col });
@@ -682,39 +380,91 @@ export function AccelApp() {
   const handleMouseEnter = (row: number, col: number) => {
     if (isSelecting) {
       setSelectionEnd({ row, col });
+    } else if (isDraggingFill && dragFillStart) {
+      setDragFillEnd({ row, col });
     }
   };
 
   // Handle mouse up
   const handleMouseUp = () => {
+    if (isDraggingFill && dragFillStart && dragFillEnd) {
+      performAutoFill(dragFillStart, dragFillEnd);
+      setIsDraggingFill(false);
+      setDragFillStart(null);
+      setDragFillEnd(null);
+    }
     setIsSelecting(false);
   };
 
-  // Handle drag fill (auto-fill)
-  const handleDragFillStart = (row: number, col: number) => {
-    setDragStart({ row, col });
+  // Handle drag fill start
+  const handleDragFillStart = (row: number, col: number, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setIsDraggingFill(true);
+    setDragFillStart({ row, col });
+    setDragFillEnd({ row, col });
   };
 
-  const handleDragFillEnd = (row: number, col: number) => {
-    if (!dragStart) return;
+  // Perform auto-fill with smart pattern detection
+  const performAutoFill = (start: CellAddress, end: CellAddress) => {
+    const startCell = getCell(start.row, start.col);
+    const startValue = startCell.value;
 
-    const startCell = getCell(dragStart.row, dragStart.col);
+    // Determine direction
+    const isVertical = Math.abs(end.row - start.row) > Math.abs(end.col - start.col);
+    const isIncreasing = isVertical ? end.row > start.row : end.col > start.col;
 
-    // Auto-fill down
-    if (row > dragStart.row && col === dragStart.col) {
-      for (let r = dragStart.row + 1; r <= row; r++) {
-        handleCellInput(r, col, startCell.value);
+    // Check if value is a number
+    const num = parseFloat(startValue);
+    const isNumber = !isNaN(num);
+
+    if (isNumber) {
+      // Auto-increment numbers
+      const step = isIncreasing ? 1 : -1;
+      let currentValue = num;
+
+      if (isVertical) {
+        const minRow = Math.min(start.row, end.row);
+        const maxRow = Math.max(start.row, end.row);
+
+        for (let row = minRow; row <= maxRow; row++) {
+          if (row !== start.row) {
+            currentValue += step;
+            handleCellInput(row, start.col, currentValue.toString());
+          }
+        }
+      } else {
+        const minCol = Math.min(start.col, end.col);
+        const maxCol = Math.max(start.col, end.col);
+
+        for (let col = minCol; col <= maxCol; col++) {
+          if (col !== start.col) {
+            currentValue += step;
+            handleCellInput(start.row, col, currentValue.toString());
+          }
+        }
+      }
+    } else {
+      // Copy value for non-numbers
+      if (isVertical) {
+        const minRow = Math.min(start.row, end.row);
+        const maxRow = Math.max(start.row, end.row);
+
+        for (let row = minRow; row <= maxRow; row++) {
+          if (row !== start.row) {
+            handleCellInput(row, start.col, startValue);
+          }
+        }
+      } else {
+        const minCol = Math.min(start.col, end.col);
+        const maxCol = Math.max(start.col, end.col);
+
+        for (let col = minCol; col <= maxCol; col++) {
+          if (col !== start.col) {
+            handleCellInput(start.row, col, startValue);
+          }
+        }
       }
     }
-
-    // Auto-fill right
-    if (col > dragStart.col && row === dragStart.row) {
-      for (let c = dragStart.col + 1; c <= col; c++) {
-        handleCellInput(row, c, startCell.value);
-      }
-    }
-
-    setDragStart(null);
   };
 
   // Copy selected range
@@ -742,6 +492,37 @@ export function AccelApp() {
     }
   };
 
+  // Convert to table
+  const handleConvertToTable = () => {
+    if (!selectionStart || !selectionEnd) return;
+
+    setIsTableMode(true);
+    setTableRange({ start: selectionStart, end: selectionEnd });
+
+    // Apply table styling to selected range
+    const minRow = Math.min(selectionStart.row, selectionEnd.row);
+    const maxRow = Math.max(selectionStart.row, selectionEnd.row);
+    const minCol = Math.min(selectionStart.col, selectionEnd.col);
+    const maxCol = Math.max(selectionStart.col, selectionEnd.col);
+
+    // Style header row
+    for (let col = minCol; col <= maxCol; col++) {
+      const address = getCellAddress(minRow, col);
+      setCells(prev => {
+        const newCells = new Map(prev);
+        const cell = newCells.get(address) || { value: '', displayValue: '' };
+        cell.format = {
+          ...cell.format,
+          bold: true,
+          backgroundColor: 'rgba(212, 160, 23, 0.3)',
+          borderBottom: { style: 'medium', color: 'rgba(212, 160, 23, 0.8)' }
+        };
+        newCells.set(address, cell);
+        return newCells;
+      });
+    }
+  };
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -749,6 +530,9 @@ export function AccelApp() {
         handleCopy();
       } else if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
         handlePaste();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+        e.preventDefault();
+        handleConvertToTable();
       }
     };
 
@@ -764,6 +548,18 @@ export function AccelApp() {
     const maxRow = Math.max(selectionStart.row, selectionEnd.row);
     const minCol = Math.min(selectionStart.col, selectionEnd.col);
     const maxCol = Math.max(selectionStart.col, selectionEnd.col);
+
+    return row >= minRow && row <= maxRow && col >= minCol && col <= maxCol;
+  };
+
+  // Check if cell is in table
+  const isCellInTable = (row: number, col: number): boolean => {
+    if (!tableRange) return false;
+
+    const minRow = Math.min(tableRange.start.row, tableRange.end.row);
+    const maxRow = Math.max(tableRange.start.row, tableRange.end.row);
+    const minCol = Math.min(tableRange.start.col, tableRange.end.col);
+    const maxCol = Math.max(tableRange.start.col, tableRange.end.col);
 
     return row >= minRow && row <= maxRow && col >= minCol && col <= maxCol;
   };
@@ -807,6 +603,14 @@ export function AccelApp() {
             <button style={{ padding: '4px 12px', background: 'rgba(212, 160, 23, 0.2)', border: '1px solid rgba(212, 160, 23, 0.3)', borderRadius: '4px', color: '#fff', fontSize: '11px', cursor: 'pointer' }}>
               Merge
             </button>
+            <div style={{ width: '1px', height: '20px', background: 'rgba(255, 255, 255, 0.1)' }}></div>
+            <button
+              onClick={handleConvertToTable}
+              style={{ padding: '4px 12px', background: 'rgba(212, 160, 23, 0.2)', border: '1px solid rgba(212, 160, 23, 0.3)', borderRadius: '4px', color: '#fff', fontSize: '11px', cursor: 'pointer' }}
+              title="Convert to Table (Ctrl+T)"
+            >
+              📊 Table
+            </button>
           </div>
 
           {/* Formula Bar */}
@@ -829,7 +633,7 @@ export function AccelApp() {
                 <div style={{ width: '50px', minWidth: '50px', height: '28px', borderRight: '1px solid rgba(255, 255, 255, 0.08)', background: 'rgba(255, 255, 255, 0.05)' }}></div>
                 {Array.from({ length: 26 }, (_, i) => (
                   <div key={i} style={{ width: '100px', minWidth: '100px', height: '28px', borderRight: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 600 }}>
-                    {FormulaEngine.colToLetter(i)}
+                    {colToLetter(i)}
                   </div>
                 ))}
               </div>
@@ -848,7 +652,8 @@ export function AccelApp() {
                     const isSelected = isCellSelected(rowIndex, colIndex);
                     const isActive = selectedCell?.row === rowIndex && selectedCell?.col === colIndex;
                     const isEditing = editingCell?.row === rowIndex && editingCell?.col === colIndex;
-                    const address = FormulaEngine.getCellAddress(rowIndex, colIndex);
+                    const isInTable = isCellInTable(rowIndex, colIndex);
+                    const address = getCellAddress(rowIndex, colIndex);
 
                     return (
                       <div
@@ -860,7 +665,9 @@ export function AccelApp() {
                           borderRight: '1px solid rgba(255, 255, 255, 0.08)',
                           padding: '0',
                           position: 'relative',
-                          background: isSelected ? 'rgba(212, 160, 23, 0.2)' : 'transparent',
+                          background: isSelected ? 'rgba(212, 160, 23, 0.2)' :
+                                     isInTable ? 'rgba(212, 160, 23, 0.05)' :
+                                     cell.format?.backgroundColor || 'transparent',
                           border: isActive ? '2px solid rgba(212, 160, 23, 0.8)' : undefined,
                           cursor: 'cell'
                         }}
@@ -874,7 +681,7 @@ export function AccelApp() {
                             if (el) inputRefs.current.set(address, el);
                           }}
                           type="text"
-                          value={isEditing ? cell.value : (cell.displayValue || cell.value)}
+                          value={isEditing ? (cell.formula || cell.value) : (cell.displayValue || cell.value)}
                           onChange={(e) => {
                             if (isEditing) {
                               handleCellInput(rowIndex, colIndex, e.target.value);
@@ -884,14 +691,12 @@ export function AccelApp() {
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                               setEditingCell(null);
-                              // Move to next row
                               setSelectedCell({ row: rowIndex + 1, col: colIndex });
                               setSelectionStart({ row: rowIndex + 1, col: colIndex });
                               setSelectionEnd({ row: rowIndex + 1, col: colIndex });
                             } else if (e.key === 'Tab') {
                               e.preventDefault();
                               setEditingCell(null);
-                              // Move to next column
                               const nextCol = colIndex + 1;
                               setSelectedCell({ row: rowIndex, col: nextCol });
                               setSelectionStart({ row: rowIndex, col: nextCol });
@@ -921,16 +726,16 @@ export function AccelApp() {
                           <div
                             style={{
                               position: 'absolute',
-                              bottom: -2,
-                              right: -2,
-                              width: '6px',
-                              height: '6px',
+                              bottom: -3,
+                              right: -3,
+                              width: '8px',
+                              height: '8px',
                               background: 'rgba(212, 160, 23, 1)',
                               cursor: 'crosshair',
-                              zIndex: 10
+                              zIndex: 10,
+                              borderRadius: '1px'
                             }}
-                            onMouseDown={() => handleDragFillStart(rowIndex, colIndex)}
-                            onMouseUp={() => handleDragFillEnd(rowIndex, colIndex)}
+                            onMouseDown={(e) => handleDragFillStart(rowIndex, colIndex, e)}
                           ></div>
                         )}
                       </div>
@@ -943,10 +748,11 @@ export function AccelApp() {
 
           {/* Status Bar */}
           <div style={{ height: '24px', background: 'rgba(255, 255, 255, 0.03)', borderTop: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', padding: '0 12px', fontSize: '11px', opacity: 0.7 }}>
-            {selectedCell && `${FormulaEngine.getCellAddress(selectedCell.row, selectedCell.col)}`}
+            {selectedCell && `${getCellAddress(selectedCell.row, selectedCell.col)}`}
             {selectionStart && selectionEnd && (selectionStart.row !== selectionEnd.row || selectionStart.col !== selectionEnd.col) &&
-              ` : ${FormulaEngine.getCellAddress(selectionStart.row, selectionStart.col)}:${FormulaEngine.getCellAddress(selectionEnd.row, selectionEnd.col)}`
+              ` : ${getCellAddress(selectionStart.row, selectionStart.col)}:${getCellAddress(selectionEnd.row, selectionEnd.col)}`
             }
+            {isTableMode && ' • Table Mode'}
           </div>
         </div>
       </div>
