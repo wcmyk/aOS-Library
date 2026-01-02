@@ -32,7 +32,7 @@ export function Dock({ apps, windows, onLaunch }: DockProps) {
             src={app.icon}
             alt={app.name}
             className="dock-icon"
-            style={{ width: 48, height: 48, borderRadius: 10 }}
+            style={{ width: 58, height: 58, borderRadius: 12 }}
           />
           <span className="dock-label">{app.name}</span>
           {openApps.has(app.id) && <span className="dock-indicator" />}
