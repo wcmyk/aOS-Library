@@ -187,9 +187,27 @@ button {
 }
 
 .dock-label {
-  font-size: 11px;
-  margin-top: 4px;
-  opacity: 0.85;
+  position: absolute;
+  bottom: 75px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  padding: 6px 12px;
+  background: rgba(30, 35, 45, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+}
+
+.dock-item:hover .dock-label {
+  opacity: 1;
+  visibility: visible;
 }
 
 .dock-indicator {
