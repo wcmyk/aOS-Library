@@ -214,7 +214,7 @@ export default function App() {
         id: 'show-jobs',
         title: 'Show running jobs',
         description: 'Focus the job monitor window',
-        icon: '/assets/apps/job-monitor.png',
+        icon: `${import.meta.env.BASE_URL}assets/apps/job-monitor.png`,
         action: () => {
           openWindow('job-monitor');
           toggleSpotlight(false);
@@ -224,7 +224,7 @@ export default function App() {
         id: 'open-latest',
         title: 'Open latest artifact',
         description: 'Launch Artifact Explorer pinned to newest items',
-        icon: '/assets/apps/artifact-explorer.png',
+        icon: `${import.meta.env.BASE_URL}assets/apps/artifact-explorer.png`,
         action: () => {
           openWindow('artifact-explorer');
           toggleSpotlight(false);
@@ -246,9 +246,9 @@ export default function App() {
 
       <div className="desktop">
         <div className="desktop-icons">
-          <DesktopIcon label="Workspace" icon="/assets/desktop/workspace.png" />
-          <DesktopIcon label="Latest Job" icon="/assets/desktop/latest-job.png" />
-          <DesktopIcon label="Artifacts" icon="/assets/desktop/artifacts.png" />
+          <DesktopIcon label="Workspace" icon={`${import.meta.env.BASE_URL}assets/desktop/workspace.png`} />
+          <DesktopIcon label="Latest Job" icon={`${import.meta.env.BASE_URL}assets/desktop/latest-job.png`} />
+          <DesktopIcon label="Artifacts" icon={`${import.meta.env.BASE_URL}assets/desktop/artifacts.png`} />
         </div>
 
         {visibleWindows.map((window) => (
