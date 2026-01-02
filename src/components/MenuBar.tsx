@@ -25,7 +25,7 @@ export function MenuBar({ workspaceName, stateText, jobCount, agentActive, onTog
   return (
     <header className="menubar">
       <div className="menubar-left">
-        <span>🪽 AngelOS</span>
+        <span>aOS</span>
         <span className="menubar-state">{workspaceName}</span>
         <span className="menubar-state">{stateText}</span>
       </div>
