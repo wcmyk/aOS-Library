@@ -96,9 +96,9 @@ button {
   gap: 12px;
   color: #dfe4ef;
   backdrop-filter: blur(18px);
-  background: linear-gradient(180deg, rgba(18, 21, 27, 0.6), rgba(18, 21, 27, 0.35));
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  box-shadow: none;
   z-index: 5;
 }
 
@@ -118,8 +118,8 @@ button {
 .menubar-state {
   padding: 4px 10px;
   border-radius: 10px;
-  background: rgba(88, 194, 255, 0.12);
-  border: 1px solid rgba(88, 194, 255, 0.2);
+  background: transparent;
+  border: 1px solid rgba(88, 194, 255, 0.15);
   color: #b7dfff;
   font-size: 12px;
 }
@@ -133,8 +133,8 @@ button {
 .menubar-pill {
   padding: 6px 10px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(8px);
 }
 
