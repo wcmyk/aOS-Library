@@ -33,9 +33,9 @@ const getStatusColor = (status: string) => {
   return '#94a3b8';
 };
 
-const DesktopIcon = ({ label, emoji }: { label: string; emoji: string }) => (
+const DesktopIcon = ({ label, icon }: { label: string; icon: string }) => (
   <div className="desktop-icon">
-    <div style={{ fontSize: 26 }}>{emoji}</div>
+    <img src={icon} alt={label} style={{ width: 64, height: 64, borderRadius: 12 }} />
     <div className="card-title">{label}</div>
   </div>
 );
@@ -47,7 +47,7 @@ function renderWindowContent(window: WindowState) {
         {artifacts.map((artifact) => (
           <div key={artifact.title} className="card">
             <div className="pill" style={{ borderColor: `${artifact.accent}33`, background: `${artifact.accent}16` }}>
-              <span style={{ fontSize: 14 }}>📄</span> {artifact.kind}
+              {artifact.kind}
             </div>
             <div className="card-title">{artifact.title}</div>
             <div className="card-subtitle">{artifact.detail}</div>
@@ -214,7 +214,7 @@ export default function App() {
         id: 'show-jobs',
         title: 'Show running jobs',
         description: 'Focus the job monitor window',
-        icon: '📊',
+        icon: '/assets/apps/job-monitor.png',
         action: () => {
           openWindow('job-monitor');
           toggleSpotlight(false);
@@ -224,7 +224,7 @@ export default function App() {
         id: 'open-latest',
         title: 'Open latest artifact',
         description: 'Launch Artifact Explorer pinned to newest items',
-        icon: '🗂️',
+        icon: '/assets/apps/artifact-explorer.png',
         action: () => {
           openWindow('artifact-explorer');
           toggleSpotlight(false);
@@ -246,9 +246,9 @@ export default function App() {
 
       <div className="desktop">
         <div className="desktop-icons">
-          <DesktopIcon label="Workspace" emoji="🪟" />
-          <DesktopIcon label="Latest Job" emoji="📈" />
-          <DesktopIcon label="Artifacts" emoji="🧩" />
+          <DesktopIcon label="Workspace" icon="/assets/desktop/workspace.png" />
+          <DesktopIcon label="Latest Job" icon="/assets/desktop/latest-job.png" />
+          <DesktopIcon label="Artifacts" icon="/assets/desktop/artifacts.png" />
         </div>
 
         {visibleWindows.map((window) => (

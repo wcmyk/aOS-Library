@@ -28,9 +28,12 @@ export function Dock({ apps, windows, onLaunch }: DockProps) {
           type="button"
           aria-label={`Open ${app.name}`}
         >
-          <span className="dock-icon" aria-hidden>
-            {app.icon}
-          </span>
+          <img
+            src={app.icon}
+            alt={app.name}
+            className="dock-icon"
+            style={{ width: 48, height: 48, borderRadius: 10 }}
+          />
           <span className="dock-label">{app.name.split(' ')[0]}</span>
           {openApps.has(app.id) && <span className="dock-indicator" />}
         </button>

@@ -1,0 +1,11 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="256" height="256" rx="58" fill="url(#gradient-artifact)"/>
+  <path d="M128 64L176 96V160L128 192L80 160V96L128 64Z" fill="white" opacity="0.9"/>
+  <path d="M128 80L160 100V140L128 160L96 140V100L128 80Z" fill="white" opacity="0.6"/>
+  <defs>
+    <linearGradient id="gradient-artifact" x1="0" y1="0" x2="256" y2="256">
+      <stop offset="0%" stop-color="#7c8cff"/>
+      <stop offset="100%" stop-color="#5a6edd"/>
+    </linearGradient>
+  </defs>
+</svg>
