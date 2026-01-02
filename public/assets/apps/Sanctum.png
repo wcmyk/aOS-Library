@@ -1,0 +1,14 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="256" height="256" rx="58" fill="url(#gradient-sanctum)"/>
+  <path d="M128 80C100 80 80 95 80 95V140C80 160 100 175 128 175C156 175 176 160 176 140V95C176 95 156 80 128 80Z" fill="white" opacity="0.95"/>
+  <ellipse cx="128" cy="95" rx="48" ry="15" fill="white" opacity="0.7"/>
+  <path d="M90 110C90 110 95 115 105 118" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <path d="M166 110C166 110 161 115 151 118" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <text x="20" y="200" font-family="Arial, sans-serif" font-size="120" font-weight="bold" fill="white" opacity="0.9">O</text>
+  <defs>
+    <linearGradient id="gradient-sanctum" x1="0" y1="0" x2="256" y2="256">
+      <stop offset="0%" stop-color="#0364b8"/>
+      <stop offset="100%" stop-color="#024f8f"/>
+    </linearGradient>
+  </defs>
+</svg>

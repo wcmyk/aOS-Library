@@ -1,0 +1,19 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="256" height="256" rx="58" fill="url(#gradient-archive)"/>
+  <rect x="60" y="60" width="136" height="136" rx="8" fill="white" opacity="0.95"/>
+  <line x1="60" y1="90" x2="196" y2="90" stroke="#217346" stroke-width="2" opacity="0.4"/>
+  <line x1="60" y1="110" x2="196" y2="110" stroke="#217346" stroke-width="2" opacity="0.4"/>
+  <line x1="60" y1="130" x2="196" y2="130" stroke="#217346" stroke-width="2" opacity="0.4"/>
+  <line x1="60" y1="150" x2="196" y2="150" stroke="#217346" stroke-width="2" opacity="0.4"/>
+  <line x1="60" y1="170" x2="196" y2="170" stroke="#217346" stroke-width="2" opacity="0.4"/>
+  <line x1="90" y1="60" x2="90" y2="196" stroke="#217346" stroke-width="2" opacity="0.4"/>
+  <line x1="130" y1="60" x2="130" y2="196" stroke="#217346" stroke-width="2" opacity="0.4"/>
+  <line x1="170" y1="60" x2="170" y2="196" stroke="#217346" stroke-width="2" opacity="0.4"/>
+  <text x="30" y="200" font-family="Arial, sans-serif" font-size="120" font-weight="bold" fill="white" opacity="0.9">X</text>
+  <defs>
+    <linearGradient id="gradient-archive" x1="0" y1="0" x2="256" y2="256">
+      <stop offset="0%" stop-color="#217346"/>
+      <stop offset="100%" stop-color="#185c37"/>
+    </linearGradient>
+  </defs>
+</svg>

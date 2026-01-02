@@ -1,0 +1,16 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="256" height="256" rx="58" fill="url(#gradient-oracle)"/>
+  <rect x="70" y="70" width="116" height="140" rx="8" fill="white" opacity="0.95"/>
+  <rect x="85" y="90" width="86" height="6" rx="3" fill="#2b579a" opacity="0.4"/>
+  <rect x="85" y="105" width="86" height="6" rx="3" fill="#2b579a" opacity="0.4"/>
+  <rect x="85" y="120" width="86" height="6" rx="3" fill="#2b579a" opacity="0.4"/>
+  <rect x="85" y="135" width="86" height="6" rx="3" fill="#2b579a" opacity="0.4"/>
+  <rect x="85" y="150" width="60" height="6" rx="3" fill="#2b579a" opacity="0.4"/>
+  <text x="40" y="200" font-family="Arial, sans-serif" font-size="120" font-weight="bold" fill="white" opacity="0.9">W</text>
+  <defs>
+    <linearGradient id="gradient-oracle" x1="0" y1="0" x2="256" y2="256">
+      <stop offset="0%" stop-color="#2b579a"/>
+      <stop offset="100%" stop-color="#1e3f6f"/>
+    </linearGradient>
+  </defs>
+</svg>

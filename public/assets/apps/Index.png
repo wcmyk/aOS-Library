@@ -1,0 +1,19 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="256" height="256" rx="58" fill="url(#gradient-index)"/>
+  <rect x="70" y="70" width="116" height="120" rx="8" fill="white" opacity="0.95"/>
+  <circle cx="90" cy="95" r="6" fill="#a4373a" opacity="0.5"/>
+  <rect x="105" y="90" width="70" height="10" rx="3" fill="#a4373a" opacity="0.4"/>
+  <circle cx="90" cy="120" r="6" fill="#a4373a" opacity="0.5"/>
+  <rect x="105" y="115" width="70" height="10" rx="3" fill="#a4373a" opacity="0.4"/>
+  <circle cx="90" cy="145" r="6" fill="#a4373a" opacity="0.5"/>
+  <rect x="105" y="140" width="70" height="10" rx="3" fill="#a4373a" opacity="0.4"/>
+  <circle cx="90" cy="170" r="6" fill="#a4373a" opacity="0.5"/>
+  <rect x="105" y="165" width="70" height="10" rx="3" fill="#a4373a" opacity="0.4"/>
+  <text x="30" y="200" font-family="Arial, sans-serif" font-size="120" font-weight="bold" fill="white" opacity="0.9">A</text>
+  <defs>
+    <linearGradient id="gradient-index" x1="0" y1="0" x2="256" y2="256">
+      <stop offset="0%" stop-color="#a4373a"/>
+      <stop offset="100%" stop-color="#8a2428"/>
+    </linearGradient>
+  </defs>
+</svg>
