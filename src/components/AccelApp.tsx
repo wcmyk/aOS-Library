@@ -691,31 +691,6 @@ export function AccelApp() {
           </div>
 
           <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
-          {/* Toolbar */}
-          <div style={{ height: '40px', background: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', padding: '0 12px', gap: '8px' }}>
-            <button style={{ padding: '4px 12px', background: 'rgba(212, 160, 23, 0.2)', border: '1px solid rgba(212, 160, 23, 0.3)', borderRadius: '4px', color: '#fff', fontSize: '11px', cursor: 'pointer' }}>
-              <strong>B</strong>
-            </button>
-            <button style={{ padding: '4px 12px', background: 'rgba(212, 160, 23, 0.2)', border: '1px solid rgba(212, 160, 23, 0.3)', borderRadius: '4px', color: '#fff', fontSize: '11px', cursor: 'pointer' }}>
-              <em>I</em>
-            </button>
-            <button style={{ padding: '4px 12px', background: 'rgba(212, 160, 23, 0.2)', border: '1px solid rgba(212, 160, 23, 0.3)', borderRadius: '4px', color: '#fff', fontSize: '11px', cursor: 'pointer' }}>
-              <u>U</u>
-            </button>
-            <div style={{ width: '1px', height: '20px', background: 'rgba(255, 255, 255, 0.1)' }}></div>
-            <button style={{ padding: '4px 12px', background: 'rgba(212, 160, 23, 0.2)', border: '1px solid rgba(212, 160, 23, 0.3)', borderRadius: '4px', color: '#fff', fontSize: '11px', cursor: 'pointer' }}>
-              Merge
-            </button>
-            <div style={{ width: '1px', height: '20px', background: 'rgba(255, 255, 255, 0.1)' }}></div>
-            <button
-              onClick={handleConvertToTable}
-              style={{ padding: '4px 12px', background: 'rgba(212, 160, 23, 0.2)', border: '1px solid rgba(212, 160, 23, 0.3)', borderRadius: '4px', color: '#fff', fontSize: '11px', cursor: 'pointer' }}
-              title="Convert to Table (Ctrl+T)"
-            >
-              📊 Table
-            </button>
-          </div>
-
           {/* Formula Bar */}
           <div style={{ height: '32px', background: 'rgba(255, 255, 255, 0.05)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', padding: '0 12px', gap: '12px' }}>
             <span style={{ fontSize: '12px', opacity: 0.7, fontWeight: 600 }}>fx</span>
