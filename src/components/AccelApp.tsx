@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { CalculationEngine } from '../excel/calculation-engine';
 import { FormulaCoach, type FormulaError } from '../excel/formula-coach';
+import { ExcelFormulas } from '../excel/formulas';
 import type { CellData, CellAddress } from '../excel/types';
 
 // ============================================================================
@@ -188,6 +189,13 @@ export function AccelApp() {
 
   const calcEngine = useRef(new CalculationEngine(10000));
   const formulaCoach = useRef(new FormulaCoach(cells));
+  const formulas = useRef(new ExcelFormulas(cells));
+
+  // Update formula engine when cells change
+  useEffect(() => {
+    formulas.current = new ExcelFormulas(cells);
+    formulaCoach.current = new FormulaCoach(cells);
+  }, [cells]);
 
   function getCellAddress(row: number, col: number): string {
     let colStr = "", c = col;
@@ -195,23 +203,148 @@ export function AccelApp() {
     return `${colStr}${row + 1}`;
   }
 
+  // Convert letter to column index
+  const letterToCol = (letter: string): number => {
+    let col = 0;
+    for (let i = 0; i < letter.length; i++) {
+      col = col * 26 + (letter.charCodeAt(i) - 64);
+    }
+    return col - 1;
+  };
+
+  // Get values from a range (e.g., A1:B5)
+  const getRangeValues = (start: string, end: string): number[] => {
+    const startMatch = start.match(/([A-Z]+)(\d+)/);
+    const endMatch = end.match(/([A-Z]+)(\d+)/);
+    if (!startMatch || !endMatch) return [];
+
+    const startCol = letterToCol(startMatch[1]);
+    const startRow = parseInt(startMatch[2]) - 1;
+    const endCol = letterToCol(endMatch[1]);
+    const endRow = parseInt(endMatch[2]) - 1;
+
+    const values: number[] = [];
+    for (let row = startRow; row <= endRow; row++) {
+      for (let col = startCol; col <= endCol; col++) {
+        const cell = cells.get(getCellAddress(row, col));
+        const num = parseFloat(cell?.value || '0');
+        values.push(isNaN(num) ? 0 : num);
+      }
+    }
+    return values;
+  };
+
+  // Evaluate Excel functions
+  const evaluateExcelFunctions = (expr: string): any => {
+    const parseArray = (str: string): number[] => {
+      if (!str.startsWith('[') || !str.endsWith(']')) return [];
+      return str.slice(1, -1).split(',').map(v => parseFloat(v.trim()) || 0);
+    };
+
+    // Handle SUM
+    expr = expr.replace(/SUM\(([^)]+)\)/g, (_, args) => {
+      const arr = parseArray(args);
+      return formulas.current.SUM(...arr).toString();
+    });
+
+    // Handle AVERAGE
+    expr = expr.replace(/AVERAGE\(([^)]+)\)/g, (_, args) => {
+      const arr = parseArray(args);
+      return formulas.current.AVERAGE(...arr).toString();
+    });
+
+    // Handle COUNT
+    expr = expr.replace(/COUNT\(([^)]+)\)/g, (_, args) => {
+      const arr = parseArray(args);
+      return formulas.current.COUNT(...arr).toString();
+    });
+
+    // Handle MAX
+    expr = expr.replace(/MAX\(([^)]+)\)/g, (_, args) => {
+      const arr = parseArray(args);
+      return formulas.current.MAX(...arr).toString();
+    });
+
+    // Handle MIN
+    expr = expr.replace(/MIN\(([^)]+)\)/g, (_, args) => {
+      const arr = parseArray(args);
+      return formulas.current.MIN(...arr).toString();
+    });
+
+    // Evaluate basic math
+    try {
+      const sanitized = expr.replace(/[^0-9+\-*/().]/g, '');
+      if (sanitized) {
+        return Function('"use strict"; return (' + sanitized + ')')();
+      }
+    } catch {}
+
+    return expr;
+  };
+
+  // Evaluate a formula
+  const evaluateFormula = (formula: string): any => {
+    if (!formula.startsWith('=')) return formula;
+
+    let expr = formula.substring(1).toUpperCase();
+
+    // Replace cell ranges (A1:B5) with arrays
+    expr = expr.replace(/([A-Z]+\d+):([A-Z]+\d+)/g, (match, start, end) => {
+      const values = getRangeValues(start, end);
+      return `[${values.join(',')}]`;
+    });
+
+    // Replace single cell references (A1) with values
+    expr = expr.replace(/([A-Z]+\d+)/g, (match) => {
+      const cell = cells.get(match);
+      if (!cell) return '0';
+      const num = parseFloat(cell.value);
+      if (!isNaN(num)) return num.toString();
+      return `"${cell.value}"`;
+    });
+
+    return evaluateExcelFunctions(expr);
+  };
+
   const handleUpdateCell = useCallback((row: number, col: number, data: Partial<CellData>, saveHistory = true) => {
     const address = getCellAddress(row, col);
     setCells(prev => {
       const newCells = new Map(prev);
       const existing = newCells.get(address) || { value: '', displayValue: '' };
       const isFormula = data.value?.toString().startsWith('=');
-      const updatedCell = { ...existing, ...data, formula: isFormula ? data.value : undefined };
-      if (!isFormula) updatedCell.displayValue = updatedCell.value;
+
+      // Update the cell
+      const updatedCell = {
+        ...existing,
+        ...data,
+        formula: isFormula ? data.value : undefined
+      };
+
+      // Evaluate formula if present
+      if (isFormula && data.value) {
+        try {
+          const result = evaluateFormula(data.value);
+          updatedCell.displayValue = result.toString();
+        } catch (error) {
+          updatedCell.displayValue = '#ERROR!';
+          updatedCell.error = error instanceof Error ? error.message : 'Unknown error';
+        }
+      } else {
+        updatedCell.displayValue = updatedCell.value;
+      }
+
       newCells.set(address, updatedCell);
+
+      // Register with calculation engine
       if (updatedCell.formula && calcEngine.current.extractReferences) {
         const deps = calcEngine.current.extractReferences(updatedCell.formula);
         calcEngine.current.registerCell(address, deps);
       }
+
       if (saveHistory) history.pushState(newCells);
       return newCells;
     });
-  }, []);
+  }, [cells]);
 
   const handleSelect = useCallback((row: number, col: number, e: React.MouseEvent) => {
     if (e.button !== 0) return;
