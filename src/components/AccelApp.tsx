@@ -273,37 +273,17 @@ export function AccelApp() {
           <input value={formulaBarValue} onChange={(e) => { setFormulaBarValue(e.target.value); if (selectedCell) handleUpdateCell(selectedCell.row, selectedCell.col, { value: e.target.value }); }} style={{ flex: 1, background: '#2d3748', border: 'none', borderRadius: '4px', padding: '4px 8px', color: 'white', outline: 'none', fontSize: '13px' }} placeholder="Formula" />
         </div>
 
-        {showFormulaCoach && formulaError && (
-          <div style={{ position: 'absolute', top: '110px', right: '20px', width: '280px', background: 'rgba(23, 25, 35, 0.95)', backdropFilter: 'blur(10px)', border: '1px solid #d4a017', borderRadius: '8px', padding: '16px', zIndex: 100, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}><strong style={{ color: '#d4a017' }}>AI Coach</strong><button onClick={() => setShowFormulaCoach(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}>✕</button></div>
-            <p style={{ fontSize: '13px', marginBottom: '12px', lineHeight: 1.4 }}>{formulaError.message}</p>
-            {formulaError.fixes.map((fix, i) => (<button key={i} onClick={() => { if(selectedCell) handleUpdateCell(selectedCell.row, selectedCell.col, { value: fix.newFormula }); setShowFormulaCoach(false); }} style={{ display: 'block', width: '100%', marginTop: '8px', padding: '8px', background: '#2d3748', border: '1px solid #4a5568', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', textAlign: 'left' }}>Apply: <code style={{color: '#d4a017'}}>{fix.newFormula}</code></button>))}
-          </div>
-        )}
-
-        <div style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
-          <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 30 }}>
-            <div style={{ width: '50px', height: '28px', background: '#1a202c', borderRight: '1px solid #4a5568', borderBottom: '1px solid #4a5568' }} />
-            {Array.from({ length: 26 }).map((_, i) => (
-               <div
-                 key={i}
-                 style={{
-                   minWidth: '100px',
-                   height: '28px',
-                   display: 'flex',
-                   alignItems: 'center',
-                   justifyContent: 'center',
-                   background: isColInSelection(i) ? '#2d3748' : '#1a202c',
-                   borderRight: '1px solid #4a5568',
-                   borderBottom: '1px solid #4a5568',
-                   fontSize: '11px',
-                   fontWeight: 'bold',
-                   color: isColInSelection(i) ? '#d4a017' : '#a0aec0'
-                 }}
-               >
-                 {String.fromCharCode(65 + i)}
-               </div>
-            ))}
+          <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+          {/* Formula Bar */}
+          <div style={{ height: '32px', background: 'rgba(255, 255, 255, 0.05)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', padding: '0 12px', gap: '12px' }}>
+            <span style={{ fontSize: '12px', opacity: 0.7, fontWeight: 600 }}>fx</span>
+            <input
+              type="text"
+              value={formulaBarValue}
+              onChange={(e) => handleFormulaBarChange(e.target.value)}
+              placeholder="Enter formula or value"
+              style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '12px' }}
+            />
           </div>
           {Array.from({ length: 100 }).map((_, r) => (
             <div key={r} style={{ display: 'flex' }}>
