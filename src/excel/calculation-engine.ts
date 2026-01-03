@@ -9,14 +9,15 @@
  * - Async recalculation support
  * - Spill array support for dynamic arrays
  * - Safe calc mode with runaway protection
+ * - Visual dependency tracing support (getPrecedents/getDependents)
  */
 
 import type { CellData, CellAddress } from './types';
 
 export interface DependencyNode {
   address: string;
-  dependsOn: Set<string>;  // Cells this cell depends on
-  dependents: Set<string>;  // Cells that depend on this cell
+  dependsOn: Set<string>;  // Cells this cell depends on (Precedents)
+  dependents: Set<string>;  // Cells that depend on this cell (Dependents)
   isDirty: boolean;
   isCalculating: boolean;
   spillRange?: { start: CellAddress; end: CellAddress };
@@ -68,7 +69,7 @@ export class CalculationEngine {
 
     const node = this.dependencyGraph.get(address)!;
 
-    // Remove old dependencies
+    // Remove old dependencies (cleanup reverse pointers)
     node.dependsOn.forEach(dep => {
       const depNode = this.dependencyGraph.get(dep);
       if (depNode) {
@@ -79,6 +80,7 @@ export class CalculationEngine {
     // Add new dependencies
     node.dependsOn = new Set(dependsOn);
     dependsOn.forEach(dep => {
+      // Ensure dependency exists in graph
       if (!this.dependencyGraph.has(dep)) {
         this.registerCell(dep, []);
       }
@@ -193,7 +195,7 @@ export class CalculationEngine {
   extractReferences(formula: string): string[] {
     const references: string[] = [];
 
-    // Match cell references (A1, B2, etc.) and ranges (A1:B5)
+    // Match cell references (A1, B2, etc.)
     const cellPattern = /\b([A-Z]+\d+)\b/g;
     let match;
 
@@ -201,7 +203,7 @@ export class CalculationEngine {
       references.push(match[1]);
     }
 
-    // Also extract ranges and expand them
+    // Also extract ranges and expand them (A1:B5)
     const rangePattern = /\b([A-Z]+\d+):([A-Z]+\d+)\b/g;
     while ((match = rangePattern.exec(formula)) !== null) {
       const [, start, end] = match;
@@ -410,7 +412,7 @@ export class CalculationEngine {
   }
 
   /**
-   * Get dependents of a cell (for audit trail)
+   * Get dependents of a cell (for audit trail and UI highlighting)
    */
   getDependents(address: string): string[] {
     const node = this.dependencyGraph.get(address);
@@ -423,6 +425,14 @@ export class CalculationEngine {
   getDependencies(address: string): string[] {
     const node = this.dependencyGraph.get(address);
     return node ? Array.from(node.dependsOn) : [];
+  }
+
+  /**
+   * [FIX] Alias for getDependencies to match UI component requirements
+   * This is required for visual dependency tracing (Blue dashed lines)
+   */
+  getPrecedents(address: string): string[] {
+    return this.getDependencies(address);
   }
 
   /**
