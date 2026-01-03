@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, memo } from 'react';
+import { useState, useRef, useEffect, useCallback, memo, CSSProperties } from 'react';
 import { CalculationEngine } from '../excel/calculation-engine';
 import { FormulaCoach, type FormulaError } from '../excel/formula-coach';
 import type { CellData, CellAddress } from '../excel/types';
@@ -40,19 +40,37 @@ const SmartCellRenderer = ({ value, format }: { value: string, format: any }) =>
   return <span>{value}</span>;
 };
 
-// Optimized Grid Cell (Previous Memoized Logic)
+// [FIX] Strict Typing for GridCell Props
 interface GridCellProps {
-  row: number; col: number; cell: CellData; isSelected: boolean; isEditing: boolean; isInTable: boolean; isDependency: 'precedent' | 'dependent' | null;
-  onSelect: any; onDoubleClick: any; onMouseDown: any; onMouseEnter: any; onInput: any; onBlur: any; onKeyDown: any;
+  row: number;
+  col: number;
+  cell: CellData;
+  isSelected: boolean;
+  isEditing: boolean;
+  isInTable: boolean;
+  isDependency: 'precedent' | 'dependent' | null;
+  onSelect: (r: number, c: number, e: React.MouseEvent) => void;
+  onDoubleClick: (r: number, c: number) => void;
+  onMouseDown: (r: number, c: number, e: React.MouseEvent) => void;
+  onMouseEnter: (r: number, c: number) => void;
+  onInput: (r: number, c: number, val: string) => void;
+  onBlur: () => void;
+  onKeyDown: (e: React.KeyboardEvent) => void;
 }
-const GridCell = memo(({ row, col, cell, isSelected, isEditing, isInTable, isDependency, onSelect, onDoubleClick, onMouseDown, onMouseEnter, onInput, onBlur, onKeyDown }: GridCellProps) => {
+
+const GridCell = memo(({ 
+  row, col, cell, isSelected, isEditing, isInTable, isDependency, 
+  onSelect, onDoubleClick, onMouseDown, onMouseEnter, onInput, onBlur, onKeyDown 
+}: GridCellProps) => {
   const displayContent = isEditing ? (cell.formula || cell.value) : (cell.displayValue || cell.value);
+  
   const getBorderStyle = () => {
     if (isSelected) return '2px solid rgba(212, 160, 23, 1)';
     if (isDependency === 'precedent') return '1px dashed #7c8cff';
     if (isDependency === 'dependent') return '1px dashed #34d399';
     return '1px solid rgba(255, 255, 255, 0.08)';
   };
+  
   const getBackgroundStyle = () => {
     if (isSelected) return 'rgba(212, 160, 23, 0.15)';
     if (isDependency === 'precedent') return 'rgba(124, 140, 255, 0.1)';
@@ -60,19 +78,60 @@ const GridCell = memo(({ row, col, cell, isSelected, isEditing, isInTable, isDep
     if (isInTable) return 'rgba(212, 160, 23, 0.05)';
     return cell.format?.backgroundColor || 'transparent';
   };
+
   return (
-    <div style={{ width: '100px', minWidth: '100px', height: '28px', borderRight: '1px solid rgba(255, 255, 255, 0.08)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', position: 'relative', background: getBackgroundStyle(), border: getBorderStyle(), zIndex: isSelected ? 20 : 1 }} onClick={(e) => onSelect(row, col, e)} onDoubleClick={() => onDoubleClick(row, col)} onMouseDown={(e) => onMouseDown(row, col, e)} onMouseEnter={() => onMouseEnter(row, col)}>
+    <div 
+      style={{ 
+        width: '100px', minWidth: '100px', height: '28px', 
+        borderRight: '1px solid rgba(255, 255, 255, 0.08)', 
+        borderBottom: '1px solid rgba(255, 255, 255, 0.08)', 
+        position: 'relative', 
+        background: getBackgroundStyle(), 
+        border: getBorderStyle(), 
+        zIndex: isSelected ? 20 : 1 
+      }} 
+      onClick={(e) => onSelect(row, col, e)} 
+      onDoubleClick={() => onDoubleClick(row, col)} 
+      onMouseDown={(e) => onMouseDown(row, col, e)} 
+      onMouseEnter={() => onMouseEnter(row, col)}
+    >
       {isEditing ? (
-        <input autoFocus type="text" value={displayContent} onChange={(e) => onInput(row, col, e.target.value)} onBlur={onBlur} onKeyDown={onKeyDown} style={{ width: '100%', height: '100%', background: '#0e1016', border: 'none', outline: 'none', color: '#fff', fontSize: '12px', padding: '0 8px' }} />
+        <input 
+          autoFocus 
+          type="text" 
+          value={displayContent} 
+          onChange={(e) => onInput(row, col, e.target.value)} 
+          onBlur={onBlur} 
+          onKeyDown={onKeyDown} 
+          style={{ 
+            width: '100%', height: '100%', background: '#0e1016', 
+            border: 'none', outline: 'none', color: '#fff', 
+            fontSize: '12px', padding: '0 8px' 
+          }} 
+        />
       ) : (
-        <div style={{ width: '100%', height: '100%', padding: '0 8px', fontSize: '12px', display: 'flex', alignItems: 'center', overflow: 'hidden', whiteSpace: 'nowrap', fontWeight: cell.format?.bold ? 'bold' : 'normal', fontStyle: cell.format?.italic ? 'italic' : 'normal', textDecoration: cell.format?.underline ? 'underline' : 'none', justifyContent: cell.format?.alignment === 'right' ? 'flex-end' : cell.format?.alignment === 'center' ? 'center' : 'flex-start' }}>
+        <div style={{ 
+          width: '100%', height: '100%', padding: '0 8px', 
+          fontSize: '12px', display: 'flex', alignItems: 'center', 
+          overflow: 'hidden', whiteSpace: 'nowrap', 
+          fontWeight: cell.format?.bold ? 'bold' : 'normal', 
+          fontStyle: cell.format?.italic ? 'italic' : 'normal', 
+          textDecoration: cell.format?.underline ? 'underline' : 'none', 
+          justifyContent: cell.format?.alignment === 'right' ? 'flex-end' : cell.format?.alignment === 'center' ? 'center' : 'flex-start' 
+        }}>
           <SmartCellRenderer value={displayContent} format={cell.format} />
         </div>
       )}
       {cell.formula && !isEditing && <div style={{ position: 'absolute', top: 2, right: 2, width: 4, height: 4, borderRadius: '50%', background: '#7c8cff' }} />}
     </div>
   );
-}, (prev, next) => prev.cell === next.cell && prev.isSelected === next.isSelected && prev.isEditing === next.isEditing && prev.isInTable === next.isInTable && prev.isDependency === next.isDependency);
+}, (prev, next) => 
+  prev.cell === next.cell && 
+  prev.isSelected === next.isSelected && 
+  prev.isEditing === next.isEditing && 
+  prev.isInTable === next.isInTable && 
+  prev.isDependency === next.isDependency
+);
 
 // History Hook
 const useHistory = (initialState: Map<string, CellData>) => {
@@ -132,7 +191,7 @@ export function AccelApp() {
 
   const handleSelect = useCallback((row: number, col: number, e: React.MouseEvent) => {
     const address = getCellAddress(row, col);
-    const precedents = calcEngine.current.getDependencies(address); // Alias fixed
+    const precedents = calcEngine.current.getDependencies(address); // Uses alias
     const dependents = calcEngine.current.getDependents(address);
     setDependencies({ precedents, dependents });
     if (e.shiftKey && selectionRange) { setSelectionRange({ ...selectionRange, end: { row, col } }); }
@@ -197,7 +256,25 @@ export function AccelApp() {
                 const isSelected = !!selectionRange && r >= Math.min(selectionRange.start.row, selectionRange.end.row) && r <= Math.max(selectionRange.start.row, selectionRange.end.row) && c >= Math.min(selectionRange.start.col, selectionRange.end.col) && c <= Math.max(selectionRange.start.col, selectionRange.end.col);
                 let depType: 'precedent' | 'dependent' | null = null;
                 if (dependencies.precedents.includes(address)) depType = 'precedent'; if (dependencies.dependents.includes(address)) depType = 'dependent';
-                return (<GridCell key={`${r}-${c}`} row={r} col={c} cell={cells.get(address) || { value: '', displayValue: '' }} isSelected={isSelected} isEditing={isActive && editingCell?.row === r && editingCell?.col === c} isInTable={false} isDependency={depType} onSelect={handleSelect} onDoubleClick={() => setEditingCell({ row: r, col: c })} onMouseDown={() => {}} onMouseEnter={() => {}} onInput={(row, col, val) => handleUpdateCell(row, col, { value: val }, false)} onBlur={() => { if(cells.get(getCellAddress(r, c))) history.pushState(cells); setEditingCell(null); }} onKeyDown={(e) => { if (e.key === 'Enter') { setEditingCell(null); history.pushState(cells); } }} />);
+                return (
+                  <GridCell 
+                    key={`${r}-${c}`} 
+                    row={r} 
+                    col={c} 
+                    cell={cells.get(address) || { value: '', displayValue: '' }} 
+                    isSelected={isSelected} 
+                    isEditing={!!(isActive && editingCell?.row === r && editingCell?.col === c)} 
+                    isInTable={false} 
+                    isDependency={depType} 
+                    onSelect={handleSelect} 
+                    onDoubleClick={() => setEditingCell({ row: r, col: c })} 
+                    onMouseDown={() => {}} 
+                    onMouseEnter={() => {}} 
+                    onInput={(row, col, val) => handleUpdateCell(row, col, { value: val }, false)} 
+                    onBlur={() => { if(cells.get(getCellAddress(r, c))) history.pushState(cells); setEditingCell(null); }} 
+                    onKeyDown={(e) => { if (e.key === 'Enter') { setEditingCell(null); history.pushState(cells); } }} 
+                  />
+                );
               })}
             </div>
           ))}
@@ -276,15 +353,17 @@ export function AccelApp() {
                  key={i} 
                  onClick={() => setView('spreadsheet')}
                  className="template-card"
-                 style={{ cursor: 'pointer', group: 'template' }}
+                 // [FIX] Removed invalid 'group' property
+                 style={{ cursor: 'pointer' }}
                >
-                 <div style={{ 
-                   height: '100px', background: '#1a202c', border: '1px solid #2d3748', 
-                   borderRadius: '8px', marginBottom: '10px', display: 'grid', placeItems: 'center',
-                   transition: 'transform 0.2s, border-color 0.2s'
-                 }}
-                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#d4a017'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#2d3748'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                 <div 
+                   style={{ 
+                     height: '100px', background: '#1a202c', border: '1px solid #2d3748', 
+                     borderRadius: '8px', marginBottom: '10px', display: 'grid', placeItems: 'center',
+                     transition: 'transform 0.2s, border-color 0.2s'
+                   }}
+                   onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#d4a017'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                   onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#2d3748'; e.currentTarget.style.transform = 'translateY(0)'; }}
                  >
                     <div style={{ color: t.color }}>{t.icon}</div>
                  </div>
