@@ -239,6 +239,13 @@ export function AccelApp() {
     [selectionRange]
   );
 
+  const handleFormulaBarChange = useCallback((value: string) => {
+    setFormulaBarValue(value);
+    if (selectedCell) {
+      handleUpdateCell(selectedCell.row, selectedCell.col, { value });
+    }
+  }, [selectedCell, handleUpdateCell]);
+
   useEffect(() => {
     const stopDragging = () => setIsDragging(false);
     window.addEventListener('mouseup', stopDragging);
@@ -270,21 +277,10 @@ export function AccelApp() {
            <div style={{ fontSize: '12px', color: '#a0aec0', fontFamily: 'monospace' }}>{selectedCell ? getCellAddress(selectedCell.row, selectedCell.col) : ''}</div>
           <div style={{ width: '1px', height: '16px', background: '#4a5568' }}></div>
           <div style={{ color: '#a0aec0', fontSize: '14px', fontStyle: 'italic', fontWeight: 'bold' }}>fx</div>
-          <input value={formulaBarValue} onChange={(e) => { setFormulaBarValue(e.target.value); if (selectedCell) handleUpdateCell(selectedCell.row, selectedCell.col, { value: e.target.value }); }} style={{ flex: 1, background: '#2d3748', border: 'none', borderRadius: '4px', padding: '4px 8px', color: 'white', outline: 'none', fontSize: '13px' }} placeholder="Formula" />
+          <input value={formulaBarValue} onChange={(e) => handleFormulaBarChange(e.target.value)} style={{ flex: 1, background: '#2d3748', border: 'none', borderRadius: '4px', padding: '4px 8px', color: 'white', outline: 'none', fontSize: '13px' }} placeholder="Formula" />
         </div>
 
-          <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
-          {/* Formula Bar */}
-          <div style={{ height: '32px', background: 'rgba(255, 255, 255, 0.05)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', padding: '0 12px', gap: '12px' }}>
-            <span style={{ fontSize: '12px', opacity: 0.7, fontWeight: 600 }}>fx</span>
-            <input
-              type="text"
-              value={formulaBarValue}
-              onChange={(e) => handleFormulaBarChange(e.target.value)}
-              placeholder="Enter formula or value"
-              style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '12px' }}
-            />
-          </div>
+        <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
           {Array.from({ length: 100 }).map((_, r) => (
             <div key={r} style={{ display: 'flex' }}>
               <div
