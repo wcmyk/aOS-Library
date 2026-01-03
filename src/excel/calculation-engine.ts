@@ -2,14 +2,13 @@
  * Calculation Engine with Dependency Graph
  *
  * Features:
- * - Dependency graph tracking (which cells depend on which)
- * - Topological sorting for optimal calculation order
+ * - Dependency graph tracking
+ * - Topological sorting
  * - Circular reference detection
- * - Dirty cell tracking (only recalculate what's needed)
- * - Async recalculation support
- * - Spill array support for dynamic arrays
- * - Safe calc mode with runaway protection
- * - Visual dependency tracing support (getPrecedents/getDependents)
+ * - Dirty cell tracking
+ * - Async recalculation
+ * - Spill array support
+ * - Visual dependency tracing (getPrecedents/getDependents)
  */
 
 import type { CellData, CellAddress } from './types';
@@ -420,7 +419,7 @@ export class CalculationEngine {
   }
 
   /**
-   * Get dependencies of a cell (for audit trail)
+   * Get dependencies of a cell (Internal graph usage)
    */
   getDependencies(address: string): string[] {
     const node = this.dependencyGraph.get(address);
@@ -428,8 +427,8 @@ export class CalculationEngine {
   }
 
   /**
-   * [FIX] Alias for getDependencies to match UI component requirements
-   * This is required for visual dependency tracing (Blue dashed lines)
+   * [FIX] Added getPrecedents to satisfy AccelApp.tsx requirements
+   * This is an alias for getDependencies
    */
   getPrecedents(address: string): string[] {
     return this.getDependencies(address);
