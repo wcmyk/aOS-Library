@@ -688,7 +688,9 @@ export function AccelApp() {
               <button style={{ padding: '0 10px', height: 28, borderRadius: 8, background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.32)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Review ▾</button>
               <button style={{ padding: '0 10px', height: 28, borderRadius: 8, background: 'rgba(244,114,182,0.12)', border: '1px solid rgba(244,114,182,0.32)', color: '#fff', cursor: 'pointer', fontSize: 11 }}>Solver</button>
             </div>
-        <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+          </div>
+
+          <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
           {/* Toolbar */}
           <div style={{ height: '40px', background: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', padding: '0 12px', gap: '8px' }}>
             <button style={{ padding: '4px 12px', background: 'rgba(212, 160, 23, 0.2)', border: '1px solid rgba(212, 160, 23, 0.3)', borderRadius: '4px', color: '#fff', fontSize: '11px', cursor: 'pointer' }}>
@@ -922,6 +924,7 @@ export function AccelApp() {
             }
             {isTableMode && ' • Table Mode'}
           </div>
+        </div>
         </div>
       </div>
     );
