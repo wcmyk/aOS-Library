@@ -81,7 +81,9 @@ const GridCell = memo(({
   return (
     <div 
       style={{ 
-        width: '100px', minWidth: '100px', height: '28px', 
+        width: '100%', 
+        minWidth: '100%', 
+        height: '100%', 
         borderRight: '1px solid rgba(255, 255, 255, 0.08)', 
         borderBottom: '1px solid rgba(255, 255, 255, 0.08)', 
         position: 'relative', 
@@ -147,6 +149,12 @@ const useHistory = (initialState: Map<string, CellData>) => {
 // ============================================================================
 
 export function AccelApp() {
+  const COLUMN_WIDTH = 96;
+  const ROW_HEIGHT = 28;
+  const ROW_LABEL_WIDTH = 50;
+  const COLUMN_COUNT = 26;
+  const ROW_COUNT = 100;
+
   const [view, setView] = useState<'home' | 'spreadsheet'>('home');
   const [activeSidebar, setActiveSidebar] = useState('home');
   const [cells, setCells] = useState<Map<string, CellData>>(new Map());
@@ -282,6 +290,97 @@ export function AccelApp() {
         )}
 
         <div style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
+          <div
+            style={{
+              minWidth: ROW_LABEL_WIDTH + COLUMN_WIDTH * COLUMN_COUNT,
+              position: 'relative'
+            }}
+          >
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: `${ROW_LABEL_WIDTH}px repeat(${COLUMN_COUNT}, ${COLUMN_WIDTH}px)`,
+                position: 'sticky',
+                top: 0,
+                zIndex: 30,
+                background: '#1a202c'
+              }}
+            >
+              <div style={{ height: ROW_HEIGHT, background: '#1a202c', borderRight: '1px solid #4a5568', borderBottom: '1px solid #4a5568' }} />
+              {Array.from({ length: COLUMN_COUNT }).map((_, i) => (
+                 <div
+                   key={i}
+                   style={{
+                     height: ROW_HEIGHT,
+                     display: 'flex',
+                     alignItems: 'center',
+                     justifyContent: 'center',
+                     background: isColInSelection(i) ? '#2d3748' : '#1a202c',
+                     borderRight: '1px solid #4a5568',
+                     borderBottom: '1px solid #4a5568',
+                     fontSize: '11px',
+                     fontWeight: 'bold',
+                     color: isColInSelection(i) ? '#d4a017' : '#a0aec0'
+                   }}
+                 >
+                   {String.fromCharCode(65 + i)}
+                 </div>
+              ))}
+            </div>
+            {Array.from({ length: ROW_COUNT }).map((_, r) => (
+              <div
+                key={r}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: `${ROW_LABEL_WIDTH}px repeat(${COLUMN_COUNT}, ${COLUMN_WIDTH}px)`
+                }}
+              >
+                <div
+                  style={{
+                    height: ROW_HEIGHT,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: isRowInSelection(r) ? '#2d3748' : '#1a202c',
+                    borderRight: '1px solid #4a5568',
+                    borderBottom: '1px solid #4a5568',
+                    position: 'sticky',
+                    left: 0,
+                    zIndex: 10,
+                    fontSize: '11px',
+                    color: isRowInSelection(r) ? '#d4a017' : '#a0aec0'
+                  }}
+                >
+                  {r + 1}
+                </div>
+                {Array.from({ length: COLUMN_COUNT }).map((_, c) => {
+                  const address = getCellAddress(r, c);
+                  const isActive = selectedCell?.row === r && selectedCell?.col === c;
+                  const isSelected = isRowInSelection(r) && isColInSelection(c);
+                  let depType: 'precedent' | 'dependent' | null = null;
+                  if (dependencies.precedents.includes(address)) depType = 'precedent'; if (dependencies.dependents.includes(address)) depType = 'dependent';
+                  return (
+                    <GridCell 
+                      key={`${r}-${c}`} 
+                      row={r} 
+                      col={c} 
+                      cell={cells.get(address) || { value: '', displayValue: '' }} 
+                      isSelected={isSelected} 
+                      isEditing={!!(isActive && editingCell?.row === r && editingCell?.col === c)} 
+                      isInTable={false} 
+                      isDependency={depType} 
+                      onDoubleClick={() => setEditingCell({ row: r, col: c })} 
+                      onMouseDown={(row, col, e) => handleSelect(row, col, e)} 
+                      onMouseEnter={(row, col) => handleDragEnter(row, col)} 
+                      onInput={(row, col, val) => handleUpdateCell(row, col, { value: val }, false)} 
+                      onBlur={() => { if(cells.get(getCellAddress(r, c))) history.pushState(cells); setEditingCell(null); }} 
+                      onKeyDown={(e) => { if (e.key === 'Enter') { setEditingCell(null); history.pushState(cells); } }} 
+                    />
+                  );
+                })}
+              </div>
+            ))}
+          </div>
           <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 30 }}>
             <div style={{ width: '50px', height: '28px', background: '#1a202c', borderRight: '1px solid #4a5568', borderBottom: '1px solid #4a5568' }} />
             {Array.from({ length: 26 }).map((_, i) => (
