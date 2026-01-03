@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { ExcelFormulas } from '../excel/formulas';
 import { AutoFillEngine } from '../excel/autofill';
 import { CellFormatter } from '../excel/formatting';
+import { CalculationEngine } from '../excel/calculation-engine';
+import { FormulaCoach, type FormulaError } from '../excel/formula-coach';
 import type { CellData, CellAddress } from '../excel/types';
 
 // ============================================================================
@@ -161,10 +163,15 @@ export function AccelApp() {
   const [copiedRange, setCopiedRange] = useState<{ start: CellAddress; end: CellAddress } | null>(null);
   const [isTableMode, setIsTableMode] = useState(false);
   const [tableRange, setTableRange] = useState<{ start: CellAddress; end: CellAddress } | null>(null);
+  const [formulaError, setFormulaError] = useState<FormulaError | null>(null);
+  const [showFormulaCoach, setShowFormulaCoach] = useState(false);
 
   const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
   const autoFillEngine = useRef(new AutoFillEngine());
   const formatter = useRef(new CellFormatter());
+  const calcEngine = useRef(new CalculationEngine(10000)); // Max 10,000 iterations for safety
+  const formulas = useRef(new ExcelFormulas(cells));
+  const formulaCoach = useRef(new FormulaCoach(cells));
 
   // Get cell data or create empty
   const getCell = (row: number, col: number): CellData => {
@@ -172,29 +179,69 @@ export function AccelApp() {
     return cells.get(address) || { value: '', displayValue: '' };
   };
 
-  // Update cell data with formula recalculation
-  const updateCell = useCallback((row: number, col: number, data: Partial<CellData>) => {
+  // Update cell data with smart recalculation using dependency graph
+  const updateCell = useCallback(async (row: number, col: number, data: Partial<CellData>) => {
     const address = getCellAddress(row, col);
+
     setCells(prev => {
       const newCells = new Map(prev);
       const existing = newCells.get(address) || { value: '', displayValue: '' };
-      newCells.set(address, { ...existing, ...data });
+      const updatedCell = { ...existing, ...data };
+      newCells.set(address, updatedCell);
 
-      // Recalculate ALL formulas in the spreadsheet
-      const formulas = new ExcelFormulas(newCells);
-      newCells.forEach((cell, addr) => {
-        if (cell.formula) {
-          try {
-            const result = evaluateFormula(cell.formula, newCells, formulas);
-            cell.displayValue = result.toString();
-          } catch (error) {
-            cell.displayValue = '#ERROR!';
-          }
-        }
-      });
+      // Register cell with dependency graph if it has a formula
+      if (updatedCell.formula) {
+        const dependencies = calcEngine.current.extractReferences(updatedCell.formula);
+        calcEngine.current.registerCell(address, dependencies);
+      } else {
+        calcEngine.current.registerCell(address, []);
+      }
+
+      // Mark this cell and all dependents as dirty
+      calcEngine.current.markDirty(address);
+
+      // Trigger async recalculation
+      setTimeout(() => {
+        recalculateFormulas(newCells);
+      }, 0);
 
       return newCells;
     });
+  }, []);
+
+  // Async recalculation with dependency graph
+  const recalculateFormulas = useCallback(async (cellMap: Map<string, CellData>) => {
+    const formulasEngine = new ExcelFormulas(cellMap);
+
+    // Cell evaluator function
+    const evaluator = async (address: string, cell: CellData) => {
+      if (!cell.formula) {
+        return { value: cell.value };
+      }
+
+      try {
+        const result = evaluateFormula(cell.formula, cellMap, formulasEngine);
+        return { value: result };
+      } catch (error) {
+        return {
+          value: '#ERROR!',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        };
+      }
+    };
+
+    // Run the calculation engine
+    const stats = await calcEngine.current.recalculate(cellMap, evaluator);
+
+    // Update cells with calculated results
+    setCells(new Map(cellMap));
+
+    // Log stats for debugging
+    if (stats.circularReferences.length > 0) {
+      console.warn('Circular references detected:', stats.circularReferences);
+    }
+
+    console.log(`Recalculated ${stats.calculatedCells} cells in ${stats.calculationTimeMs.toFixed(2)}ms`);
   }, []);
 
   // Evaluate formula using Excel formula engine
@@ -362,6 +409,19 @@ export function AccelApp() {
 
       const cell = getCell(row, col);
       setFormulaBarValue(cell.formula || cell.value);
+
+      // Check for errors and show Formula Coach
+      if (cell.error && cell.formula) {
+        const address = getCellAddress(row, col);
+        const error = formulaCoach.current.diagnoseError(cell.formula, address, cell.displayValue);
+        if (error) {
+          setFormulaError(error);
+          setShowFormulaCoach(true);
+        }
+      } else {
+        setShowFormulaCoach(false);
+        setFormulaError(null);
+      }
     }
   };
 
@@ -665,6 +725,73 @@ export function AccelApp() {
               style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '12px' }}
             />
           </div>
+
+          {/* Formula Coach Panel */}
+          {showFormulaCoach && formulaError && (
+            <div style={{ background: 'rgba(220, 38, 38, 0.1)', borderBottom: '1px solid rgba(220, 38, 38, 0.3)', padding: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <div style={{ fontSize: '24px' }}>⚠️</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 700, color: '#fca5a5' }}>{formulaError.type}</span>
+                    <button
+                      onClick={() => setShowFormulaCoach(false)}
+                      style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: '#fff', opacity: 0.7, cursor: 'pointer', fontSize: '16px' }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div style={{ fontSize: '12px', marginBottom: '8px', opacity: 0.9 }}>{formulaError.message}</div>
+                  <div style={{ fontSize: '12px', marginBottom: '12px', color: '#fcd34d', fontWeight: 600 }}>💡 {formulaError.suggestion}</div>
+
+                  {formulaError.fixes.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: '11px', fontWeight: 600, marginBottom: '6px', opacity: 0.8 }}>Suggested fixes:</div>
+                      {formulaError.fixes.map((fix, index) => (
+                        <div
+                          key={index}
+                          onClick={() => {
+                            if (selectedCell) {
+                              handleCellInput(selectedCell.row, selectedCell.col, fix.newFormula);
+                              setShowFormulaCoach(false);
+                            }
+                          }}
+                          style={{
+                            padding: '8px',
+                            background: 'rgba(212, 160, 23, 0.15)',
+                            border: '1px solid rgba(212, 160, 23, 0.3)',
+                            borderRadius: '4px',
+                            marginBottom: '6px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(212, 160, 23, 0.25)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'rgba(212, 160, 23, 0.15)';
+                          }}
+                        >
+                          <div style={{ fontSize: '11px', fontWeight: 600, marginBottom: '4px' }}>{fix.description}</div>
+                          <div style={{ fontSize: '10px', fontFamily: 'monospace', opacity: 0.8 }}>{fix.newFormula}</div>
+                          <div style={{ fontSize: '10px', opacity: 0.6, marginTop: '2px' }}>Confidence: {Math.round(fix.confidence * 100)}%</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {formulaError.examples && formulaError.examples.length > 0 && (
+                    <div style={{ marginTop: '8px', padding: '8px', background: 'rgba(0, 0, 0, 0.2)', borderRadius: '4px' }}>
+                      <div style={{ fontSize: '10px', fontWeight: 600, marginBottom: '4px', opacity: 0.8 }}>Examples:</div>
+                      {formulaError.examples.map((example, index) => (
+                        <div key={index} style={{ fontSize: '10px', fontFamily: 'monospace', opacity: 0.7, marginBottom: '2px' }}>• {example}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Grid Container */}
           <div style={{ flex: 1, overflow: 'auto' }}>

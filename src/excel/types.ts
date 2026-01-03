@@ -11,6 +11,9 @@ export interface CellData {
   isMerged?: boolean; // If this cell is part of a merge
   validation?: CellValidation;
   comment?: string;
+  error?: string; // Error message if calculation failed
+  isSpill?: boolean; // If this cell is part of a spill array
+  spillSource?: string; // Source cell address for spill arrays
 }
 
 export interface CellFormat {
