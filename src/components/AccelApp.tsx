@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, memo, CSSProperties } from 'react';
+import { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { CalculationEngine } from '../excel/calculation-engine';
 import { FormulaCoach, type FormulaError } from '../excel/formula-coach';
 import type { CellData, CellAddress } from '../excel/types';
@@ -49,7 +49,6 @@ interface GridCellProps {
   isEditing: boolean;
   isInTable: boolean;
   isDependency: 'precedent' | 'dependent' | null;
-  onSelect: (r: number, c: number, e: React.MouseEvent) => void;
   onDoubleClick: (r: number, c: number) => void;
   onMouseDown: (r: number, c: number, e: React.MouseEvent) => void;
   onMouseEnter: (r: number, c: number) => void;
@@ -60,7 +59,7 @@ interface GridCellProps {
 
 const GridCell = memo(({ 
   row, col, cell, isSelected, isEditing, isInTable, isDependency, 
-  onSelect, onDoubleClick, onMouseDown, onMouseEnter, onInput, onBlur, onKeyDown 
+  onDoubleClick, onMouseDown, onMouseEnter, onInput, onBlur, onKeyDown 
 }: GridCellProps) => {
   const displayContent = isEditing ? (cell.formula || cell.value) : (cell.displayValue || cell.value);
   
@@ -90,10 +89,10 @@ const GridCell = memo(({
         border: getBorderStyle(), 
         zIndex: isSelected ? 20 : 1 
       }} 
-      onClick={(e) => onSelect(row, col, e)} 
-      onDoubleClick={() => onDoubleClick(row, col)} 
       onMouseDown={(e) => onMouseDown(row, col, e)} 
       onMouseEnter={() => onMouseEnter(row, col)}
+      onClick={(e) => e.stopPropagation()}
+      onDoubleClick={() => onDoubleClick(row, col)} 
     >
       {isEditing ? (
         <input 
@@ -152,6 +151,8 @@ export function AccelApp() {
   const [activeSidebar, setActiveSidebar] = useState('home');
   const [cells, setCells] = useState<Map<string, CellData>>(new Map());
   const history = useHistory(cells);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragAnchor, setDragAnchor] = useState<CellAddress | null>(null);
   
   // Spreadsheet State
   const [selectedCell, setSelectedCell] = useState<CellAddress | null>(null);
@@ -190,23 +191,63 @@ export function AccelApp() {
   }, []);
 
   const handleSelect = useCallback((row: number, col: number, e: React.MouseEvent) => {
-    const address = getCellAddress(row, col);
-    const precedents = calcEngine.current.getDependencies(address); // Uses alias
-    const dependents = calcEngine.current.getDependents(address);
+    if (e.button !== 0) return;
+    e.preventDefault();
+    const anchor = e.shiftKey && selectionRange ? selectionRange.start : { row, col };
+    const anchorAddress = getCellAddress(anchor.row, anchor.col);
+    const precedents = calcEngine.current.getDependencies(anchorAddress);
+    const dependents = calcEngine.current.getDependents(anchorAddress);
+
     setDependencies({ precedents, dependents });
-    if (e.shiftKey && selectionRange) { setSelectionRange({ ...selectionRange, end: { row, col } }); }
-    else {
-      setSelectedCell({ row, col });
-      setSelectionRange({ start: { row, col }, end: { row, col } });
-      setEditingCell(null);
-      const cell = cells.get(address);
-      setFormulaBarValue(cell?.formula || cell?.value || '');
-      if (cell?.error) {
-        const err = formulaCoach.current.diagnoseError(cell.formula!, address, cell.displayValue);
-        if (err) { setFormulaError(err); setShowFormulaCoach(true); }
-      } else { setShowFormulaCoach(false); }
-    }
+    setSelectedCell(anchor);
+    setSelectionRange({ start: anchor, end: { row, col } });
+    setEditingCell(null);
+    setDragAnchor(anchor);
+
+    const cell = cells.get(anchorAddress);
+    setFormulaBarValue(cell?.formula || cell?.value || '');
+    if (cell?.error) {
+      const err = formulaCoach.current.diagnoseError(cell.formula!, anchorAddress, cell.displayValue);
+      if (err) { setFormulaError(err); setShowFormulaCoach(true); }
+    } else { setShowFormulaCoach(false); }
+
+    setIsDragging(true);
   }, [cells, selectionRange]);
+
+  const handleDragEnter = useCallback((row: number, col: number) => {
+    if (!isDragging) return;
+    setSelectionRange((current) => {
+      const anchor = current?.start || dragAnchor;
+      if (!anchor) return current;
+      return { start: anchor, end: { row, col } };
+    });
+  }, [isDragging, dragAnchor]);
+
+  const isColInSelection = useCallback(
+    (col: number) =>
+      !!selectionRange &&
+      col >= Math.min(selectionRange.start.col, selectionRange.end.col) &&
+      col <= Math.max(selectionRange.start.col, selectionRange.end.col),
+    [selectionRange]
+  );
+
+  const isRowInSelection = useCallback(
+    (row: number) =>
+      !!selectionRange &&
+      row >= Math.min(selectionRange.start.row, selectionRange.end.row) &&
+      row <= Math.max(selectionRange.start.row, selectionRange.end.row),
+    [selectionRange]
+  );
+
+  useEffect(() => {
+    const stopDragging = () => setIsDragging(false);
+    window.addEventListener('mouseup', stopDragging);
+    window.addEventListener('mouseleave', stopDragging);
+    return () => {
+      window.removeEventListener('mouseup', stopDragging);
+      window.removeEventListener('mouseleave', stopDragging);
+    };
+  }, []);
 
   // --- VIEW: SPREADSHEET ---
   if (view === 'spreadsheet') {
@@ -244,16 +285,52 @@ export function AccelApp() {
           <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 30 }}>
             <div style={{ width: '50px', height: '28px', background: '#1a202c', borderRight: '1px solid #4a5568', borderBottom: '1px solid #4a5568' }} />
             {Array.from({ length: 26 }).map((_, i) => (
-               <div key={i} style={{ minWidth: '100px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: selectedCell?.col === i ? '#2d3748' : '#1a202c', borderRight: '1px solid #4a5568', borderBottom: '1px solid #4a5568', fontSize: '11px', fontWeight: 'bold', color: selectedCell?.col === i ? '#d4a017' : '#a0aec0' }}>{String.fromCharCode(65 + i)}</div>
+               <div
+                 key={i}
+                 style={{
+                   minWidth: '100px',
+                   height: '28px',
+                   display: 'flex',
+                   alignItems: 'center',
+                   justifyContent: 'center',
+                   background: isColInSelection(i) ? '#2d3748' : '#1a202c',
+                   borderRight: '1px solid #4a5568',
+                   borderBottom: '1px solid #4a5568',
+                   fontSize: '11px',
+                   fontWeight: 'bold',
+                   color: isColInSelection(i) ? '#d4a017' : '#a0aec0'
+                 }}
+               >
+                 {String.fromCharCode(65 + i)}
+               </div>
             ))}
           </div>
           {Array.from({ length: 100 }).map((_, r) => (
             <div key={r} style={{ display: 'flex' }}>
-              <div style={{ width: '50px', minWidth: '50px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: selectedCell?.row === r ? '#2d3748' : '#1a202c', borderRight: '1px solid #4a5568', borderBottom: '1px solid #4a5568', position: 'sticky', left: 0, zIndex: 10, fontSize: '11px', color: selectedCell?.row === r ? '#d4a017' : '#a0aec0' }}>{r + 1}</div>
+              <div
+                style={{
+                  width: '50px',
+                  minWidth: '50px',
+                  height: '28px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: isRowInSelection(r) ? '#2d3748' : '#1a202c',
+                  borderRight: '1px solid #4a5568',
+                  borderBottom: '1px solid #4a5568',
+                  position: 'sticky',
+                  left: 0,
+                  zIndex: 10,
+                  fontSize: '11px',
+                  color: isRowInSelection(r) ? '#d4a017' : '#a0aec0'
+                }}
+              >
+                {r + 1}
+              </div>
               {Array.from({ length: 26 }).map((_, c) => {
                 const address = getCellAddress(r, c);
                 const isActive = selectedCell?.row === r && selectedCell?.col === c;
-                const isSelected = !!selectionRange && r >= Math.min(selectionRange.start.row, selectionRange.end.row) && r <= Math.max(selectionRange.start.row, selectionRange.end.row) && c >= Math.min(selectionRange.start.col, selectionRange.end.col) && c <= Math.max(selectionRange.start.col, selectionRange.end.col);
+                const isSelected = isRowInSelection(r) && isColInSelection(c);
                 let depType: 'precedent' | 'dependent' | null = null;
                 if (dependencies.precedents.includes(address)) depType = 'precedent'; if (dependencies.dependents.includes(address)) depType = 'dependent';
                 return (
@@ -266,10 +343,9 @@ export function AccelApp() {
                     isEditing={!!(isActive && editingCell?.row === r && editingCell?.col === c)} 
                     isInTable={false} 
                     isDependency={depType} 
-                    onSelect={handleSelect} 
                     onDoubleClick={() => setEditingCell({ row: r, col: c })} 
-                    onMouseDown={() => {}} 
-                    onMouseEnter={() => {}} 
+                    onMouseDown={(row, col, e) => handleSelect(row, col, e)} 
+                    onMouseEnter={(row, col) => handleDragEnter(row, col)} 
                     onInput={(row, col, val) => handleUpdateCell(row, col, { value: val }, false)} 
                     onBlur={() => { if(cells.get(getCellAddress(r, c))) history.pushState(cells); setEditingCell(null); }} 
                     onKeyDown={(e) => { if (e.key === 'Enter') { setEditingCell(null); history.pushState(cells); } }} 
