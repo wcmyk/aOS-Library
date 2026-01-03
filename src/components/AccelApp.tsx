@@ -1,5 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useReducer, memo, useMemo } from 'react';
-// Assuming external imports exist as provided in your snippet
+import { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { ExcelFormulas } from '../excel/formulas';
 import { AutoFillEngine } from '../excel/autofill';
 import { CellFormatter } from '../excel/formatting';
@@ -11,11 +10,10 @@ import type { CellData, CellAddress } from '../excel/types';
 // 1. SMART TYPES & VISUALIZATION UTILS
 // ============================================================================
 
-// Detects context to render rich UI inside cells (Chips, Progress Bars, etc.)
 const SmartCellRenderer = ({ value, format }: { value: string, format: any }) => {
   const num = parseFloat(value);
   
-  // 1. Progress Bar for percentages (0 to 1)
+  // 1. Progress Bar for percentages
   if (!isNaN(num) && num >= 0 && num <= 1 && (format?.format === 'percent' || value.includes('%'))) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', height: '100%', gap: '6px', width: '100%' }}>
@@ -44,7 +42,7 @@ const SmartCellRenderer = ({ value, format }: { value: string, format: any }) =>
 };
 
 // ============================================================================
-// 2. OPTIMIZED GRID CELL (The Engine Room)
+// 2. OPTIMIZED GRID CELL (Memoized)
 // ============================================================================
 
 interface GridCellProps {
@@ -54,7 +52,7 @@ interface GridCellProps {
   isSelected: boolean;
   isEditing: boolean;
   isInTable: boolean;
-  isDependency: 'precedent' | 'dependent' | null; // New visual feature
+  isDependency: 'precedent' | 'dependent' | null;
   onSelect: (r: number, c: number, e: React.MouseEvent) => void;
   onDoubleClick: (r: number, c: number) => void;
   onMouseDown: (r: number, c: number, e: React.MouseEvent) => void;
@@ -64,7 +62,6 @@ interface GridCellProps {
   onKeyDown: (e: React.KeyboardEvent) => void;
 }
 
-// React.memo is CRITICAL here. It prevents 2000 cells from re-rendering when you type in 1.
 const GridCell = memo(({ 
   row, col, cell, isSelected, isEditing, isInTable, isDependency,
   onSelect, onDoubleClick, onMouseDown, onMouseEnter, onInput, onBlur, onKeyDown 
@@ -72,7 +69,6 @@ const GridCell = memo(({
   
   const displayContent = isEditing ? (cell.formula || cell.value) : (cell.displayValue || cell.value);
 
-  // Dynamic style calculation
   const getBorderStyle = () => {
     if (isSelected) return '2px solid rgba(212, 160, 23, 1)'; // Accel Gold
     if (isDependency === 'precedent') return '1px dashed #7c8cff'; // Blue arrows
@@ -133,14 +129,12 @@ const GridCell = memo(({
         </div>
       )}
       
-      {/* Visual cue for formulas */}
       {cell.formula && !isEditing && (
         <div style={{ position: 'absolute', top: 2, right: 2, width: 4, height: 4, borderRadius: '50%', background: '#7c8cff' }} />
       )}
     </div>
   );
 }, (prev, next) => {
-  // Custom comparison to strictly limit re-renders
   return (
     prev.cell === next.cell &&
     prev.isSelected === next.isSelected &&
@@ -151,7 +145,7 @@ const GridCell = memo(({
 });
 
 // ============================================================================
-// 3. HISTORY MANAGER (UNDO/REDO HOOK)
+// 3. HISTORY MANAGER
 // ============================================================================
 
 const useHistory = (initialState: Map<string, CellData>) => {
@@ -185,7 +179,7 @@ const useHistory = (initialState: Map<string, CellData>) => {
 };
 
 // ============================================================================
-// 4. MAIN COMPONENT (Refactored)
+// 4. MAIN COMPONENT (AccelApp)
 // ============================================================================
 
 export function AccelApp() {
@@ -193,24 +187,18 @@ export function AccelApp() {
   const [cells, setCells] = useState<Map<string, CellData>>(new Map());
   const history = useHistory(cells);
   
-  // Selection State
   const [selectedCell, setSelectedCell] = useState<CellAddress | null>(null);
   const [selectionRange, setSelectionRange] = useState<{ start: CellAddress, end: CellAddress } | null>(null);
-  const [isSelecting, setIsSelecting] = useState(false);
   
-  // Editor State
   const [editingCell, setEditingCell] = useState<CellAddress | null>(null);
   const [formulaBarValue, setFormulaBarValue] = useState('');
   
-  // AI & Advanced Features
   const [showFormulaCoach, setShowFormulaCoach] = useState(false);
   const [formulaError, setFormulaError] = useState<FormulaError | null>(null);
   const [dependencies, setDependencies] = useState<{ precedents: string[], dependents: string[] }>({ precedents: [], dependents: [] });
 
   const calcEngine = useRef(new CalculationEngine(10000));
   const formulaCoach = useRef(new FormulaCoach(cells));
-
-  // --- Core Logic Helpers ---
 
   function getCellAddress(row: number, col: number): string {
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -230,7 +218,6 @@ export function AccelApp() {
       const newCells = new Map(prev);
       const existing = newCells.get(address) || { value: '', displayValue: '' };
       
-      // Smart: If value starts with =, treat as formula
       const isFormula = data.value?.toString().startsWith('=');
       const updatedCell = { 
         ...existing, 
@@ -238,32 +225,30 @@ export function AccelApp() {
         formula: isFormula ? data.value : undefined 
       };
 
-      // Calculate display value immediately if simple, otherwise async calc
       if (!isFormula) {
         updatedCell.displayValue = updatedCell.value;
       }
 
       newCells.set(address, updatedCell);
       
-      // Register with calc engine
       if (updatedCell.formula) {
-        const deps = calcEngine.current.extractReferences(updatedCell.formula);
-        calcEngine.current.registerCell(address, deps);
+        // Safe check for method existence
+        if (calcEngine.current.extractReferences) {
+          const deps = calcEngine.current.extractReferences(updatedCell.formula);
+          calcEngine.current.registerCell(address, deps);
+        }
       }
       
       if (saveHistory) history.pushState(newCells);
       return newCells;
     });
-  }, []); // Dependencies would go here
-
-  // --- Interaction Handlers ---
+  }, []);
 
   const handleSelect = useCallback((row: number, col: number, e: React.MouseEvent) => {
     const address = getCellAddress(row, col);
     
-    // 1. Dependency Tracing (Visual "Better than Excel" feature)
-    // We visually highlight cells that contribute to this one
-    const precedents = calcEngine.current.getPrecedents(address);
+    // --- [FIX: CALLING getDependencies INSTEAD OF getPrecedents] ---
+    const precedents = calcEngine.current.getDependencies(address); 
     const dependents = calcEngine.current.getDependents(address);
     setDependencies({ precedents, dependents });
 
@@ -277,7 +262,6 @@ export function AccelApp() {
       const cell = cells.get(address);
       setFormulaBarValue(cell?.formula || cell?.value || '');
       
-      // AI Coach Check
       if (cell?.error) {
         const err = formulaCoach.current.diagnoseError(cell.formula!, address, cell.displayValue);
         if (err) {
@@ -291,7 +275,6 @@ export function AccelApp() {
   }, [cells, selectionRange]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    // Undo/Redo Shortcuts
     if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
       e.preventDefault();
       if (e.shiftKey) {
@@ -303,37 +286,28 @@ export function AccelApp() {
       }
     }
     
-    // Enter key navigation
     if (e.key === 'Enter' && editingCell) {
-        // Logic to move selection down
         setEditingCell(null);
-        // Focus usually handled by grid focus management
     }
   }, [history, editingCell]);
-
-  // --- Rendering ---
 
   if (view === 'spreadsheet') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#0e1016', color: '#fff', fontFamily: 'Inter, sans-serif' }} onKeyDown={handleKeyDown} tabIndex={0}>
         
-        
-
-        {/* 1. Toolbar / Ribbon */}
+        {/* Toolbar */}
         <div style={{ height: '50px', borderBottom: '1px solid #2d3748', display: 'flex', alignItems: 'center', padding: '0 16px', gap: '16px', background: '#171923' }}>
           <button onClick={() => setView('home')} style={{ background: 'none', border: 'none', color: '#d4a017', fontSize: '18px', cursor: 'pointer' }}>⌂</button>
           <div style={{ height: '24px', width: '1px', background: '#2d3748' }} />
-          
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="tool-btn" onClick={() => history.undo()} disabled={!history.canUndo} style={{ opacity: history.canUndo ? 1 : 0.3 }}>↩ Undo</button>
-            <button className="tool-btn" onClick={() => history.redo()} disabled={!history.canRedo} style={{ opacity: history.canRedo ? 1 : 0.3 }}>↪ Redo</button>
+            <button className="tool-btn" onClick={() => history.undo()} disabled={!history.canUndo} style={{ opacity: history.canUndo ? 1 : 0.3, background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>↩ Undo</button>
+            <button className="tool-btn" onClick={() => history.redo()} disabled={!history.canRedo} style={{ opacity: history.canRedo ? 1 : 0.3, background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>↪ Redo</button>
           </div>
-          
           <div style={{ flex: 1 }} />
           <div style={{ fontSize: '12px', color: '#718096' }}>{cells.size} Active Cells</div>
         </div>
 
-        {/* 2. Formula Bar */}
+        {/* Formula Bar */}
         <div style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', background: '#1a202c', borderBottom: '1px solid #2d3748' }}>
           <div style={{ width: '32px', color: '#a0aec0', fontSize: '14px', fontStyle: 'italic', fontWeight: 'bold' }}>fx</div>
           <input 
@@ -347,7 +321,7 @@ export function AccelApp() {
           />
         </div>
 
-        {/* 3. AI Coach Panel (Overlay) */}
+        {/* AI Coach Panel */}
         {showFormulaCoach && formulaError && (
           <div style={{ 
             position: 'absolute', top: '110px', right: '20px', width: '300px', 
@@ -355,7 +329,6 @@ export function AccelApp() {
             border: '1px solid #d4a017', borderRadius: '8px', padding: '16px',
             zIndex: 100, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)'
           }}>
-            
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
               <strong style={{ color: '#d4a017' }}>AI Formula Coach</strong>
               <button onClick={() => setShowFormulaCoach(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}>✕</button>
@@ -375,12 +348,10 @@ export function AccelApp() {
           </div>
         )}
 
-        {/* 4. The Grid */}
+        {/* Grid */}
         <div style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
           <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 30 }}>
-            {/* Corner */}
             <div style={{ width: '50px', height: '28px', background: '#1a202c', borderRight: '1px solid #4a5568', borderBottom: '1px solid #4a5568' }} />
-            {/* Column Headers */}
             {Array.from({ length: 26 }).map((_, i) => {
                const letter = String.fromCharCode(65 + i);
                const isSelectedCol = selectedCell?.col === i;
@@ -400,7 +371,6 @@ export function AccelApp() {
 
           {Array.from({ length: 100 }).map((_, r) => (
             <div key={r} style={{ display: 'flex' }}>
-              {/* Row Header */}
               <div style={{ 
                 width: '50px', minWidth: '50px', height: '28px', 
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -412,7 +382,6 @@ export function AccelApp() {
                 {r + 1}
               </div>
 
-              {/* Cells */}
               {Array.from({ length: 26 }).map((_, c) => {
                 const address = getCellAddress(r, c);
                 const isActive = selectedCell?.row === r && selectedCell?.col === c;
@@ -433,15 +402,14 @@ export function AccelApp() {
                     cell={cells.get(address) || { value: '', displayValue: '' }}
                     isSelected={isSelected}
                     isEditing={isActive && editingCell?.row === r && editingCell?.col === c}
-                    isInTable={false} // Logic simplified for brevity
+                    isInTable={false}
                     isDependency={depType}
                     onSelect={handleSelect}
                     onDoubleClick={() => setEditingCell({ row: r, col: c })}
-                    onMouseDown={() => {}} // Add drag logic here
-                    onMouseEnter={() => {}} // Add drag logic here
-                    onInput={(row, col, val) => handleUpdateCell(row, col, { value: val }, false)} // Don't save history on every keystroke
+                    onMouseDown={() => {}}
+                    onMouseEnter={() => {}}
+                    onInput={(row, col, val) => handleUpdateCell(row, col, { value: val }, false)}
                     onBlur={() => {
-                        // Save history on blur (commit)
                         const addr = getCellAddress(r, c);
                         const cell = cells.get(addr);
                         if(cell) history.pushState(cells);
@@ -450,7 +418,7 @@ export function AccelApp() {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         setEditingCell(null);
-                        history.pushState(cells); // Commit history
+                        history.pushState(cells);
                       }
                     }}
                   />
@@ -460,26 +428,24 @@ export function AccelApp() {
           ))}
         </div>
         
-        {/* 5. Status Bar */}
+        {/* Status Bar */}
         <div style={{ height: '28px', background: '#d4a017', color: '#000', display: 'flex', alignItems: 'center', padding: '0 12px', fontSize: '11px', fontWeight: 600 }}>
           <span>Ready</span>
           <div style={{ flex: 1 }} />
-          {selectionRange && (
-            <span>Sum: { 
-               // Quick Sum Logic for Status Bar
-               "Calculated..." 
-            }</span>
-          )}
         </div>
       </div>
     );
   }
 
-  // --- Home View (Simplified Return for brevity, use existing home logic) ---
+  // Home View
   return (
-    <div style={{ padding: 50, color: 'white' }}>
-      <h1>Accel Home</h1>
-      <button onClick={() => setView('spreadsheet')}>Open Blank Workbook</button>
+    <div style={{ display: 'flex', height: '100%', background: 'rgba(14, 16, 22, 0.55)', alignItems: 'center', justifyContent: 'center' }}>
+      <button 
+        onClick={() => setView('spreadsheet')}
+        style={{ padding: '16px 32px', fontSize: '16px', fontWeight: 'bold', background: '#d4a017', border: 'none', borderRadius: '8px', cursor: 'pointer', color: '#000' }}
+      >
+        Open Blank Workbook
+      </button>
     </div>
   );
 }
