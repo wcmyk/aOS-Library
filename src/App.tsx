@@ -172,6 +172,7 @@ export default function App() {
     minimizeWindow,
     moveWindow,
     resizeWindow,
+    toggleMaximizeWindow,
   } = useShellStore();
 
   const [agentActive, setAgentActive] = useState(true);
@@ -196,13 +197,6 @@ export default function App() {
     const pulse = setInterval(() => setAgentActive((value) => !value), 12000);
     return () => clearInterval(pulse);
   }, []);
-
-  useEffect(() => {
-    if (windows.length === 0) {
-      openWindow('artifact-explorer');
-      openWindow('job-monitor');
-    }
-  }, [openWindow, windows.length]);
 
   const visibleWindows = windows.filter((win) => !win.minimized);
   const runningJobs = jobs.filter((job) => job.status !== 'Done');
@@ -270,6 +264,7 @@ export default function App() {
             onMove={moveWindow}
             onResize={resizeWindow}
             onFocus={focusWindow}
+            onToggleMaximize={toggleMaximizeWindow}
           >
             {renderWindowContent(window)}
           </WindowFrame>

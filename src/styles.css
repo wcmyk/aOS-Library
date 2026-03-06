@@ -279,6 +279,7 @@ button {
   padding: 16px;
   background: rgba(14, 16, 22, 0.55);
   height: calc(100% - 46px);
+  overflow: auto;
 }
 
 .window-footer {

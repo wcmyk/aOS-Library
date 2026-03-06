@@ -8,10 +8,21 @@ type WindowFrameProps = {
   onMinimize: (id: string) => void;
   onMove: (id: string, x: number, y: number) => void;
   onResize: (id: string, width: number, height: number) => void;
+  onToggleMaximize: (id: string) => void;
   children: React.ReactNode;
 };
 
-export function WindowFrame({ frame, onClose, onMinimize, onMove, onResize, onFocus, children }: WindowFrameProps) {
+export function WindowFrame({
+  frame,
+  onClose,
+  onMinimize,
+  onMove,
+  onResize,
+  onFocus,
+  onToggleMaximize,
+  children,
+}: WindowFrameProps) {
+  const frameRef = useRef<HTMLElement | null>(null);
   const dragStart = useRef<{ x: number; y: number; originX: number; originY: number } | null>(null);
   const resizeStart = useRef<{ x: number; y: number; width: number; height: number } | null>(null);
   const rafId = useRef<number | null>(null);
@@ -37,7 +48,7 @@ export function WindowFrame({ frame, onClose, onMinimize, onMove, onResize, onFo
     };
 
     const handleMove = (event: MouseEvent) => {
-      if (dragStart.current) {
+      if (dragStart.current && frameRef.current) {
         const deltaX = event.clientX - dragStart.current.x;
         const deltaY = event.clientY - dragStart.current.y;
         pendingMove.current = {
@@ -82,6 +93,7 @@ export function WindowFrame({ frame, onClose, onMinimize, onMove, onResize, onFo
   }, [frame.id, onMove, onResize]);
 
   const handleHeaderMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (frame.maximized) return;
     event.preventDefault();
     dragStart.current = {
       x: event.clientX,
@@ -93,6 +105,7 @@ export function WindowFrame({ frame, onClose, onMinimize, onMove, onResize, onFo
   };
 
   const handleResizeDown = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (frame.maximized) return;
     event.preventDefault();
     event.stopPropagation();
     resizeStart.current = {
@@ -106,6 +119,7 @@ export function WindowFrame({ frame, onClose, onMinimize, onMove, onResize, onFo
 
   return (
     <section
+      ref={frameRef}
       className="window"
       style={{
         width: frame.width,
@@ -124,7 +138,12 @@ export function WindowFrame({ frame, onClose, onMinimize, onMove, onResize, onFo
             aria-label="Minimize window"
             type="button"
           />
-          <span className="light green" aria-hidden />
+          <button
+            className="light green"
+            aria-label={frame.maximized ? 'Restore window size' : 'Maximize window'}
+            onClick={() => onToggleMaximize(frame.id)}
+            type="button"
+          />
         </div>
         <span className="window-title">{frame.title}</span>
       </div>
