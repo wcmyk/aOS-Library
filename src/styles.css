@@ -466,3 +466,133 @@ kbd {
   background: linear-gradient(transparent, rgba(20, 24, 32, 0.95));
   pointer-events: none;
 }
+
+.vision-shell {
+  height: 100%;
+  border-radius: 12px;
+  background: radial-gradient(circle at top, rgba(79, 140, 255, 0.18), transparent 55%), rgba(11, 15, 22, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  padding: 18px;
+}
+
+.vision-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vision-chip {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b9ccff;
+}
+
+.vision-links {
+  display: flex;
+  gap: 14px;
+}
+
+.vision-link {
+  color: #dbe4ff;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.vision-link:hover {
+  color: #ffffff;
+}
+
+.vision-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.vision-logo {
+  font-size: clamp(48px, 8vw, 78px);
+  letter-spacing: 0.02em;
+  margin: 0;
+  font-weight: 700;
+}
+
+.vision-logo span:nth-child(1) { color: #4285f4; }
+.vision-logo span:nth-child(2) { color: #ea4335; }
+.vision-logo span:nth-child(3) { color: #fbbc05; }
+.vision-logo span:nth-child(4) { color: #4285f4; }
+.vision-logo span:nth-child(5) { color: #34a853; }
+.vision-logo span:nth-child(6) { color: #ea4335; }
+
+.vision-search-form {
+  width: min(680px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.vision-search-input {
+  width: 100%;
+  height: 52px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(22, 28, 40, 0.9);
+  color: #f7f9ff;
+  font-size: 17px;
+  padding: 0 20px;
+  outline: none;
+}
+
+.vision-search-input:focus {
+  border-color: rgba(79, 140, 255, 0.8);
+  box-shadow: 0 0 0 4px rgba(79, 140, 255, 0.18);
+}
+
+.vision-search-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.vision-primary-btn,
+.vision-secondary-btn {
+  border-radius: 999px;
+  padding: 9px 16px;
+  font-size: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.vision-primary-btn {
+  background: linear-gradient(180deg, #4f8cff, #3a74e0);
+}
+
+.vision-secondary-btn {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.vision-trending p {
+  margin: 0 0 8px;
+  color: #b6c6e9;
+  font-size: 12px;
+  text-align: center;
+}
+
+.vision-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.vision-tag {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #d7e4ff;
+  padding: 6px 12px;
+  font-size: 12px;
+}
