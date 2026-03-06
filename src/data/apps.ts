@@ -11,6 +11,14 @@ const BASE_URL = import.meta.env.BASE_URL;
 
 export const apps: ShellApp[] = [
   {
+    id: 'vision',
+    name: 'Vision',
+    icon: `${BASE_URL}assets/apps/vision.svg`,
+    description: 'Google-style search with a polished workspace-native UI',
+    accent: '#4f8cff',
+    defaultSize: { width: 980, height: 640 },
+  },
+  {
     id: 'artifact-explorer',
     name: 'Artifact Explorer',
     icon: `${BASE_URL}assets/apps/artifact-explorer.png`,

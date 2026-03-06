@@ -11,6 +11,8 @@ export type WindowState = {
   height: number;
   zIndex: number;
   minimized: boolean;
+  maximized?: boolean;
+  restoreBounds?: { x: number; y: number; width: number; height: number };
 };
 
 export type Command = {
@@ -34,6 +36,7 @@ type ShellStore = {
   minimizeWindow: (id: string) => void;
   moveWindow: (id: string, x: number, y: number) => void;
   resizeWindow: (id: string, width: number, height: number) => void;
+  toggleMaximizeWindow: (id: string) => void;
   toggleSpotlight: (value?: boolean) => void;
   setSpotlightQuery: (value: string) => void;
 };
@@ -82,6 +85,7 @@ export const useShellStore = create<ShellStore>((set, get) => ({
         height,
         zIndex: nextZ,
         minimized: false,
+        maximized: false,
       };
 
       return {
@@ -109,14 +113,50 @@ export const useShellStore = create<ShellStore>((set, get) => ({
     })),
   moveWindow: (id, x, y) =>
     set((state) => ({
-      windows: state.windows.map((window) => (window.id === id ? { ...window, x, y } : window)),
+      windows: state.windows.map((window) =>
+        window.id === id && !window.maximized ? { ...window, x, y } : window,
+      ),
     })),
   resizeWindow: (id, width, height) =>
     set((state) => ({
       windows: state.windows.map((window) =>
-        window.id === id ? { ...window, width: Math.max(340, width), height: Math.max(260, height) } : window,
+        window.id === id && !window.maximized
+          ? { ...window, width: Math.max(340, width), height: Math.max(260, height) }
+          : window,
       ),
     })),
+  toggleMaximizeWindow: (id) =>
+    set((state) => {
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      return {
+        windows: state.windows.map((item) => {
+          if (item.id !== id) return item;
+          if (item.maximized) {
+            const restore = item.restoreBounds;
+            if (!restore) return { ...item, maximized: false };
+            return {
+              ...item,
+              ...restore,
+              maximized: false,
+              restoreBounds: undefined,
+            };
+          }
+
+          return {
+            ...item,
+            restoreBounds: { x: item.x, y: item.y, width: item.width, height: item.height },
+            x: 12,
+            y: 44,
+            width: viewportWidth - 24,
+            height: viewportHeight - 120,
+            maximized: true,
+            minimized: false,
+          };
+        }),
+      };
+    }),
   toggleSpotlight: (value) => set({ spotlightOpen: value ?? !get().spotlightOpen }),
   setSpotlightQuery: (value) => set({ spotlightQuery: value }),
 }));
