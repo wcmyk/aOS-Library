@@ -55,7 +55,7 @@ export function WindowFrame({
     };
 
     const handleMove = (event: MouseEvent) => {
-      if (dragStart.current) {
+      if (dragStart.current && frameRef.current) {
         const deltaX = event.clientX - dragStart.current.x;
         const deltaY = event.clientY - dragStart.current.y;
         pendingMove.current = {
