@@ -37,6 +37,23 @@ export function WindowFrame({
   }, [frame.height, frame.width, frame.x, frame.y]);
 
   useEffect(() => {
+    const flushPointerUpdates = () => {
+      rafId.current = null;
+      if (pendingMove.current) {
+        onMove(frame.id, pendingMove.current.x, pendingMove.current.y);
+        pendingMove.current = null;
+      }
+      if (pendingResize.current) {
+        onResize(frame.id, pendingResize.current.width, pendingResize.current.height);
+        pendingResize.current = null;
+      }
+    };
+
+    const queueFrame = () => {
+      if (rafId.current !== null) return;
+      rafId.current = window.requestAnimationFrame(flushPointerUpdates);
+    };
+
     const handleMove = (event: MouseEvent) => {
       if (dragStart.current && frameRef.current) {
         const deltaX = event.clientX - dragStart.current.x;
@@ -77,6 +94,10 @@ export function WindowFrame({
     return () => {
       window.removeEventListener('mousemove', handleMove);
       window.removeEventListener('mouseup', handleUp);
+      if (rafId.current !== null) {
+        window.cancelAnimationFrame(rafId.current);
+        rafId.current = null;
+      }
     };
   }, [frame.id, onMove, onResize]);
 
