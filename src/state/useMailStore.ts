@@ -17,6 +17,7 @@ export type JobMeta = {
   managerName: string;
   compensation: number;
   location: string;
+  employmentType: string;
 };
 
 export type Email = {
