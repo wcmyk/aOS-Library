@@ -5,7 +5,7 @@ import { MenuBar } from './components/MenuBar';
 import { Spotlight } from './components/Spotlight';
 import { WindowFrame } from './components/WindowFrame';
 import { AccelApp } from './components/AccelApp';
-import { VisionApp } from './apps/vision/VisionApp';
+import { OracleApp, SanctumApp, VisionApp } from './apps';
 import { useShellStore, type WindowState } from './state/useShellStore';
 
 const artifacts = [
@@ -130,6 +130,14 @@ function renderWindowContent(window: WindowState) {
 
   if (window.appId === 'archive') {
     return <AccelApp />;
+  }
+
+  if (window.appId === 'oracle') {
+    return <OracleApp />;
+  }
+
+  if (window.appId === 'sanctum') {
+    return <SanctumApp />;
   }
 
   if (window.appId === 'vision') {
