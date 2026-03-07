@@ -74,6 +74,7 @@ function OracleEditor({
   const [highlightColor, setHighlightColor] = useState('#ffff00');
   const [showColorPicker, setShowColorPicker] = useState<'text' | 'highlight' | null>(null);
   const savedRangeRef = useRef<Range | null>(null);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Initialize editor content
   useEffect(() => {
@@ -98,6 +99,12 @@ function OracleEditor({
     updateDocument(doc.id, { content: editorRef.current.innerHTML });
     updateWordCount();
   }, [doc]);
+
+  // Debounced version for onInput — avoids saving on every keystroke
+  const handleInput = useCallback(() => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(saveContent, 300);
+  }, [saveContent]);
 
   const exec = (command: string, value?: string) => {
     editorRef.current?.focus();
@@ -476,7 +483,7 @@ function OracleEditor({
             className="ora-content-editable"
             contentEditable
             suppressContentEditableWarning
-            onInput={saveContent}
+            onInput={handleInput}
             onBlur={saveContent}
             style={{ fontFamily, fontSize: `${fontSize}px` }}
           />
@@ -501,24 +508,31 @@ function DocumentOutline({ editorRef }: { editorRef: React.RefObject<HTMLDivElem
   const [headings, setHeadings] = useState<{ text: string; level: number; id: string }[]>([]);
 
   useEffect(() => {
+    const debounce = { timer: null as ReturnType<typeof setTimeout> | null };
     const observer = new MutationObserver(() => {
-      const el = editorRef.current;
-      if (!el) return;
-      const hs = Array.from(el.querySelectorAll('h1,h2,h3,h4')).map((h, i) => {
-        const id = `ora-heading-${i}`;
-        (h as HTMLElement).id = id;
-        return {
-          text: (h as HTMLElement).innerText,
-          level: parseInt(h.tagName.replace('H', '')),
-          id,
-        };
-      });
-      setHeadings(hs);
+      if (debounce.timer) clearTimeout(debounce.timer);
+      debounce.timer = setTimeout(() => {
+        const el = editorRef.current;
+        if (!el) return;
+        const hs = Array.from(el.querySelectorAll('h1,h2,h3,h4')).map((h, i) => {
+          const id = `ora-heading-${i}`;
+          (h as HTMLElement).id = id;
+          return {
+            text: (h as HTMLElement).innerText,
+            level: parseInt(h.tagName.replace('H', '')),
+            id,
+          };
+        });
+        setHeadings(hs);
+      }, 200);
     });
     if (editorRef.current) {
       observer.observe(editorRef.current, { childList: true, subtree: true, characterData: true });
     }
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      if (debounce.timer) clearTimeout(debounce.timer);
+    };
   }, [editorRef]);
 
   if (headings.length === 0) return null;

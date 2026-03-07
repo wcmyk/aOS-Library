@@ -5,7 +5,6 @@ export type MenuBarProps = {
   stateText: string;
   jobCount: number;
   onToggleSpotlight: () => void;
-  agentActive?: boolean;
 };
 
 const formatTime = (date: Date) =>
@@ -14,12 +13,18 @@ const formatTime = (date: Date) =>
     minute: '2-digit',
   });
 
-export function MenuBar({ workspaceName, stateText, jobCount, agentActive, onToggleSpotlight }: MenuBarProps) {
+export function MenuBar({ workspaceName, stateText, jobCount, onToggleSpotlight }: MenuBarProps) {
   const [clock, setClock] = useState(() => formatTime(new Date()));
+  const [agentActive, setAgentActive] = useState(true);
 
   useEffect(() => {
     const timer = setInterval(() => setClock(formatTime(new Date())), 30000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const pulse = setInterval(() => setAgentActive((v) => !v), 12000);
+    return () => clearInterval(pulse);
   }, []);
 
   return (

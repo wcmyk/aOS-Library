@@ -46,9 +46,9 @@ button {
   position: relative;
   flex: 1;
   overflow: hidden;
-  background: linear-gradient(145deg, rgba(15, 18, 24, 0.95), rgba(15, 18, 24, 0.7)),
-    url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1600&q=60') center/cover fixed;
-  backdrop-filter: blur(12px);
+  background: linear-gradient(145deg, rgba(15, 18, 24, 0.95), rgba(15, 18, 24, 0.7)) center/cover;
+  background-color: #0f1218;
+  /* Unsplash image loaded lazily via JS to avoid blocking initial paint */
 }
 
 .desktop::after {
@@ -135,7 +135,6 @@ button {
   border-radius: 10px;
   background: transparent;
   border: none;
-  backdrop-filter: blur(8px);
 }
 
 .dock {
