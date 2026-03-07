@@ -11,6 +11,30 @@ const BASE_URL = import.meta.env.BASE_URL;
 
 export const apps: ShellApp[] = [
   {
+    id: 'spotify',
+    name: 'Spotify',
+    icon: `${BASE_URL}assets/apps/spotify.svg`,
+    description: 'Music player with playlist and now-playing controls',
+    accent: '#1db954',
+    defaultSize: { width: 920, height: 580 },
+  },
+  {
+    id: 'safari',
+    name: 'Safari',
+    icon: `${BASE_URL}assets/apps/safari.svg`,
+    description: 'Mac-style browser shell for custom AoS websites',
+    accent: '#2563eb',
+    defaultSize: { width: 1120, height: 700 },
+  },
+  {
+    id: 'vision',
+    name: 'Vision',
+    icon: `${BASE_URL}assets/apps/vision.svg`,
+    description: 'Google-style search with a polished workspace-native UI',
+    accent: '#4f8cff',
+    defaultSize: { width: 980, height: 640 },
+  },
+  {
     id: 'artifact-explorer',
     name: 'Artifact Explorer',
     icon: `${BASE_URL}assets/apps/artifact-explorer.png`,
@@ -54,7 +78,7 @@ export const apps: ShellApp[] = [
     id: 'archive',
     name: 'Accel',
     icon: `${BASE_URL}assets/apps/Archive.png`,
-    description: 'Spreadsheet and data analysis',
+    description: 'Advanced spreadsheet workspace synced with Sanctum',
     accent: '#d4a017',
     defaultSize: { width: 1000, height: 650 },
   },
