@@ -946,3 +946,1293 @@ kbd {
 .safari-sidebar span { font-size:11px; color:#b9cae4; }
 .safari-view { border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,.1); background: #fff; }
 .safari-view iframe { width:100%; height:100%; border:none; background:white; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SANCTUM  –  OneDrive-style cloud storage
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.sct-shell {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  background: rgba(9, 12, 20, 0.92);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sct-sidebar {
+  background: rgba(12, 17, 28, 0.95);
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+}
+
+.sct-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  margin-bottom: 6px;
+}
+
+.sct-brand-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #c5d8ff;
+  letter-spacing: 0.01em;
+}
+
+.sct-nav { display: flex; flex-direction: column; gap: 2px; }
+
+.sct-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #b5c6e0;
+  background: transparent;
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sct-nav-item:hover { background: rgba(255, 255, 255, 0.07); color: #e2eaf8; }
+.sct-nav-item.active { background: rgba(79, 140, 255, 0.18); color: #a8c8ff; font-weight: 600; }
+
+.sct-nav-icon { font-size: 14px; width: 18px; text-align: center; }
+.sct-nav-label { flex: 1; }
+.sct-nav-count {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(79, 140, 255, 0.25);
+  color: #a8c8ff;
+}
+
+.sct-sidebar-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #5e7a9e;
+  padding: 12px 10px 4px;
+}
+
+.sct-storage { padding: 0 10px; }
+.sct-storage-bar {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+.sct-storage-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #4f8cff, #818cf8);
+  transition: width 0.3s ease;
+}
+.sct-storage-label { font-size: 10px; color: #7a96be; }
+
+.sct-quick-access { display: flex; flex-direction: column; gap: 2px; }
+.sct-quick-btn {
+  text-align: left;
+  padding: 6px 10px;
+  border-radius: 7px;
+  font-size: 12px;
+  color: #9ab0cc;
+  background: transparent;
+}
+.sct-quick-btn:hover { background: rgba(255, 255, 255, 0.05); color: #c5d8ff; }
+
+/* Main area */
+.sct-main {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 12px 14px;
+  gap: 10px;
+}
+
+/* Top bar */
+.sct-topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sct-search-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 6px 14px;
+}
+
+.sct-search-icon { color: #8899b8; flex-shrink: 0; }
+
+.sct-search {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: #e2eaf8;
+  font-size: 13px;
+  outline: none;
+}
+
+.sct-search::placeholder { color: #5e7a9e; }
+
+.sct-topbar-actions { display: flex; align-items: center; gap: 8px; }
+
+.sct-sort-select {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #c5d8ff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+}
+
+.sct-view-toggle {
+  display: flex;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.sct-view-btn {
+  padding: 6px 10px;
+  background: transparent;
+  color: #8899b8;
+  font-size: 14px;
+  transition: background 0.15s, color 0.15s;
+}
+.sct-view-btn:hover { background: rgba(255, 255, 255, 0.07); color: #e2eaf8; }
+.sct-view-btn.active { background: rgba(79, 140, 255, 0.22); color: #a8c8ff; }
+
+/* Breadcrumb */
+.sct-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #8899b8;
+}
+.sct-breadcrumb-root { color: #8899b8; }
+.sct-breadcrumb-sep { color: #4a5e7a; }
+.sct-breadcrumb-current { color: #c5d8ff; font-weight: 600; }
+.sct-file-count { margin-left: auto; color: #5e7a9e; font-size: 11px; }
+
+/* Stats row */
+.sct-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.sct-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sct-stat-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+}
+
+.sct-stat-value { font-size: 20px; font-weight: 700; line-height: 1; color: #e2eaf8; }
+.sct-stat-label { font-size: 11px; color: #8899b8; margin-top: 2px; }
+
+/* Grid view */
+.sct-grid {
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  align-content: start;
+}
+
+.sct-file-card {
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  cursor: pointer;
+  position: relative;
+}
+
+.sct-file-card:hover {
+  border-color: rgba(79, 140, 255, 0.4);
+  background: rgba(79, 140, 255, 0.07);
+  transform: translateY(-1px);
+}
+
+.sct-file-thumb {
+  height: 100px;
+  background: rgba(255, 255, 255, 0.03);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sct-file-thumb-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 5px;
+}
+
+.sct-file-thumb-lines { display: flex; flex-direction: column; gap: 5px; padding-top: 8px; }
+
+.sct-thumb-line {
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.sct-file-type-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(12, 17, 28, 0.9);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.sct-file-meta { padding: 8px 10px 10px; }
+.sct-file-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #d5e0f5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  margin-bottom: 3px;
+}
+.sct-file-name:hover { color: #fff; }
+.sct-file-info { font-size: 10px; color: #6a85a8; display: flex; gap: 4px; }
+
+.sct-star-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(12, 17, 28, 0.75);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+.sct-file-card:hover .sct-star-btn { opacity: 1; }
+.sct-star-btn.starred { color: #f59e0b; opacity: 1; }
+
+/* List view */
+.sct-list { flex: 1; overflow-y: auto; }
+
+.sct-list-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 40px;
+  gap: 8px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5e7a9e;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sct-list-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 40px;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 13px;
+  color: #c5d8ff;
+  transition: background 0.12s;
+  width: 100%;
+}
+.sct-list-row:hover { background: rgba(79, 140, 255, 0.09); }
+
+.sct-list-col-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.sct-list-icon { display: flex; align-items: center; flex-shrink: 0; }
+.sct-list-filename {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.sct-shared-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(79, 140, 255, 0.2);
+  color: #a8c8ff;
+  white-space: nowrap;
+}
+
+.sct-list-col { color: #8899b8; font-size: 12px; }
+.sct-list-owner { color: #c5d8ff; }
+.sct-list-folder { color: #6a85a8; font-size: 11px; }
+
+.sct-list-col-action { display: flex; align-items: center; justify-content: flex-end; }
+.sct-star-inline { cursor: pointer; color: rgba(255,255,255,0.2); font-size: 14px; }
+.sct-star-inline:hover { color: #f59e0b; }
+.sct-star-inline.starred { color: #f59e0b; }
+
+/* Empty state */
+.sct-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #8899b8;
+}
+.sct-empty-icon { font-size: 48px; }
+.sct-empty-title { font-size: 16px; font-weight: 600; color: #c5d8ff; }
+.sct-empty-sub { font-size: 13px; color: #6a85a8; }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ORACLE  –  MS Word + Obsidian rich text editor
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Home view enhancements (builds on existing .oracle-shell, .oracle-sidebar) */
+.ora-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 6px;
+}
+.ora-brand-name { font-size: 15px; font-weight: 700; color: #9ec0ff; }
+
+.ora-nav-section { display: flex; flex-direction: column; gap: 2px; }
+
+.oracle-link.active {
+  background: rgba(43, 87, 154, 0.25);
+  color: #a8c8ff;
+  font-weight: 600;
+}
+
+.ora-sidebar-section {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #5e7a9e;
+  padding: 12px 0 4px;
+}
+
+.ora-template-list { display: flex; flex-direction: column; gap: 2px; }
+.ora-template-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #9ab0cc;
+  background: transparent;
+  text-align: left;
+}
+.ora-template-pill:hover { background: rgba(255,255,255,0.05); color: #c5d8ff; }
+
+/* Templates row */
+.ora-templates-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.oracle-template-card {
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+.oracle-template-card:hover {
+  border-color: rgba(79, 140, 255, 0.4);
+  background: rgba(79, 140, 255, 0.08);
+}
+
+.ora-template-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+}
+
+.oracle-template-card strong { font-size: 12px; color: #d5e0f5; }
+.oracle-template-card span { font-size: 11px; color: #8899b8; }
+
+.ora-doc-section-title { font-size: 13px; font-weight: 700; color: #c5d8ff; margin-bottom: 8px; }
+
+/* Doc cards enhanced */
+.oracle-doc-card {
+  text-align: left;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.15s, background 0.15s;
+}
+.oracle-doc-card:hover {
+  border-color: rgba(79, 140, 255, 0.35);
+  background: rgba(79, 140, 255, 0.06);
+}
+
+.oracle-doc-thumb {
+  height: 90px;
+  background: linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.03));
+  padding: 10px;
+  overflow: hidden;
+}
+
+.ora-doc-thumb-lines { display: flex; flex-direction: column; gap: 6px; }
+.ora-doc-thumb-line { height: 2px; border-radius: 999px; background: rgba(255,255,255,0.3); }
+
+.ora-doc-card-body { padding: 8px 10px 10px; }
+.ora-doc-card-body strong { display: block; font-size: 12px; color: #d5e0f5; margin-bottom: 3px; }
+.ora-doc-card-body span { font-size: 11px; color: #6a85a8; }
+
+/* ── Editor shell ───────────────────────────── */
+
+.ora-editor-shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: rgba(9, 12, 20, 0.95);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* Title bar */
+.ora-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(15, 20, 32, 0.9);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+.ora-back-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  color: #8899b8;
+  background: rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+.ora-back-btn:hover { background: rgba(255,255,255,0.1); color: #c5d8ff; }
+
+.ora-doc-title {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: #e2eaf8;
+  font-size: 14px;
+  font-weight: 600;
+  outline: none;
+}
+
+.ora-titlebar-actions { display: flex; align-items: center; gap: 8px; }
+
+.ora-saved-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #4ade80;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(74, 222, 128, 0.08);
+}
+
+.ora-share-btn {
+  padding: 5px 12px;
+  border-radius: 6px;
+  background: rgba(79, 140, 255, 0.2);
+  color: #a8c8ff;
+  font-size: 12px;
+  border: 1px solid rgba(79, 140, 255, 0.3);
+}
+.ora-share-btn:hover { background: rgba(79, 140, 255, 0.3); }
+
+/* Ribbon tabs */
+.ora-ribbon-tabs {
+  display: flex;
+  gap: 0;
+  padding: 0 12px;
+  background: rgba(13, 18, 30, 0.9);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.ora-ribbon-tab {
+  padding: 7px 14px;
+  font-size: 12px;
+  color: #8899b8;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+.ora-ribbon-tab:hover { color: #c5d8ff; }
+.ora-ribbon-tab.active { color: #a8c8ff; border-bottom-color: #4f8cff; font-weight: 600; }
+
+/* Ribbon toolbar */
+.ora-ribbon {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 6px 12px;
+  background: rgba(14, 19, 30, 0.85);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-wrap: wrap;
+  min-height: 66px;
+}
+
+.ora-tb-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
+}
+
+.ora-tb-group-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #4a5e7a;
+  white-space: nowrap;
+  padding: 0 4px;
+  height: 13px;
+}
+
+.ora-tb-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.ora-tb-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 7px;
+  border-radius: 5px;
+  font-size: 12px;
+  color: #b5c6e0;
+  background: transparent;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+.ora-tb-btn:hover { background: rgba(255,255,255,0.09); color: #e2eaf8; }
+.ora-tb-btn.active { background: rgba(79, 140, 255, 0.22); color: #a8c8ff; }
+
+.ora-tb-divider {
+  width: 1px;
+  height: 46px;
+  background: rgba(255,255,255,0.08);
+  margin: 0 4px;
+  align-self: center;
+}
+
+.ora-tb-select {
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color: #c5d8ff;
+  border-radius: 5px;
+  padding: 4px 6px;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+  max-width: 160px;
+}
+
+.ora-tb-info {
+  font-size: 12px;
+  color: #8899b8;
+  padding: 4px 8px;
+  border-radius: 5px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+}
+
+/* Color picker */
+.ora-color-picker-wrap { display: flex; }
+.ora-color-btn {
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 5px;
+}
+.ora-color-swatch {
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  display: block;
+}
+.ora-color-palette {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 99;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px;
+  background: rgba(18, 24, 38, 0.98);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  width: 130px;
+}
+.ora-color-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.ora-color-dot:hover { transform: scale(1.2); }
+
+/* Link Modal */
+.ora-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  backdrop-filter: blur(4px);
+}
+.ora-modal {
+  background: rgba(18, 24, 38, 0.99);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 12px;
+  padding: 20px;
+  width: 360px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+.ora-modal-title { font-size: 15px; font-weight: 700; color: #d5e0f5; margin-bottom: 12px; }
+.ora-modal-input {
+  width: 100%;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.07);
+  color: #e2eaf8;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  outline: none;
+  margin-bottom: 14px;
+}
+.ora-modal-input:focus { border-color: rgba(79,140,255,0.6); }
+.ora-modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.ora-modal-cancel { padding: 7px 14px; border-radius: 7px; background: rgba(255,255,255,0.07); color: #b5c6e0; font-size: 13px; }
+.ora-modal-ok { padding: 7px 14px; border-radius: 7px; background: #2b579a; color: #fff; font-size: 13px; font-weight: 600; }
+.ora-modal-ok:hover { background: #3669b5; }
+
+/* Editor surface */
+.ora-editor-surface {
+  flex: 1;
+  display: flex;
+  overflow-y: auto;
+  justify-content: center;
+  padding: 24px 16px;
+  background: rgba(11, 14, 22, 0.7);
+  position: relative;
+  gap: 20px;
+}
+
+.ora-page {
+  width: min(760px, 100%);
+  min-height: 100%;
+  border-radius: 6px;
+  background: #f7f8fc;
+  color: #1a1f2e;
+  padding: 48px 56px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.35);
+}
+
+.ora-content-editable {
+  min-height: 60vh;
+  outline: none;
+  line-height: 1.75;
+  font-size: 16px;
+  color: #232b3a;
+}
+
+.ora-content-editable h1 { font-size: 2em; font-weight: 800; margin: 0.6em 0 0.4em; color: #111827; }
+.ora-content-editable h2 { font-size: 1.5em; font-weight: 700; margin: 0.7em 0 0.35em; color: #1f2937; border-bottom: 2px solid #e5e7eb; padding-bottom: 4px; }
+.ora-content-editable h3 { font-size: 1.2em; font-weight: 700; margin: 0.6em 0 0.3em; color: #374151; }
+.ora-content-editable h4 { font-size: 1.05em; font-weight: 700; margin: 0.5em 0 0.3em; color: #4b5563; }
+.ora-content-editable p { margin: 0.5em 0; }
+.ora-content-editable ul, .ora-content-editable ol { padding-left: 1.8em; margin: 0.5em 0; }
+.ora-content-editable li { margin: 0.2em 0; }
+.ora-content-editable blockquote { border-left: 3px solid #6366f1; margin: 0.8em 0; padding: 0.4em 1em; color: #6b7280; font-style: italic; background: rgba(99,102,241,0.06); border-radius: 0 4px 4px 0; }
+.ora-content-editable a { color: #2563eb; text-decoration: underline; }
+.ora-content-editable pre { background: #1e2330; color: #e2e8f0; padding: 14px; border-radius: 8px; font-family: monospace; font-size: 13px; overflow: auto; }
+.ora-content-editable table { width: 100%; border-collapse: collapse; margin: 0.8em 0; }
+.ora-content-editable td, .ora-content-editable th { border: 1px solid #d1d5db; padding: 8px 10px; }
+.ora-content-editable th { background: #f3f4f6; font-weight: 700; }
+.ora-content-editable hr { border: none; border-top: 2px solid #e5e7eb; margin: 1.2em 0; }
+
+/* Document outline */
+.ora-outline {
+  width: 180px;
+  flex-shrink: 0;
+  align-self: flex-start;
+  position: sticky;
+  top: 0;
+  background: rgba(13, 18, 30, 0.85);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 10px;
+  backdrop-filter: blur(8px);
+}
+
+.ora-outline-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #5e7a9e;
+  margin-bottom: 8px;
+}
+
+.ora-outline-item {
+  display: block;
+  text-align: left;
+  font-size: 11px;
+  color: #8899b8;
+  padding: 3px 6px;
+  border-radius: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  width: 100%;
+}
+.ora-outline-item:hover { background: rgba(79,140,255,0.12); color: #c5d8ff; }
+
+/* Status bar */
+.ora-statusbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 14px;
+  background: rgba(12, 16, 26, 0.9);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  font-size: 11px;
+  color: #5e7a9e;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ACCEL  –  Researcher-ready spreadsheet
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Home view enhancements (builds on .accel-shell, .accel-sidebar, .accel-home) */
+.axl-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: 6px;
+}
+.axl-brand-name { font-size: 15px; font-weight: 700; color: #ffd572; }
+
+.axl-sidebar-section {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #5e7a9e;
+  padding: 10px 0 4px;
+}
+
+.axl-template-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 12px;
+  color: #b5c6e0;
+  background: transparent;
+}
+.axl-template-item:hover { background: rgba(255,255,255,0.05); }
+.axl-template-name { font-size: 12px; color: #c5d8ff; font-weight: 500; }
+.axl-template-desc { font-size: 10px; color: #6a85a8; }
+
+.axl-capability-list { display: flex; flex-direction: column; gap: 2px; }
+.axl-capability { font-size: 11px; color: #6a85a8; padding: 2px 0; }
+
+.accel-home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+.accel-home-header h3 { margin: 0; color: #d5e0f5; }
+.accel-home-header p { margin: 2px 0 0; font-size: 12px; color: #6a85a8; }
+
+.accel-home-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+
+.accel-file-card {
+  text-align: left;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.15s, background 0.15s;
+}
+.accel-file-card:hover { border-color: rgba(212,160,23,0.4); background: rgba(212,160,23,0.07); }
+
+.axl-card-thumb {
+  height: 80px;
+  background: rgba(33,115,70,0.08);
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.axl-card-grid-preview { display: flex; flex-direction: column; gap: 2px; width: 100%; }
+.axl-card-row { display: flex; gap: 2px; }
+.axl-card-cell {
+  flex: 1;
+  height: 12px;
+  border-radius: 2px;
+  background: rgba(33,115,70,0.2);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.axl-card-meta { padding: 8px 10px 10px; }
+.axl-card-meta strong { display: block; font-size: 12px; color: #d5e0f5; margin-bottom: 3px; }
+.axl-card-meta span { font-size: 11px; color: #6a85a8; }
+
+.axl-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #8899b8;
+  font-size: 14px;
+}
+
+/* ── Workbook sheet shell ─────────────────── */
+
+.axl-shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: rgba(9, 12, 20, 0.97);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.axl-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  background: rgba(13, 18, 28, 0.95);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+.axl-back-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  color: #8899b8;
+  background: rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+.axl-back-btn:hover { background: rgba(255,255,255,0.1); color: #c5d8ff; }
+
+.axl-doc-title {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: #e2eaf8;
+  font-size: 14px;
+  font-weight: 600;
+  outline: none;
+}
+
+.axl-titlebar-right { display: flex; align-items: center; gap: 8px; }
+
+.axl-saved-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #4ade80;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(74,222,128,0.08);
+}
+
+.axl-share-btn {
+  padding: 5px 12px;
+  border-radius: 6px;
+  background: rgba(212,160,23,0.18);
+  color: #ffd572;
+  font-size: 12px;
+  border: 1px solid rgba(212,160,23,0.3);
+}
+.axl-share-btn:hover { background: rgba(212,160,23,0.28); }
+
+/* Toolbar */
+.axl-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 10px;
+  background: rgba(14,19,30,0.9);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.axl-tb-group { display: flex; align-items: center; gap: 2px; }
+.axl-tb-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.1); margin: 0 4px; }
+
+.axl-tb-btn {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 7px;
+  border-radius: 5px;
+  font-size: 12px;
+  color: #b5c6e0;
+  background: transparent;
+  white-space: nowrap;
+  transition: background 0.12s, color 0.12s;
+}
+.axl-tb-btn:hover { background: rgba(255,255,255,0.09); color: #e2eaf8; }
+.axl-tb-btn.active { background: rgba(212,160,23,0.2); color: #ffd572; }
+
+.axl-tb-select {
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color: #c5d8ff;
+  border-radius: 5px;
+  padding: 4px 6px;
+  font-size: 11px;
+  outline: none;
+  cursor: pointer;
+}
+
+.axl-tb-label {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 7px;
+  border-radius: 5px;
+  font-size: 12px;
+  color: #b5c6e0;
+  cursor: pointer;
+  position: relative;
+}
+.axl-tb-label:hover { background: rgba(255,255,255,0.09); color: #e2eaf8; }
+
+/* Find bar */
+.axl-findbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(212,160,23,0.08);
+  border-bottom: 1px solid rgba(212,160,23,0.2);
+}
+.axl-find-input {
+  flex: 1;
+  border: 1px solid rgba(212,160,23,0.3);
+  background: rgba(255,255,255,0.06);
+  color: #f0f5ff;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 13px;
+  outline: none;
+}
+.axl-find-input:focus { border-color: rgba(212,160,23,0.6); }
+
+/* Formula bar */
+.axl-formula-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: rgba(12, 16, 26, 0.9);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  padding: 0;
+}
+
+.axl-cell-ref {
+  width: 68px;
+  flex-shrink: 0;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffd572;
+  text-align: center;
+  border-right: 1px solid rgba(255,255,255,0.08);
+  background: rgba(212,160,23,0.06);
+}
+
+.axl-formula-sep { width: 1px; background: rgba(255,255,255,0.07); }
+
+.axl-fx-label {
+  padding: 0 10px;
+  font-size: 12px;
+  color: #6a85a8;
+  font-style: italic;
+  font-weight: 600;
+  border-right: 1px solid rgba(255,255,255,0.07);
+}
+
+.axl-formula-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: #e2eaf8;
+  font-size: 13px;
+  padding: 6px 10px;
+  outline: none;
+  font-family: 'Courier New', monospace;
+}
+.axl-formula-input::placeholder { color: #3a4e6a; }
+
+/* Grid */
+.axl-grid-wrap {
+  flex: 1;
+  overflow: auto;
+  background: rgba(9,12,18,0.95);
+}
+
+.axl-grid {
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.axl-corner-cell {
+  width: 44px;
+  min-width: 44px;
+  background: rgba(20,26,40,0.95);
+  border: 1px solid rgba(255,255,255,0.07);
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 3;
+}
+
+.axl-col-header {
+  background: rgba(18,24,38,0.95);
+  color: #7a96be;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  padding: 5px 4px;
+  border: 1px solid rgba(255,255,255,0.07);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  user-select: none;
+}
+
+.axl-col-resize {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  cursor: col-resize;
+  background: transparent;
+}
+.axl-col-resize:hover { background: rgba(212,160,23,0.4); }
+
+.axl-row-header {
+  background: rgba(18,24,38,0.95);
+  color: #7a96be;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: right;
+  padding: 0 6px;
+  border: 1px solid rgba(255,255,255,0.07);
+  min-width: 44px;
+  width: 44px;
+  user-select: none;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+
+.axl-cell {
+  border: 1px solid rgba(255,255,255,0.07);
+  padding: 0 4px;
+  font-size: 12px;
+  color: #d8e4f8;
+  height: 24px;
+  line-height: 24px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: cell;
+  background: rgba(11,14,22,0.6);
+  transition: background 0.1s;
+}
+
+.axl-cell:focus {
+  outline: none;
+  background: rgba(212,160,23,0.06);
+}
+
+.axl-cell.selected {
+  outline: 2px solid #d4a017;
+  outline-offset: -1px;
+  background: rgba(212,160,23,0.08);
+  z-index: 1;
+  position: relative;
+}
+
+.axl-cell.in-selection {
+  background: rgba(212,160,23,0.12);
+}
+
+.axl-cell.found { background: rgba(251,191,36,0.25) !important; }
+
+.axl-cell-input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: #eff4ff;
+  font-size: 12px;
+  outline: none;
+  padding: 0;
+}
+
+.frozen-col { position: sticky; left: 44px; z-index: 1; background: rgba(18,28,48,0.95); }
+.frozen-row td { position: sticky; top: 28px; background: rgba(18,28,48,0.98); z-index: 1; }
+
+/* Sheet tabs */
+.axl-sheet-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: rgba(12,16,26,0.95);
+  border-top: 1px solid rgba(255,255,255,0.07);
+  padding: 0 8px;
+  height: 30px;
+}
+
+.axl-sheet-tab {
+  padding: 5px 14px;
+  font-size: 11px;
+  color: #7a96be;
+  border-top: 2px solid transparent;
+  border-radius: 0;
+  transition: color 0.15s, border-color 0.15s;
+}
+.axl-sheet-tab:hover { color: #c5d8ff; background: rgba(255,255,255,0.05); }
+.axl-sheet-tab.active { color: #ffd572; border-top-color: #d4a017; font-weight: 600; }
+
+.axl-sheet-add {
+  padding: 4px 10px;
+  font-size: 14px;
+  color: #5e7a9e;
+  margin-left: 4px;
+}
+.axl-sheet-add:hover { color: #c5d8ff; background: rgba(255,255,255,0.07); border-radius: 4px; }
+
+/* Status bar */
+.axl-statusbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 12px;
+  background: rgba(11,14,22,0.95);
+  border-top: 1px solid rgba(255,255,255,0.05);
+  font-size: 11px;
+  color: #5e7a9e;
+}
+
+.axl-stats {
+  display: flex;
+  gap: 12px;
+  color: #7a96be;
+}
+.axl-stats span { white-space: nowrap; }
+.axl-stats strong { color: #c5d8ff; }
