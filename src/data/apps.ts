@@ -101,7 +101,7 @@ export const apps: ShellApp[] = [
   {
     id: 'outlook',
     name: 'Outlook',
-    icon: `${BASE_URL}assets/apps/Oracle.png`,
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='8' fill='%230078d4'/%3E%3Crect x='7' y='15' width='34' height='23' rx='3' fill='white' opacity='0.95'/%3E%3Cpath d='M7 19l17 12 17-12' stroke='%230078d4' stroke-width='2.5' fill='none' stroke-linejoin='round'/%3E%3Ctext x='24' y='13' font-family='Arial,sans-serif' font-weight='bold' font-size='9' fill='white' text-anchor='middle'%3EOutlook%3C/text%3E%3C/svg%3E`,
     description: 'Email client for workspace communications',
     accent: '#0078d4',
     defaultSize: { width: 1100, height: 680 },

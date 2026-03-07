@@ -1,6 +1,23 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export type EmailFolder = 'inbox' | 'starred' | 'sent' | 'drafts' | 'trash';
+
+export type JobMeta = {
+  jobId: string;
+  company: string;
+  role: string;
+  domain: string;
+  recruiter: string;
+  salary: string;
+  category: string;
+  stage: 'confirmation' | 'phone-screen' | 'director' | 'panel' | 'offer' | 'onboarding';
+  meetingTool: 'zoom' | 'teams' | 'skype' | 'meet';
+  meetingLink: string;
+  managerName: string;
+  compensation: number;
+  location: string;
+};
 
 export type Email = {
   id: string;
@@ -12,11 +29,12 @@ export type Email = {
   read: boolean;
   starred: boolean;
   folder: EmailFolder;
+  jobMeta?: JobMeta;
 };
 
 type MailStore = {
   emails: Email[];
-  sendEmail: (email: Omit<Email, 'id' | 'read' | 'starred' | 'folder'> & { folder?: EmailFolder }) => void;
+  sendEmail: (email: Omit<Email, 'id' | 'read' | 'starred' | 'folder'> & { folder?: EmailFolder; jobMeta?: JobMeta }) => void;
   markRead: (id: string) => void;
   toggleStar: (id: string) => void;
   moveToFolder: (id: string, folder: EmailFolder) => void;
@@ -84,40 +102,53 @@ const SEED_EMAILS: Email[] = [
   },
 ];
 
-export const useMailStore = create<MailStore>((set) => ({
-  emails: SEED_EMAILS,
+export const useMailStore = create<MailStore>()(
+  persist(
+    (set, get) => ({
+      emails: SEED_EMAILS,
 
-  sendEmail: (partial) => {
-    const email: Email = {
-      id: `mail-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      read: false,
-      starred: false,
-      folder: partial.folder ?? 'inbox',
-      ...partial,
-      date: partial.date ?? now(),
-    };
-    set((state) => ({ emails: [email, ...state.emails] }));
-  },
+      sendEmail: (partial) => {
+        const email: Email = {
+          id: `mail-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          read: false,
+          starred: false,
+          folder: partial.folder ?? 'inbox',
+          ...partial,
+          date: partial.date ?? now(),
+        };
+        set((state) => ({ emails: [email, ...state.emails] }));
+      },
 
-  markRead: (id) =>
-    set((state) => ({
-      emails: state.emails.map((e) => (e.id === id ? { ...e, read: true } : e)),
-    })),
+      markRead: (id) =>
+        set((state) => ({
+          emails: state.emails.map((e) => (e.id === id ? { ...e, read: true } : e)),
+        })),
 
-  toggleStar: (id) =>
-    set((state) => ({
-      emails: state.emails.map((e) =>
-        e.id === id ? { ...e, starred: !e.starred, folder: !e.starred ? 'starred' : 'inbox' } : e
-      ),
-    })),
+      toggleStar: (id) =>
+        set((state) => ({
+          emails: state.emails.map((e) =>
+            e.id === id ? { ...e, starred: !e.starred, folder: !e.starred ? 'starred' : 'inbox' } : e
+          ),
+        })),
 
-  moveToFolder: (id, folder) =>
-    set((state) => ({
-      emails: state.emails.map((e) => (e.id === id ? { ...e, folder } : e)),
-    })),
+      moveToFolder: (id, folder) =>
+        set((state) => ({
+          emails: state.emails.map((e) => (e.id === id ? { ...e, folder } : e)),
+        })),
 
-  deleteEmail: (id) =>
-    set((state) => ({
-      emails: state.emails.map((e) => (e.id === id ? { ...e, folder: 'trash' } : e)),
-    })),
-}));
+      deleteEmail: (id) =>
+        set((state) => ({
+          emails: state.emails.map((e) => (e.id === id ? { ...e, folder: 'trash' } : e)),
+        })),
+    }),
+    {
+      name: 'aos-mail-store',
+      merge: (persisted: unknown, current) => {
+        const p = persisted as Partial<MailStore>;
+        // If persisted store has no emails, use seeds
+        if (!p?.emails || p.emails.length === 0) return current;
+        return { ...current, ...p };
+      },
+    }
+  )
+);

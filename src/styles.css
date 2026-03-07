@@ -2776,8 +2776,22 @@ kbd {
 }
 .li-nav-btn:hover { background: rgba(255,255,255,0.06); color: #c0d0f0; }
 .li-nav-btn.active { background: rgba(10,102,194,0.2); color: #4a9eff; }
-.li-header-right { margin-left: auto; }
+.li-search {
+  flex: 1;
+  max-width: 360px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  color: #c8d8f0;
+  font-size: 13px;
+  padding: 6px 12px;
+  outline: none;
+}
+.li-search::placeholder { color: #5e7399; }
+.li-search:focus { border-color: #0a66c2; background: rgba(10,102,194,0.08); }
+.li-header-right { margin-left: 0; }
 .li-user-chip { font-size: 11px; color: #5e7399; }
+.li-detail-posted { font-size: 12px; color: #5e7399; margin: 4px 0 12px; }
 
 .li-body { flex: 1; overflow: hidden; }
 

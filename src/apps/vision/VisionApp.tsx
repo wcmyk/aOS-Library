@@ -194,8 +194,14 @@ export function VisionApp() {
                   : results.map((r, i) => {
                       const domain = domainFrom(r.url);
                       const hue = strHash(domain);
+                      const isClickable = r.url && r.url !== '#';
                       return (
-                        <div key={i} className="vsn-result-card">
+                        <div
+                          key={i}
+                          className="vsn-result-card"
+                          style={{ cursor: isClickable ? 'pointer' : 'default' }}
+                          onClick={() => isClickable && window.open(r.url, '_blank', 'noopener noreferrer')}
+                        >
                           <div className="vsn-result-source-row">
                             <span className="vsn-favicon" style={{ background: `hsl(${hue}deg 55% 38%)` }}>{faviconLetter(r.url)}</span>
                             <div className="vsn-source-info">
@@ -216,8 +222,14 @@ export function VisionApp() {
                   : results.map((r, i) => {
                       const domain = domainFrom(r.url);
                       const hue = strHash(domain);
+                      const isClickable = r.url && r.url !== '#';
                       return (
-                        <div key={i} className="vsn-result-card vsn-news-card">
+                        <div
+                          key={i}
+                          className="vsn-result-card vsn-news-card"
+                          style={{ cursor: isClickable ? 'pointer' : 'default' }}
+                          onClick={() => isClickable && window.open(r.url, '_blank', 'noopener noreferrer')}
+                        >
                           <div className="vsn-news-meta">
                             <span className="vsn-favicon vsn-favicon-sm" style={{ background: `hsl(${hue}deg 55% 38%)` }}>{faviconLetter(r.url)}</span>
                             <span className="vsn-source-name">{domain}</span>
@@ -238,7 +250,7 @@ export function VisionApp() {
               <div className="vsn-knowledge-heading">{abstract.heading}</div>
               {abstract.answer && <div className="vsn-knowledge-answer">{abstract.answer}</div>}
               <div className="vsn-knowledge-body">{abstract.text}</div>
-              {abstract.url && <div className="vsn-knowledge-link"><span className="vsn-breadcrumb">{abstract.url}</span></div>}
+              {abstract.url && <div className="vsn-knowledge-link"><a href={abstract.url} target="_blank" rel="noopener noreferrer" className="vsn-breadcrumb" style={{cursor:'pointer',textDecoration:'underline'}}>{abstract.url}</a></div>}
               <div className="vsn-knowledge-chips">
                 <span className="vsn-kchip">Summary</span>
                 <span className="vsn-kchip">Related</span>
