@@ -1,12 +1,18 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { apps } from './data/apps';
 import { Dock } from './components/Dock';
 import { MenuBar } from './components/MenuBar';
 import { Spotlight } from './components/Spotlight';
 import { WindowFrame } from './components/WindowFrame';
-import { AccelApp, OracleApp, SafariApp, SanctumApp, SpotifyApp, VisionApp } from './apps';
 import { useDriveStore, type DriveDocument } from './state/useDriveStore';
 import { useShellStore, type WindowState } from './state/useShellStore';
+
+const AccelApp = lazy(() => import('./apps/accel/AccelApp').then((m) => ({ default: m.AccelApp })));
+const OracleApp = lazy(() => import('./apps/oracle/OracleApp').then((m) => ({ default: m.OracleApp })));
+const SanctumApp = lazy(() => import('./apps/sanctum/SanctumApp').then((m) => ({ default: m.SanctumApp })));
+const SafariApp = lazy(() => import('./apps/safari/SafariApp').then((m) => ({ default: m.SafariApp })));
+const SpotifyApp = lazy(() => import('./apps/spotify/SpotifyApp').then((m) => ({ default: m.SpotifyApp })));
+const VisionApp = lazy(() => import('./apps/vision/VisionApp').then((m) => ({ default: m.VisionApp })));
 
 const artifacts = [
   { title: 'Roadmap.md', kind: 'Report', updated: '2h ago', detail: 'Phase 1 delivery outline', accent: '#7c8cff' },
@@ -117,12 +123,12 @@ function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDoc
     );
   }
 
-  if (window.appId === 'archive') return <AccelApp />;
-  if (window.appId === 'oracle') return <OracleApp />;
-  if (window.appId === 'sanctum') return <SanctumApp onOpenDocument={onOpenDocument} />;
-  if (window.appId === 'vision') return <VisionApp />;
-  if (window.appId === 'spotify') return <SpotifyApp />;
-  if (window.appId === 'safari') return <SafariApp />;
+  if (window.appId === 'archive') return <Suspense fallback={null}><AccelApp /></Suspense>;
+  if (window.appId === 'oracle') return <Suspense fallback={null}><OracleApp /></Suspense>;
+  if (window.appId === 'sanctum') return <Suspense fallback={null}><SanctumApp onOpenDocument={onOpenDocument} /></Suspense>;
+  if (window.appId === 'vision') return <Suspense fallback={null}><VisionApp /></Suspense>;
+  if (window.appId === 'spotify') return <Suspense fallback={null}><SpotifyApp /></Suspense>;
+  if (window.appId === 'safari') return <Suspense fallback={null}><SafariApp /></Suspense>;
 
   return (
     <div className="window-grid">
@@ -152,7 +158,17 @@ export default function App() {
   } = useShellStore();
   const setActiveDocument = useDriveStore((state) => state.setActiveDocument);
 
-  const [agentActive, setAgentActive] = useState(true);
+  // Defer background image load so it doesn't block initial paint
+  useEffect(() => {
+    const el = document.querySelector('.desktop') as HTMLElement | null;
+    if (el) {
+      el.style.backgroundImage =
+        "linear-gradient(145deg, rgba(15, 18, 24, 0.95), rgba(15, 18, 24, 0.7)), url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1600&q=60')";
+      el.style.backgroundSize = 'cover';
+      el.style.backgroundPosition = 'center';
+      el.style.backgroundAttachment = 'fixed';
+    }
+  }, []);
 
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
@@ -169,11 +185,6 @@ export default function App() {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [spotlightOpen, toggleSpotlight, setSpotlightQuery]);
-
-  useEffect(() => {
-    const pulse = setInterval(() => setAgentActive((value) => !value), 12000);
-    return () => clearInterval(pulse);
-  }, []);
 
   const visibleWindows = windows.filter((win) => !win.minimized);
   const runningJobs = jobs.filter((job) => job.status !== 'Done');
@@ -206,7 +217,6 @@ export default function App() {
         workspaceName={workspaceName}
         stateText={systemState}
         jobCount={runningJobs.length}
-        agentActive={agentActive}
         onToggleSpotlight={() => toggleSpotlight(true)}
       />
 

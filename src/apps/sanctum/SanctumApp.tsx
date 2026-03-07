@@ -75,7 +75,7 @@ export function SanctumApp({ onOpenDocument }: SanctumAppProps) {
     docs.sort((a, b) => {
       if (sortKey === 'name') return a.title.localeCompare(b.title);
       if (sortKey === 'owner') return a.owner.localeCompare(b.owner);
-      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+      return Date.parse(b.updatedAt) - Date.parse(a.updatedAt);
     });
 
     return docs;

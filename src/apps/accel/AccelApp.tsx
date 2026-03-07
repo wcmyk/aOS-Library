@@ -25,6 +25,36 @@ function serializeSheet(grid: string[][]): string {
   return grid.map((row) => row.join('\t')).join('\n');
 }
 
+// ── Safe arithmetic evaluator (replaces new Function()) ──────────────────────
+
+function safeArith(expr: string): number {
+  const tokens = expr.match(/[\d.]+|[+\-*/()]/g) ?? [];
+  let pos = 0;
+  const parseExpr = (): number => {
+    let left = parseTerm();
+    while (pos < tokens.length && (tokens[pos] === '+' || tokens[pos] === '-')) {
+      const op = tokens[pos++];
+      const right = parseTerm();
+      left = op === '+' ? left + right : left - right;
+    }
+    return left;
+  };
+  const parseTerm = (): number => {
+    let left = parseFactor();
+    while (pos < tokens.length && (tokens[pos] === '*' || tokens[pos] === '/')) {
+      const op = tokens[pos++];
+      const right = parseFactor();
+      left = op === '*' ? left * right : right !== 0 ? left / right : NaN;
+    }
+    return left;
+  };
+  const parseFactor = (): number => {
+    if (tokens[pos] === '(') { pos++; const v = parseExpr(); pos++; return v; }
+    return parseFloat(tokens[pos++] ?? 'NaN');
+  };
+  try { return parseExpr(); } catch { return NaN; }
+}
+
 // ── Formula evaluator (basic) ─────────────────────────────────────────────────
 
 function evalFormula(formula: string, grid: string[][]): string {
@@ -87,11 +117,10 @@ function evalFormula(formula: string, grid: string[][]): string {
       const cond = parseCell(ifM[1].trim());
       return cond ? ifM[2].trim() : ifM[3].trim();
     }
-    // Simple arithmetic (replace cell refs)
+    // Simple arithmetic (replace cell refs with values, then evaluate safely)
     const arithExpr = expr.replace(/([A-Z]+\d+)/g, (ref) => String(parseCell(ref)));
-    // eslint-disable-next-line no-new-func
-    const result = new Function(`return (${arithExpr})`)();
-    return typeof result === 'number' ? String(Math.round(result * 1000) / 1000) : String(result);
+    const result = safeArith(arithExpr);
+    return !isNaN(result) ? String(Math.round(result * 1000) / 1000) : '#ERR';
   } catch {
     return '#ERR';
   }
@@ -136,6 +165,7 @@ function WorkbookSheet({
   const [colFilters, setColFilters] = useState<Record<number, string>>({});
   const inputRef = useRef<HTMLInputElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  const [scrollTop, setScrollTop] = useState(0);
 
   // Keep grid synced to doc content when switching back
   useEffect(() => {
@@ -415,109 +445,131 @@ function WorkbookSheet({
       </div>
 
       {/* Grid */}
-      <div className="axl-grid-wrap" ref={gridRef}>
-        <table className="axl-grid">
-          <thead>
-            <tr>
-              <th className="axl-corner-cell" />
-              {Array.from({ length: DEFAULT_COLS }, (_, c) => (
-                <th
-                  key={c}
-                  className={`axl-col-header${c < frozenCols ? ' frozen-col' : ''}`}
-                  style={{ minWidth: colWidths[c], position: 'relative' }}
-                >
-                  {toCol(c)}
-                  <div
-                    className="axl-col-resize"
-                    onMouseDown={(e) => {
-                      const startX = e.clientX;
-                      const startW = colWidths[c];
-                      const onMove = (ev: MouseEvent) => {
-                        setColWidths((prev) => {
-                          const next = [...prev];
-                          next[c] = Math.max(MIN_COL_WIDTH, startW + ev.clientX - startX);
-                          return next;
-                        });
-                      };
-                      const onUp = () => {
-                        window.removeEventListener('mousemove', onMove);
-                        window.removeEventListener('mouseup', onUp);
-                      };
-                      window.addEventListener('mousemove', onMove);
-                      window.addEventListener('mouseup', onUp);
-                    }}
-                  />
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {grid.map((row, rowIdx) => {
-              // Apply column filter
-              if (Object.keys(colFilters).length > 0) {
-                const hidden = Object.entries(colFilters).some(
-                  ([c, q]) => q && !row[parseInt(c)]?.toLowerCase().includes(q.toLowerCase())
-                );
-                if (hidden) return null;
-              }
-              return (
-                <tr key={rowIdx} className={rowIdx < frozenRows ? 'frozen-row' : ''}>
-                  <th className="axl-row-header">{rowIdx + 1}</th>
-                  {row.map((rawVal, colIdx) => {
-                    const isSelected = selected?.row === rowIdx && selected?.col === colIdx;
-                    const inSel = isInSelection(rowIdx, colIdx);
-                    const isEditing = editingCell?.row === rowIdx && editingCell?.col === colIdx;
-                    const cellFmt = fmt(rowIdx, colIdx);
-                    const displayed = formatDisplay(displayValue(rowIdx, colIdx), cellFmt.numFmt);
-                    const highlight = findQuery && displayed.toLowerCase().includes(findQuery.toLowerCase());
+      <div
+        className="axl-grid-wrap"
+        ref={gridRef}
+        onScroll={(e) => setScrollTop((e.currentTarget as HTMLDivElement).scrollTop)}
+      >
+        {(() => {
+          const ROW_HEIGHT = 28;
+          const OVERSCAN = 3;
+          const viewportH = gridRef.current?.clientHeight ?? 480;
+          const visStart = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN);
+          const visEnd = Math.min(grid.length - 1, Math.ceil((scrollTop + viewportH) / ROW_HEIGHT) + OVERSCAN);
+          const topSpacer = visStart * ROW_HEIGHT;
+          const bottomSpacer = Math.max(0, (grid.length - visEnd - 1) * ROW_HEIGHT);
 
-                    return (
-                      <td
-                        key={colIdx}
-                        className={`axl-cell${isSelected ? ' selected' : ''}${inSel ? ' in-selection' : ''}${highlight ? ' found' : ''}${colIdx < frozenCols ? ' frozen-col' : ''}`}
-                        style={{
-                          fontWeight: cellFmt.bold ? 'bold' : undefined,
-                          fontStyle: cellFmt.italic ? 'italic' : undefined,
-                          textDecoration: cellFmt.underline ? 'underline' : undefined,
-                          textAlign: cellFmt.align ?? 'left',
-                          color: cellFmt.color,
-                          background: cellFmt.bg,
-                          minWidth: colWidths[colIdx],
+          return (
+            <table className="axl-grid">
+              <thead>
+                <tr>
+                  <th className="axl-corner-cell" />
+                  {Array.from({ length: DEFAULT_COLS }, (_, c) => (
+                    <th
+                      key={c}
+                      className={`axl-col-header${c < frozenCols ? ' frozen-col' : ''}`}
+                      style={{ minWidth: colWidths[c], position: 'relative' }}
+                    >
+                      {toCol(c)}
+                      <div
+                        className="axl-col-resize"
+                        onMouseDown={(e) => {
+                          const startX = e.clientX;
+                          const startW = colWidths[c];
+                          const onMove = (ev: MouseEvent) => {
+                            setColWidths((prev) => {
+                              const next = [...prev];
+                              next[c] = Math.max(MIN_COL_WIDTH, startW + ev.clientX - startX);
+                              return next;
+                            });
+                          };
+                          const onUp = () => {
+                            window.removeEventListener('mousemove', onMove);
+                            window.removeEventListener('mouseup', onUp);
+                          };
+                          window.addEventListener('mousemove', onMove);
+                          window.addEventListener('mouseup', onUp);
                         }}
-                        onClick={() => {
-                          setSelected({ row: rowIdx, col: colIdx });
-                          setSelectionStart({ row: rowIdx, col: colIdx });
-                          setSelectionEnd({ row: rowIdx, col: colIdx });
-                        }}
-                        onMouseEnter={(e) => {
-                          if (e.buttons === 1 && selectionStart) {
-                            setSelectionEnd({ row: rowIdx, col: colIdx });
-                          }
-                        }}
-                        onDoubleClick={() => setEditingCell({ row: rowIdx, col: colIdx })}
-                        onKeyDown={(e) => handleKeyDown(e, rowIdx, colIdx)}
-                        tabIndex={0}
-                      >
-                        {isEditing ? (
-                          <input
-                            className="axl-cell-input"
-                            autoFocus
-                            value={rawVal}
-                            onChange={(e) => updateCell(rowIdx, colIdx, e.target.value)}
-                            onBlur={() => setEditingCell(null)}
-                            onKeyDown={(e) => handleKeyDown(e, rowIdx, colIdx)}
-                          />
-                        ) : (
-                          displayed
-                        )}
-                      </td>
-                    );
-                  })}
+                      />
+                    </th>
+                  ))}
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {topSpacer > 0 && (
+                  <tr><td colSpan={DEFAULT_COLS + 1} style={{ height: topSpacer, padding: 0, border: 'none' }} /></tr>
+                )}
+                {grid.slice(visStart, visEnd + 1).map((row, relIdx) => {
+                  const rowIdx = visStart + relIdx;
+                  if (Object.keys(colFilters).length > 0) {
+                    const hidden = Object.entries(colFilters).some(
+                      ([c, q]) => q && !row[parseInt(c)]?.toLowerCase().includes(q.toLowerCase())
+                    );
+                    if (hidden) return null;
+                  }
+                  return (
+                    <tr key={rowIdx} className={rowIdx < frozenRows ? 'frozen-row' : ''}>
+                      <th className="axl-row-header">{rowIdx + 1}</th>
+                      {row.map((rawVal, colIdx) => {
+                        const isSelected = selected?.row === rowIdx && selected?.col === colIdx;
+                        const inSel = isInSelection(rowIdx, colIdx);
+                        const isEditing = editingCell?.row === rowIdx && editingCell?.col === colIdx;
+                        const cellFmt = fmt(rowIdx, colIdx);
+                        const displayed = formatDisplay(displayValue(rowIdx, colIdx), cellFmt.numFmt);
+                        const highlight = findQuery && displayed.toLowerCase().includes(findQuery.toLowerCase());
+
+                        return (
+                          <td
+                            key={colIdx}
+                            className={`axl-cell${isSelected ? ' selected' : ''}${inSel ? ' in-selection' : ''}${highlight ? ' found' : ''}${colIdx < frozenCols ? ' frozen-col' : ''}`}
+                            style={{
+                              fontWeight: cellFmt.bold ? 'bold' : undefined,
+                              fontStyle: cellFmt.italic ? 'italic' : undefined,
+                              textDecoration: cellFmt.underline ? 'underline' : undefined,
+                              textAlign: cellFmt.align ?? 'left',
+                              color: cellFmt.color,
+                              background: cellFmt.bg,
+                              minWidth: colWidths[colIdx],
+                            }}
+                            onClick={() => {
+                              setSelected({ row: rowIdx, col: colIdx });
+                              setSelectionStart({ row: rowIdx, col: colIdx });
+                              setSelectionEnd({ row: rowIdx, col: colIdx });
+                            }}
+                            onMouseEnter={(e) => {
+                              if (e.buttons === 1 && selectionStart) {
+                                setSelectionEnd({ row: rowIdx, col: colIdx });
+                              }
+                            }}
+                            onDoubleClick={() => setEditingCell({ row: rowIdx, col: colIdx })}
+                            onKeyDown={(e) => handleKeyDown(e, rowIdx, colIdx)}
+                            tabIndex={0}
+                          >
+                            {isEditing ? (
+                              <input
+                                className="axl-cell-input"
+                                autoFocus
+                                value={rawVal}
+                                onChange={(e) => updateCell(rowIdx, colIdx, e.target.value)}
+                                onBlur={() => setEditingCell(null)}
+                                onKeyDown={(e) => handleKeyDown(e, rowIdx, colIdx)}
+                              />
+                            ) : (
+                              displayed
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+                {bottomSpacer > 0 && (
+                  <tr><td colSpan={DEFAULT_COLS + 1} style={{ height: bottomSpacer, padding: 0, border: 'none' }} /></tr>
+                )}
+              </tbody>
+            </table>
+          );
+        })()}
       </div>
 
       {/* Sheet Tabs */}
