@@ -26,6 +26,15 @@ export const apps: ShellApp[] = [
     accent: '#2563eb',
     defaultSize: { width: 1120, height: 700 },
   },
+
+  {
+    id: 'colab',
+    name: 'CoLab',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%235b5fc7'/%3E%3Cpath d='M17 20h30a5 5 0 0 1 5 5v16a5 5 0 0 1-5 5H27l-10 8v-8h0a5 5 0 0 1-5-5V25a5 5 0 0 1 5-5z' fill='white' opacity='0.96'/%3E%3Ccircle cx='28' cy='33' r='3' fill='%235b5fc7'/%3E%3Ccircle cx='36' cy='33' r='3' fill='%235b5fc7'/%3E%3Ccircle cx='44' cy='33' r='3' fill='%235b5fc7'/%3E%3C/svg%3E`,
+    description: 'Company-scoped team chat and collaboration workspace',
+    accent: '#5b5fc7',
+    defaultSize: { width: 1100, height: 700 },
+  },
   {
     id: 'vision',
     name: 'Vision',
