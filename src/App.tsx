@@ -5,9 +5,7 @@ import { MenuBar } from './components/MenuBar';
 import { Spotlight } from './components/Spotlight';
 import { WindowFrame } from './components/WindowFrame';
 import { AccelApp } from './components/AccelApp';
-import { VisionApp } from './apps/vision/VisionApp';
-import { OracleApp } from './apps/oracle/OracleApp';
-import { SanctumApp } from './apps/sanctum/SanctumApp';
+import { OracleApp, SanctumApp, VisionApp } from './apps';
 import { useShellStore, type WindowState } from './state/useShellStore';
 
 const artifacts = [
