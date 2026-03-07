@@ -4,8 +4,8 @@ import { Dock } from './components/Dock';
 import { MenuBar } from './components/MenuBar';
 import { Spotlight } from './components/Spotlight';
 import { WindowFrame } from './components/WindowFrame';
-import { AccelApp } from './components/AccelApp';
-import { OracleApp, SanctumApp, VisionApp } from './apps';
+import { AccelApp, OracleApp, SafariApp, SanctumApp, SpotifyApp, VisionApp } from './apps';
+import { useDriveStore, type DriveDocument } from './state/useDriveStore';
 import { useShellStore, type WindowState } from './state/useShellStore';
 
 const artifacts = [
@@ -42,7 +42,7 @@ const DesktopIcon = ({ label, icon }: { label: string; icon: string }) => (
   </div>
 );
 
-function renderWindowContent(window: WindowState) {
+function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDocument) => void) {
   if (window.appId === 'artifact-explorer') {
     return (
       <div className="window-grid">
@@ -77,7 +77,6 @@ function renderWindowContent(window: WindowState) {
                   height: '100%',
                   borderRadius: 999,
                   background: getStatusColor(job.status),
-                  transition: 'width 0.2s ease',
                 }}
               />
             </div>
@@ -104,11 +103,7 @@ function renderWindowContent(window: WindowState) {
       <div className="window-grid">
         <div className="card">
           <div className="card-title">Recent Commands</div>
-          <div className="card-subtitle">Open Artifact Explorer, Show running jobs, Convert project to AMPscript</div>
-          <div className="window-footer" style={{ marginTop: 12 }}>
-            <span className="pill">⌘ Space to ask</span>
-            <span className="badge">Realtime</span>
-          </div>
+          <div className="card-subtitle">Open Sanctum, Open Safari, Play Focus Flow</div>
         </div>
         <div className="card">
           <div className="card-title">Agent Activity</div>
@@ -118,19 +113,16 @@ function renderWindowContent(window: WindowState) {
             </div>
           ))}
         </div>
-        <div className="card">
-          <div className="card-title">Workspace Context</div>
-          <div className="card-subtitle">
-            AngelOS keeps a local index of prompts, artifacts, and live jobs. Everything stays client-side during phase 1.
-          </div>
-        </div>
       </div>
     );
   }
 
-  if (window.appId === 'archive') {
-    return <AccelApp />;
-  }
+  if (window.appId === 'archive') return <AccelApp />;
+  if (window.appId === 'oracle') return <OracleApp />;
+  if (window.appId === 'sanctum') return <SanctumApp onOpenDocument={onOpenDocument} />;
+  if (window.appId === 'vision') return <VisionApp />;
+  if (window.appId === 'spotify') return <SpotifyApp />;
+  if (window.appId === 'safari') return <SafariApp />;
 
   if (window.appId === 'oracle') {
     return <OracleApp />;
@@ -149,18 +141,6 @@ function renderWindowContent(window: WindowState) {
       <div className="card">
         <div className="card-title">Personalize</div>
         <div className="card-subtitle">Switch wallpaper, tweak glass opacity, and keyboard shortcuts.</div>
-        <div className="window-footer" style={{ marginTop: 10 }}>
-          <span className="pill">⌘ ,</span>
-          <span className="badge">Settings</span>
-        </div>
-      </div>
-      <div className="card">
-        <div className="card-title">Native Shell</div>
-        <div className="card-subtitle">Electron wrapper planned once UI stabilizes. Keyboard-first ergonomics stay.</div>
-      </div>
-      <div className="card">
-        <div className="card-title">Notifications</div>
-        <div className="card-subtitle">Subtle pulses on running jobs, dock bounce on launch, and menu bar counters.</div>
       </div>
     </div>
   );
@@ -182,6 +162,7 @@ export default function App() {
     resizeWindow,
     toggleMaximizeWindow,
   } = useShellStore();
+  const setActiveDocument = useDriveStore((state) => state.setActiveDocument);
 
   const [agentActive, setAgentActive] = useState(true);
 
@@ -210,9 +191,15 @@ export default function App() {
   const runningJobs = jobs.filter((job) => job.status !== 'Done');
   const systemState = runningJobs.length > 0 ? 'Running Jobs' : 'Idle';
 
+  const openDriveDocument = (doc: DriveDocument) => {
+    setActiveDocument(doc.id);
+    openWindow(doc.type === 'spreadsheet' ? 'archive' : 'oracle');
+    openWindow('sanctum');
+  };
+
   const commands = useMemo(
-    () => [
-      ...apps.map((app) => ({
+    () =>
+      apps.map((app) => ({
         id: `open-${app.id}`,
         title: `Open ${app.name}`,
         description: app.description,
@@ -222,27 +209,6 @@ export default function App() {
           toggleSpotlight(false);
         },
       })),
-      {
-        id: 'show-jobs',
-        title: 'Show running jobs',
-        description: 'Focus the job monitor window',
-        icon: `${import.meta.env.BASE_URL}assets/apps/job-monitor.png`,
-        action: () => {
-          openWindow('job-monitor');
-          toggleSpotlight(false);
-        },
-      },
-      {
-        id: 'open-latest',
-        title: 'Open latest artifact',
-        description: 'Launch Artifact Explorer pinned to newest items',
-        icon: `${import.meta.env.BASE_URL}assets/apps/artifact-explorer.png`,
-        action: () => {
-          openWindow('artifact-explorer');
-          toggleSpotlight(false);
-        },
-      },
-    ],
     [openWindow, toggleSpotlight],
   );
 
@@ -274,7 +240,7 @@ export default function App() {
             onFocus={focusWindow}
             onToggleMaximize={toggleMaximizeWindow}
           >
-            {renderWindowContent(window)}
+            {renderWindowContent(window, openDriveDocument)}
           </WindowFrame>
         ))}
 

@@ -884,3 +884,65 @@ kbd {
   font-size: 11px;
   color: #9fb2d6;
 }
+
+.vision-result-layout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 12px; }
+.vision-result-preview { border-radius: 10px; padding: 12px; border: 1px solid rgba(255,255,255,.1); background: rgba(10,14,22,.72); }
+.vision-result-preview h3 { margin: 0 0 8px; }
+.vision-result-preview p { margin: 0 0 8px; font-size: 12px; color: #c5d2ea; }
+.vision-result-preview code { font-size: 11px; color: #9ec0ff; }
+
+.accel-shell { height: 100%; display: grid; grid-template-columns: 220px 1fr; gap: 14px; }
+.accel-sidebar, .accel-home { border-radius: 14px; border: 1px solid rgba(255,255,255,.1); background: rgba(14,20,30,.72); padding: 14px; }
+.accel-sidebar h2 { margin: 0 0 8px; color: #ffd572; }
+.accel-primary { border-radius: 10px; background: linear-gradient(180deg,#e7b74a,#bf8e24); padding: 9px 10px; color:#141414; font-weight:700; }
+.accel-sidebar p { color: #bac6da; font-size: 12px; }
+.accel-home-grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(180px,1fr)); gap:10px; }
+.accel-file-card { text-align:left; border-radius:10px; background: rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); padding: 10px; display:flex; flex-direction:column; gap:4px; }
+.accel-file-card span { color:#bcc9df; font-size:12px; }
+.accel-sheet-shell { height:100%; display:flex; flex-direction:column; gap:10px; }
+.accel-sheet-toolbar { border-radius:12px; border:1px solid rgba(255,255,255,.1); background: rgba(14,20,30,.8); padding:10px; display:flex; gap:10px; align-items:center; }
+.accel-title-input { flex:1; border-radius:8px; border:1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.05); color:#f0f5ff; padding:8px 10px; }
+.accel-grid-wrap { flex:1; overflow:auto; border-radius:12px; border:1px solid rgba(255,255,255,.1); background: rgba(8,11,17,.8); }
+.accel-grid { width:100%; border-collapse: collapse; min-width: 820px; }
+.accel-grid th, .accel-grid td { border:1px solid rgba(255,255,255,.09); }
+.accel-grid th { background: rgba(255,255,255,.06); color:#d8e0f0; font-weight:600; font-size:12px; padding: 6px 8px; }
+.accel-grid td input { width:100%; padding:8px; background: transparent; border: none; color:#eff4ff; outline:none; }
+
+.sanctum-shell-upgraded { background: linear-gradient(160deg, rgba(8,17,33,.85), rgba(12,29,62,.65)); border-radius: 14px; padding: 10px; }
+.sanctum-header-upgraded { background: rgba(11,24,48,.75); }
+.sanctum-toolbar { display:flex; gap:8px; padding: 6px 2px; }
+.sanctum-toolbar button { border-radius:999px; padding: 7px 12px; background: rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14); }
+.sanctum-toolbar button.active { background: rgba(64,129,255,.35); border-color: rgba(128,176,255,.55); }
+.sanctum-card { text-align:left; }
+.sanctum-card:hover { background: rgba(67,125,255,.12); }
+
+.spotify-shell { height: 100%; display:grid; grid-template-columns: 220px 1fr; grid-template-rows: 1fr auto; gap: 10px; }
+.spotify-sidebar, .spotify-main, .spotify-player { border-radius: 14px; border:1px solid rgba(255,255,255,.1); background: rgba(10,16,24,.82); }
+.spotify-sidebar { padding: 14px; display:flex; flex-direction:column; gap:10px; }
+.spotify-sidebar h2 { margin:0 0 8px; color:#30e17a; }
+.spotify-pill { border-radius: 999px; padding: 8px 10px; background: rgba(255,255,255,.08); text-align:left; }
+.spotify-main { padding: 14px; overflow:auto; }
+.spotify-header-card { border-radius: 12px; padding: 14px; margin-bottom: 12px; background: linear-gradient(135deg,#1db95444,#0f172a); }
+.spotify-header-card p { margin:0; font-size:12px; color:#cde9d8; }
+.spotify-header-card h3 { margin:4px 0; }
+.spotify-track-list { display:grid; gap:8px; }
+.spotify-track { display:flex; justify-content:space-between; align-items:center; border-radius:10px; border:1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03); padding: 10px; text-align:left; }
+.spotify-track.active { background: rgba(46,204,113,.18); }
+.spotify-track span { color:#c0cedf; font-size:12px; }
+.spotify-player { grid-column: 1 / -1; display:flex; justify-content:space-between; align-items:center; padding: 10px 14px; }
+.spotify-player button { border-radius:999px; background:#1db954; color:#102016; font-weight:700; padding:8px 14px; }
+
+.safari-shell { height: 100%; display:flex; flex-direction:column; gap:10px; }
+.safari-toolbar { display:flex; align-items:center; gap:10px; border-radius:12px; border:1px solid rgba(255,255,255,.1); background: rgba(16,22,32,.84); padding: 8px 10px; }
+.safari-dots { display:flex; gap:6px; }
+.safari-dots span { width:10px; height:10px; border-radius:50%; background:#ff5f56; }
+.safari-dots span:nth-child(2) { background:#ffbd2e; }
+.safari-dots span:nth-child(3) { background:#27c93f; }
+.safari-address { flex:1; border-radius:999px; border:1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); color:#dfe8fa; padding:7px 12px; }
+.safari-layout { flex:1; display:grid; grid-template-columns: 260px 1fr; gap:10px; }
+.safari-sidebar { border-radius:12px; border:1px solid rgba(255,255,255,.1); background: rgba(15,22,34,.8); padding: 10px; display:flex; flex-direction:column; gap:8px; }
+.safari-sidebar button { text-align:left; border-radius:9px; padding: 9px; background: rgba(255,255,255,.05); border:1px solid transparent; display:flex; flex-direction:column; }
+.safari-sidebar button.active { border-color: rgba(119,169,255,.65); background: rgba(80,138,255,.2); }
+.safari-sidebar span { font-size:11px; color:#b9cae4; }
+.safari-view { border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,.1); background: #fff; }
+.safari-view iframe { width:100%; height:100%; border:none; background:white; }

@@ -1,24 +1,36 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDriveStore } from '../../state/useDriveStore';
 
 type OracleView = 'home' | 'editor';
 type HomeTab = 'Recent' | 'Shared' | 'All';
 
 export function OracleApp() {
-  const { documents, createDocument, updateDocument } = useDriveStore();
+  const { documents, activeDocumentId, setActiveDocument, createDocument, updateDocument } = useDriveStore();
+  const wordDocs = documents.filter((doc) => doc.type === 'document');
   const [view, setView] = useState<OracleView>('home');
   const [tab, setTab] = useState<HomeTab>('Recent');
-  const [activeId, setActiveId] = useState<string | null>(documents[0]?.id ?? null);
+  const [activeId, setActiveId] = useState<string | null>(activeDocumentId ?? wordDocs[0]?.id ?? null);
 
-  const activeDoc = documents.find((doc) => doc.id === activeId) ?? null;
+  useEffect(() => {
+    if (activeDocumentId) {
+      const exists = wordDocs.some((doc) => doc.id === activeDocumentId);
+      if (exists) {
+        setActiveId(activeDocumentId);
+        setView('editor');
+      }
+    }
+  }, [activeDocumentId, wordDocs]);
+
+  const activeDoc = wordDocs.find((doc) => doc.id === activeId) ?? null;
 
   const homeDocuments = useMemo(() => {
-    if (tab === 'Shared') return documents.filter((doc) => doc.sharedWith.length > 0 || doc.owner !== 'You');
-    if (tab === 'Recent') return documents.slice(0, 8);
-    return documents;
-  }, [documents, tab]);
+    if (tab === 'Shared') return wordDocs.filter((doc) => doc.sharedWith.length > 0 || doc.owner !== 'You');
+    if (tab === 'Recent') return wordDocs.slice(0, 8);
+    return wordDocs;
+  }, [wordDocs, tab]);
 
   const openDocument = (id: string) => {
+    setActiveDocument(id);
     setActiveId(id);
     setView('editor');
   };
