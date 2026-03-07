@@ -1,35 +1,40 @@
-import { useMemo, useState } from 'react';
-import { useHcmStore, type HcmRole } from '../../../state/useHcmStore';
+import { useEffect, useMemo, useState } from 'react';
+import { useHcmStore, type LeaveType, type PermissionContext } from '../../../state/useHcmStore';
+import { useProfileStore } from '../../../state/useProfileStore';
 
-type HcmModule = 'dashboard' | 'core_hr' | 'org' | 'recruiting' | 'onboarding' | 'time' | 'leave' | 'payroll' | 'compensation' | 'legal' | 'calendar' | 'approvals' | 'analytics' | 'audit';
+type WorkdayPage =
+  | 'home'
+  | 'me-profile'
+  | 'me-time'
+  | 'me-pay'
+  | 'me-documents'
+  | 'me-leave'
+  | 'me-calendar'
+  | 'team-timesheets'
+  | 'team-leave'
+  | 'team-directory'
+  | 'hr-core'
+  | 'hr-recruiting'
+  | 'hr-onboarding'
+  | 'hr-compliance'
+  | 'payroll-runs'
+  | 'payroll-adjustments'
+  | 'payroll-statements'
+  | 'admin-org'
+  | 'admin-roles'
+  | 'admin-audit'
+  | 'admin-settings';
 
-const MODULES: Array<{ key: HcmModule; label: string }> = [
-  { key: 'dashboard', label: 'Dashboard' },
-  { key: 'core_hr', label: 'Core HR' },
-  { key: 'org', label: 'Org Structure' },
-  { key: 'recruiting', label: 'Recruiting' },
-  { key: 'onboarding', label: 'Onboarding' },
-  { key: 'time', label: 'Time & Attendance' },
-  { key: 'leave', label: 'Leave Management' },
-  { key: 'payroll', label: 'Payroll' },
-  { key: 'compensation', label: 'Compensation' },
-  { key: 'legal', label: 'Legal & Compliance' },
-  { key: 'calendar', label: 'Calendar' },
-  { key: 'approvals', label: 'Approvals' },
-  { key: 'analytics', label: 'Analytics' },
-  { key: 'audit', label: 'Audit Trail' },
-];
+type NavItem = {
+  label: string;
+  route?: WorkdayPage;
+  children?: NavItem[];
+  visible: (ctx: PermissionContext) => boolean;
+};
 
-function canViewRole(current: HcmRole, module: HcmModule): boolean {
-  if (current === 'super_admin') return true;
-  if (module === 'payroll') return ['payroll_admin', 'finance_admin', 'hrbp', 'manager'].includes(current);
-  if (module === 'compensation') return ['finance_admin', 'hrbp', 'manager', 'executive'].includes(current);
-  if (module === 'legal') return ['legal_admin', 'hrbp', 'super_admin'].includes(current);
-  if (module === 'analytics') return ['executive', 'finance_admin', 'hrbp', 'super_admin', 'manager'].includes(current);
-  return true;
-}
+const LEAVE_TYPES: LeaveType[] = ['PTO', 'SICK', 'UNPAID', 'BEREAVEMENT', 'JURY DUTY', 'PARENTAL'];
 
-function DataTable({ headers, rows }: { headers: string[]; rows: Array<Array<string | number>> }) {
+function DataTable({ headers, rows }: { headers: string[]; rows: Array<Array<string | number | JSX.Element>> }) {
   return (
     <div className="hcm-table-wrap">
       <table className="hcm-table">
@@ -40,218 +45,314 @@ function DataTable({ headers, rows }: { headers: string[]; rows: Array<Array<str
   );
 }
 
+function getNavConfig(): NavItem[] {
+  return [
+    { label: 'Home', route: 'home', visible: () => true },
+    {
+      label: 'Me',
+      visible: () => true,
+      children: [
+        { label: 'Profile', route: 'me-profile', visible: () => true },
+        { label: 'Time', route: 'me-time', visible: () => true },
+        { label: 'Pay', route: 'me-pay', visible: () => true },
+        { label: 'Documents', route: 'me-documents', visible: () => true },
+        { label: 'Leave', route: 'me-leave', visible: () => true },
+        { label: 'Calendar', route: 'me-calendar', visible: () => true },
+      ],
+    },
+    {
+      label: 'Team',
+      visible: (ctx) => ctx.isManager,
+      children: [
+        { label: 'Team Timesheets', route: 'team-timesheets', visible: (ctx) => ctx.canApproveTeamTime },
+        { label: 'Team Leave', route: 'team-leave', visible: (ctx) => ctx.canApproveTeamLeave },
+        { label: 'Team Directory', route: 'team-directory', visible: (ctx) => ctx.isManager },
+      ],
+    },
+    {
+      label: 'HR',
+      visible: (ctx) => ctx.canAccessHR,
+      children: [
+        { label: 'Core HR', route: 'hr-core', visible: (ctx) => ctx.canAccessHR },
+        { label: 'Recruiting', route: 'hr-recruiting', visible: (ctx) => ctx.canAccessHR },
+        { label: 'Onboarding', route: 'hr-onboarding', visible: (ctx) => ctx.canAccessHR },
+        { label: 'Compliance', route: 'hr-compliance', visible: (ctx) => ctx.canAccessHR },
+      ],
+    },
+    {
+      label: 'Payroll',
+      visible: (ctx) => ctx.canAccessPayroll,
+      children: [
+        { label: 'Payroll Runs', route: 'payroll-runs', visible: (ctx) => ctx.canAccessPayroll },
+        { label: 'Adjustments', route: 'payroll-adjustments', visible: (ctx) => ctx.canAccessPayroll },
+        { label: 'Statements', route: 'payroll-statements', visible: (ctx) => ctx.canAccessPayroll },
+      ],
+    },
+    {
+      label: 'Admin',
+      visible: (ctx) => ctx.roleFlags.canAccessAdmin,
+      children: [
+        { label: 'Org Structure', route: 'admin-org', visible: (ctx) => ctx.roleFlags.canAccessAdmin },
+        { label: 'Roles', route: 'admin-roles', visible: (ctx) => ctx.roleFlags.canAccessAdmin },
+        { label: 'Audit Trail', route: 'admin-audit', visible: (ctx) => ctx.roleFlags.canAccessAdmin },
+        { label: 'Settings', route: 'admin-settings', visible: (ctx) => ctx.roleFlags.canAccessAdmin },
+      ],
+    },
+  ];
+}
+
+function visibleRoutes(nav: NavItem[], ctx: PermissionContext): WorkdayPage[] {
+  const out: WorkdayPage[] = [];
+  for (const item of nav) {
+    if (!item.visible(ctx)) continue;
+    if (item.route) out.push(item.route);
+    if (item.children) {
+      for (const c of item.children) {
+        if (c.visible(ctx) && c.route) out.push(c.route);
+      }
+    }
+  }
+  return out;
+}
+
 export function WorkdaySite() {
+  const {
+    fullName,
+    preferredEmail,
+    location,
+    workdayRole,
+    isPeopleManager,
+    jobTitle,
+    department,
+  } = useProfileStore();
+
   const store = useHcmStore();
-  const [moduleKey, setModuleKey] = useState<HcmModule>('dashboard');
 
-  const me = useMemo(() => store.users.find((u) => u.id === store.currentUserId) ?? store.users[0], [store.currentUserId, store.users]);
+  useEffect(() => {
+    store.syncSimulationUser({
+      fullName,
+      preferredEmail,
+      location,
+      roleType: workdayRole,
+      isPeopleManager,
+      jobTitle,
+      department,
+    });
+  }, [store, fullName, preferredEmail, location, workdayRole, isPeopleManager, jobTitle, department]);
 
-  const visibleModules = MODULES.filter((m) => canViewRole(me.role, m.key));
-  const activeModule = visibleModules.find((m) => m.key === moduleKey) ? moduleKey : visibleModules[0]?.key ?? 'dashboard';
+  const permissionCtx = store.getPermissionContext();
+  const nav = useMemo(() => getNavConfig(), []);
+  const allowedRoutes = useMemo(() => visibleRoutes(nav, permissionCtx), [nav, permissionCtx]);
 
-  const kpis = {
-    headcount: store.employees.filter((e) => e.status === 'active').length,
-    openRequisitions: store.requisitions.filter((r) => r.status === 'open').length,
-    pendingApprovals: store.approvals.filter((a) => a.status === 'pending').length,
-    complianceRisk: store.legalPackets.filter((p) => p.status !== 'completed').length,
-  };
+  const [page, setPage] = useState<WorkdayPage>('home');
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({ Me: true, Team: true });
+  const [hoursInput, setHoursInput] = useState(40);
+  const [leaveType, setLeaveType] = useState<LeaveType>('PTO');
+  const [leaveHours, setLeaveHours] = useState(8);
+  const [leaveStart, setLeaveStart] = useState('2026-03-18');
+  const [leaveEnd, setLeaveEnd] = useState('2026-03-18');
+  const [leaveReason, setLeaveReason] = useState('Personal time');
+
+  useEffect(() => {
+    if (!allowedRoutes.includes(page)) setPage(allowedRoutes[0] ?? 'home');
+  }, [allowedRoutes, page]);
+
+  const me = permissionCtx.currentUser;
+  const myEmployee = permissionCtx.employeeProfile;
+
+  const myTimesheets = store.timesheets.filter((t) => t.employeeId === myEmployee.id);
+  const myLeave = store.leaveRequests.filter((l) => l.employeeId === myEmployee.id);
+  const myPay = store.payStubs.filter((p) => p.employeeId === myEmployee.id);
+  const myDocuments = store.documents.filter((d) => d.employeeId === myEmployee.id);
+  const myCalendar = store.calendarItems.filter((c) => c.employeeId === myEmployee.id);
+  const directReports = store.employees.filter((e) => e.managerEmployeeId === myEmployee.id);
+  const directReportIds = new Set(directReports.map((d) => d.id));
+  const teamTimesheets = permissionCtx.canApproveTeamTime ? store.timesheets.filter((t) => directReportIds.has(t.employeeId)) : [];
+  const teamLeave = permissionCtx.canApproveTeamLeave ? store.leaveRequests.filter((l) => directReportIds.has(l.employeeId)) : [];
 
   return (
     <div className="hcm-shell">
       <aside className="hcm-sidebar">
-        <div className="hcm-logo">AsterHCM</div>
-        <div className="hcm-subtitle">Enterprise Workforce OS</div>
-        <label className="hcm-user-switch">Act as role
-          <select value={store.currentUserId} onChange={(e) => store.setCurrentUser(e.target.value)}>
-            {store.users.map((u) => <option key={u.id} value={u.id}>{u.name} · {u.role}</option>)}
-          </select>
-        </label>
-        {visibleModules.map((m) => (
-          <button key={m.key} className={activeModule === m.key ? 'active' : ''} type="button" onClick={() => setModuleKey(m.key)}>{m.label}</button>
-        ))}
+        <div className="hcm-logo">Workday</div>
+        <div className="hcm-subtitle">Workforce Portal</div>
+        {nav.filter((n) => n.visible(permissionCtx)).map((n) => {
+          if (!n.children) {
+            return (
+              <button key={n.label} type="button" className={page === n.route ? 'active' : ''} onClick={() => n.route && setPage(n.route)}>{n.label}</button>
+            );
+          }
+          const open = expanded[n.label] ?? false;
+          const children = n.children.filter((c) => c.visible(permissionCtx));
+          if (children.length === 0) return null;
+          return (
+            <div key={n.label} className="hcm-nav-group" onMouseEnter={() => setExpanded((p) => ({ ...p, [n.label]: true }))}>
+              <button type="button" className="hcm-nav-group-btn" onClick={() => setExpanded((p) => ({ ...p, [n.label]: !open }))}>{n.label}</button>
+              {open && (
+                <div className="hcm-subnav">
+                  {children.map((c) => (
+                    <button key={c.label} type="button" className={page === c.route ? 'active' : ''} onClick={() => c.route && setPage(c.route)}>{c.label}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </aside>
 
       <section className="hcm-main">
         <header className="hcm-topbar">
-          <input placeholder="Search workers, requisitions, approvals, legal packets" />
+          <input placeholder="Search my workday tasks, documents, and requests" />
           <div className="hcm-top-right">
-            <span className="hcm-pill">{me.name}</span>
-            <span className="hcm-pill">{me.role}</span>
+            <span className="hcm-pill">{fullName}</span>
+            <span className="hcm-pill">{myEmployee.jobTitle}</span>
           </div>
         </header>
 
         <div className="hcm-header">
-          <h2>{MODULES.find((m) => m.key === activeModule)?.label}</h2>
-          <p>Legal Entity: Aster US LLC · Region: US · Environment: Production Simulation</p>
+          <h2>Workday — {page.replace(/-/g, ' ')}</h2>
+          <p>{myEmployee.department} · {myEmployee.location} · Worker ID {myEmployee.workerId}</p>
         </div>
 
-        {activeModule === 'dashboard' && (
+        {page === 'home' && (
           <div className="hcm-grid">
-            <div className="hcm-card"><h3>Headcount</h3><p className="hcm-kpi">{kpis.headcount}</p></div>
-            <div className="hcm-card"><h3>Open Requisitions</h3><p className="hcm-kpi">{kpis.openRequisitions}</p></div>
-            <div className="hcm-card"><h3>Pending Approvals</h3><p className="hcm-kpi">{kpis.pendingApprovals}</p></div>
-            <div className="hcm-card"><h3>Compliance Risk Packets</h3><p className="hcm-kpi">{kpis.complianceRisk}</p></div>
-            <div className="hcm-card hcm-span-2">
-              <h3>Workflow Engine Actions</h3>
+            <div className="hcm-card"><h3>My pending timesheets</h3><p className="hcm-kpi">{myTimesheets.filter((t) => t.status === 'pending').length}</p></div>
+            <div className="hcm-card"><h3>My pending leave requests</h3><p className="hcm-kpi">{myLeave.filter((l) => l.status === 'pending').length}</p></div>
+            <div className="hcm-card"><h3>My required docs</h3><p className="hcm-kpi">{myDocuments.filter((d) => d.status === 'REQUIRED').length}</p></div>
+            <div className="hcm-card"><h3>Team approvals</h3><p className="hcm-kpi">{permissionCtx.isManager ? teamTimesheets.length + teamLeave.length : 0}</p></div>
+          </div>
+        )}
+
+        {page === 'me-profile' && (
+          <DataTable
+            headers={['Field', 'Value']}
+            rows={[
+              ['Name', myEmployee.displayName],
+              ['Email', myEmployee.email],
+              ['Job Title', myEmployee.jobTitle],
+              ['Department', myEmployee.department],
+              ['Employment Status', myEmployee.employmentStatus.toUpperCase()],
+              ['Manager', store.employees.find((e) => e.id === myEmployee.managerEmployeeId)?.displayName ?? '-'],
+            ]}
+          />
+        )}
+
+        {page === 'me-time' && (
+          <div className="hcm-stack">
+            <div className="hcm-card">
+              <h3>Submit weekly hours</h3>
               <div className="hcm-actions">
-                <button type="button" onClick={store.runHiringFlow}>Flow 1: Hiring → Employee</button>
-                <button type="button" onClick={store.runCompChangeFlow}>Flow 2: Compensation Change</button>
-                <button type="button" onClick={store.runTimePayrollFlow}>Flow 3: Time → Payroll</button>
-                <button type="button" onClick={store.runLeaveFlow}>Flow 4: Leave Request</button>
-                <button type="button" onClick={store.runLegalPacketFlow}>Flow 5: Legal Packet</button>
-                <button type="button" onClick={store.runTerminationFlow}>Flow 6: Termination</button>
+                <input type="number" value={hoursInput} onChange={(e) => setHoursInput(Number(e.target.value))} />
+                <button type="button" onClick={() => store.submitTimesheet(hoursInput)}>Submit Timesheet</button>
               </div>
             </div>
+            <DataTable
+              headers={['Week', 'Total', 'OT', 'Status', 'Approver']}
+              rows={myTimesheets.map((t) => [
+                `${t.weekStart} → ${t.weekEnd}`,
+                t.totalHours,
+                t.overtimeHours,
+                t.status.toUpperCase(),
+                store.employees.find((e) => e.id === t.approverEmployeeId)?.displayName ?? '-',
+              ])}
+            />
           </div>
         )}
 
-        {activeModule === 'core_hr' && (
+        {page === 'me-leave' && (
+          <div className="hcm-stack">
+            <div className="hcm-card">
+              <h3>Request Leave</h3>
+              <div className="hcm-actions hcm-actions-leave">
+                <select value={leaveType} onChange={(e) => setLeaveType(e.target.value as LeaveType)}>
+                  {LEAVE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <input type="date" value={leaveStart} onChange={(e) => setLeaveStart(e.target.value)} />
+                <input type="date" value={leaveEnd} onChange={(e) => setLeaveEnd(e.target.value)} />
+                <input type="number" value={leaveHours} onChange={(e) => setLeaveHours(Number(e.target.value))} placeholder="Hours" />
+                <input value={leaveReason} onChange={(e) => setLeaveReason(e.target.value)} placeholder="Reason" />
+                <button type="button" onClick={() => store.requestLeave(leaveType, leaveStart, leaveEnd, leaveHours, leaveReason)}>Submit Leave</button>
+              </div>
+            </div>
+            <DataTable
+              headers={['Type', 'Dates', 'Hours', 'Status', 'Approver']}
+              rows={myLeave.map((l) => [l.type, `${l.startDate} → ${l.endDate}`, l.hours, l.status.toUpperCase(), store.employees.find((e) => e.id === l.approverEmployeeId)?.displayName ?? '-'])}
+            />
+          </div>
+        )}
+
+        {page === 'me-pay' && (
           <DataTable
-            headers={['Worker ID', 'Name', 'Status', 'Department', 'Title', 'Manager', 'Type', 'Work Mode', 'Salary (USD)']}
-            rows={store.employees.map((e) => [
-              e.workerId,
-              e.fullName,
-              e.status,
-              e.department,
-              e.title,
-              store.employees.find((m) => m.id === e.managerId)?.fullName ?? '-',
-              e.employmentType,
-              e.workMode,
-              e.baseSalaryUSD.toLocaleString(),
+            headers={['Pay Date', 'Gross', 'Deductions', 'Net']}
+            rows={myPay.map((p) => [p.payDate, `$${p.grossUSD.toLocaleString()}`, `$${p.deductionsUSD.toLocaleString()}`, `$${p.netUSD.toLocaleString()}`])}
+          />
+        )}
+
+        {page === 'me-documents' && (
+          <DataTable headers={['Document', 'Status', 'Due Date']} rows={myDocuments.map((d) => [d.name, d.status, d.dueDate ?? '-'])} />
+        )}
+
+        {page === 'me-calendar' && (
+          <DataTable headers={['Date', 'Event', 'Category']} rows={myCalendar.map((c) => [c.date, c.title, c.category])} />
+        )}
+
+        {page === 'team-directory' && permissionCtx.isManager && (
+          <DataTable headers={['Worker', 'Title', 'Department', 'Status']} rows={directReports.map((d) => [d.displayName, d.jobTitle, d.department, d.employmentStatus.toUpperCase()])} />
+        )}
+
+        {page === 'team-timesheets' && permissionCtx.canApproveTeamTime && (
+          <DataTable
+            headers={['Worker', 'Week', 'Hours', 'Status', 'Action']}
+            rows={teamTimesheets.map((t) => [
+              store.employees.find((e) => e.id === t.employeeId)?.displayName ?? '-',
+              `${t.weekStart} → ${t.weekEnd}`,
+              t.totalHours,
+              t.status.toUpperCase(),
+              t.status === 'pending'
+                ? <div className="hcm-inline-actions"><button type="button" onClick={() => store.approveTimesheet(t.id, 'approved')}>Approve</button><button type="button" onClick={() => store.approveTimesheet(t.id, 'rejected')}>Reject</button></div>
+                : 'Finalized',
             ])}
           />
         )}
 
-        {activeModule === 'org' && (
+        {page === 'team-leave' && permissionCtx.canApproveTeamLeave && (
           <DataTable
-            headers={['Legal Entity', 'Business Unit', 'Department', 'Team', 'Cost Center', 'Worker']}
-            rows={store.employees.map((e) => [e.legalEntity, e.businessUnit, e.department, e.team, e.costCenter, e.fullName])}
-          />
-        )}
-
-        {activeModule === 'recruiting' && (
-          <div className="hcm-stack">
-            <DataTable
-              headers={['Requisition', 'Department', 'Headcount', 'Status', 'Hiring Manager']}
-              rows={store.requisitions.map((r) => [r.title, r.department, r.headcount, r.status, store.employees.find((e) => e.id === r.hiringManagerEmployeeId)?.fullName ?? '-'])}
-            />
-            <DataTable
-              headers={['Candidate', 'Requisition', 'Stage', 'Offer Status']}
-              rows={store.candidates.map((c) => [c.name, store.requisitions.find((r) => r.id === c.requisitionId)?.title ?? '-', c.stage, store.offers.find((o) => o.candidateId === c.id)?.status ?? '-'])}
-            />
-          </div>
-        )}
-
-        {activeModule === 'onboarding' && (
-          <div className="hcm-stack">
-            <DataTable
-              headers={['Task', 'Employee', 'Owner Role', 'Due Date', 'Status']}
-              rows={store.onboardingTasks.map((t) => [t.name, store.employees.find((e) => e.id === t.employeeId)?.fullName ?? '-', t.ownerRole, t.dueDate, t.status])}
-            />
-            <DataTable
-              headers={['Offboarding Task', 'Employee', 'Owner Role', 'Due Date', 'Status']}
-              rows={store.offboardingTasks.map((t) => [t.name, store.employees.find((e) => e.id === t.employeeId)?.fullName ?? '-', t.ownerRole, t.dueDate, t.status])}
-            />
-          </div>
-        )}
-
-        {activeModule === 'time' && (
-          <div className="hcm-stack">
-            <DataTable
-              headers={['Timesheet', 'Employee', 'Week', 'Total Hours', 'Overtime', 'Status']}
-              rows={store.timesheets.map((t) => [t.id, store.employees.find((e) => e.id === t.employeeId)?.fullName ?? '-', `${t.weekStart} → ${t.weekEnd}`, t.totalHours, t.overtimeHours, t.status])}
-            />
-            <DataTable
-              headers={['Date', 'Employee', 'Hours', 'OT', 'Cost Center']}
-              rows={store.timeEntries.map((e) => [e.date, store.employees.find((w) => w.id === e.employeeId)?.fullName ?? '-', e.hours, e.overtimeHours, e.costCenter])}
-            />
-          </div>
-        )}
-
-        {activeModule === 'leave' && (
-          <div className="hcm-stack">
-            <DataTable
-              headers={['Request', 'Employee', 'Type', 'Dates', 'Hours', 'Status']}
-              rows={store.leaveRequests.map((r) => [r.id, store.employees.find((e) => e.id === r.employeeId)?.fullName ?? '-', r.type, `${r.startDate} → ${r.endDate}`, r.hours, r.status])}
-            />
-            <DataTable
-              headers={['Employee', 'Balance Type', 'Balance Hours', 'Carryover']}
-              rows={store.leaveBalances.map((b) => [store.employees.find((e) => e.id === b.employeeId)?.fullName ?? '-', b.type, b.balanceHours, b.carryoverHours])}
-            />
-          </div>
-        )}
-
-        {activeModule === 'payroll' && (
-          <div className="hcm-stack">
-            <DataTable
-              headers={['Pay Period', 'Pay Group', 'Dates', 'Lock Status']}
-              rows={store.payPeriods.map((p) => [p.id, p.payGroup, `${p.startDate} → ${p.endDate}`, p.lockStatus])}
-            />
-            <DataTable
-              headers={['Payroll Run', 'Status', 'Gross', 'Deductions', 'Net']}
-              rows={store.payrollRuns.map((r) => [r.id, r.status, `$${r.grossPayUSD.toLocaleString()}`, `$${r.deductionsUSD.toLocaleString()}`, `$${r.netPayUSD.toLocaleString()}`])}
-            />
-          </div>
-        )}
-
-        {activeModule === 'compensation' && (
-          <DataTable
-            headers={['Employee', 'Effective Date', 'Base Salary', 'Bonus Target %', 'Compa Ratio', 'Reason']}
-            rows={store.compensationRecords.map((c) => [store.employees.find((e) => e.id === c.employeeId)?.fullName ?? '-', c.effectiveDate, `$${c.baseSalaryUSD.toLocaleString()}`, c.bonusTargetPct, c.compaRatio.toFixed(2), c.changeReason])}
-          />
-        )}
-
-        {activeModule === 'legal' && (
-          <div className="hcm-stack">
-            <DataTable
-              headers={['Template', 'Version', 'Region', 'Retention (years)']}
-              rows={store.legalTemplates.map((t) => [t.name, t.version, t.region, t.retentionYears])}
-            />
-            <DataTable
-              headers={['Packet', 'Employee', 'Status', 'Due Date', 'Document Count']}
-              rows={store.legalPackets.map((p) => [p.id, store.employees.find((e) => e.id === p.employeeId)?.fullName ?? '-', p.status, p.dueDate, p.documentIds.length])}
-            />
-            <DataTable
-              headers={['Document', 'Employee', 'Template', 'Status', 'Signed At']}
-              rows={store.legalDocuments.map((d) => [d.id, store.employees.find((e) => e.id === d.employeeId)?.fullName ?? '-', store.legalTemplates.find((t) => t.id === d.templateId)?.name ?? '-', d.status, d.signedAt ?? '-'])}
-            />
-          </div>
-        )}
-
-        {activeModule === 'calendar' && (
-          <DataTable
-            headers={['Date', 'Event', 'Category']}
-            rows={store.events.map((e) => [e.date, e.title, e.category])}
-          />
-        )}
-
-        {activeModule === 'approvals' && (
-          <DataTable
-            headers={['Type', 'Title', 'Status', 'Requester', 'Approver', 'Due Date']}
-            rows={store.approvals.map((a) => [
-              a.type,
-              a.title,
-              a.status,
-              store.employees.find((e) => e.id === a.requesterEmployeeId)?.fullName ?? '-',
-              store.employees.find((e) => e.id === a.approverEmployeeId)?.fullName ?? '-',
-              a.dueDate,
+            headers={['Worker', 'Type', 'Dates', 'Hours', 'Status', 'Action']}
+            rows={teamLeave.map((l) => [
+              store.employees.find((e) => e.id === l.employeeId)?.displayName ?? '-',
+              l.type,
+              `${l.startDate} → ${l.endDate}`,
+              l.hours,
+              l.status.toUpperCase(),
+              l.status === 'pending'
+                ? <div className="hcm-inline-actions"><button type="button" onClick={() => store.approveLeave(l.id, 'approved')}>Approve</button><button type="button" onClick={() => store.approveLeave(l.id, 'rejected')}>Reject</button></div>
+                : 'Finalized',
             ])}
           />
         )}
 
-        {activeModule === 'analytics' && (
-          <div className="hcm-grid">
-            <div className="hcm-card"><h3>Active Workforce by Department</h3>{Array.from(new Set(store.employees.map((e) => e.department))).map((d) => <div key={d} className="hcm-row">{d} <span>{store.employees.filter((e) => e.department === d && e.status === 'active').length}</span></div>)}</div>
-            <div className="hcm-card"><h3>Payroll Cost Snapshot</h3><p className="hcm-kpi">${store.payrollRuns.reduce((a, r) => a + r.netPayUSD, 0).toLocaleString()}</p></div>
-            <div className="hcm-card"><h3>Approval Backlog by Type</h3>{Array.from(new Set(store.approvals.map((a) => a.type))).map((t) => <div key={t} className="hcm-row">{t}<span>{store.approvals.filter((a) => a.type === t && a.status === 'pending').length}</span></div>)}</div>
-            <div className="hcm-card"><h3>Leave Utilization</h3>{store.leaveBalances.map((b) => <div key={b.id} className="hcm-row">{b.type.toUpperCase()}<span>{b.balanceHours}h</span></div>)}</div>
-          </div>
+        {page === 'hr-core' && permissionCtx.canAccessHR && (
+          <DataTable
+            headers={['Worker ID', 'Name', 'Title', 'Department', 'Manager', 'Status']}
+            rows={store.employees.map((e) => [e.workerId, e.displayName, e.jobTitle, e.department, store.employees.find((m) => m.id === e.managerEmployeeId)?.displayName ?? '-', e.employmentStatus.toUpperCase()])}
+          />
         )}
 
-        {activeModule === 'audit' && (
+        {page === 'hr-recruiting' && permissionCtx.canAccessHR && <div className="hcm-card hcm-stack-card">Recruiting pipeline view available for HR roles.</div>}
+        {page === 'hr-onboarding' && permissionCtx.canAccessHR && <div className="hcm-card hcm-stack-card">Onboarding and offboarding administration for HR roles.</div>}
+        {page === 'hr-compliance' && permissionCtx.canAccessHR && <div className="hcm-card hcm-stack-card">Compliance packet oversight for HR/legal roles.</div>}
+
+        {(page === 'payroll-runs' || page === 'payroll-adjustments' || page === 'payroll-statements') && permissionCtx.canAccessPayroll && (
+          <div className="hcm-card hcm-stack-card">Payroll admin console scoped to authorized payroll roles only.</div>
+        )}
+
+        {page === 'admin-org' && permissionCtx.roleFlags.canAccessAdmin && <div className="hcm-card hcm-stack-card">Admin org structure controls.</div>}
+        {page === 'admin-roles' && permissionCtx.roleFlags.canAccessAdmin && <div className="hcm-card hcm-stack-card">Role and permission set management.</div>}
+        {page === 'admin-settings' && permissionCtx.roleFlags.canAccessAdmin && <div className="hcm-card hcm-stack-card">System settings and module flags.</div>}
+
+        {page === 'admin-audit' && permissionCtx.roleFlags.canAccessAdmin && (
           <DataTable
-            headers={['Timestamp', 'Actor', 'Action', 'Entity', 'Detail']}
-            rows={store.auditEvents.map((a) => [new Date(a.at).toLocaleString(), store.users.find((u) => u.id === a.actorUserId)?.name ?? a.actorUserId, a.action, `${a.entityType}:${a.entityId}`, a.detail])}
+            headers={['At', 'Actor', 'Action', 'Entity', 'Detail']}
+            rows={store.auditEvents.map((a) => [new Date(a.at).toLocaleString(), store.users.find((u) => u.id === a.actorUserId)?.displayName ?? a.actorUserId, a.action, `${a.entityType}:${a.entityId}`, a.detail])}
           />
         )}
       </section>

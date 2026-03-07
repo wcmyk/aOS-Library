@@ -3135,3 +3135,19 @@ kbd {
 .hcm-table td { border-bottom: 1px solid #1a2a3f; padding: 8px; white-space: nowrap; color: #d6e0ef; }
 .hcm-table tr:hover td { background: #122238; }
 .hcm-row { display: flex; justify-content: space-between; color: #a3b5cd; font-size: 12px; padding: 5px 0; border-bottom: 1px solid #1a283d; }
+.hcm-nav-group { display: flex; flex-direction: column; gap: 4px; }
+.hcm-nav-group-btn { background: #0f1c2e; border: 1px solid #27384d; color: #a9bad3; border-radius: 8px; padding: 7px 9px; text-align: left; font-size: 12px; }
+.hcm-subnav { display: flex; flex-direction: column; gap: 4px; padding-left: 10px; }
+.hcm-subnav button { background: #121f32; border: 1px solid #25374e; color: #c7d5e9; border-radius: 7px; font-size: 11px; padding: 6px 8px; text-align: left; }
+.hcm-subnav button.active { background: #1b365b; border-color: #335f9b; }
+.hcm-actions input, .hcm-actions select { background: #111b29; border: 1px solid #27384d; color: #d9e3f3; border-radius: 8px; padding: 8px; min-width: 120px; }
+.hcm-actions-leave { grid-template-columns: repeat(3, minmax(0,1fr)); }
+.hcm-inline-actions { display: inline-flex; gap: 6px; }
+.hcm-inline-actions button { background: #13263d; border: 1px solid #2d4770; color: #d8e8ff; border-radius: 7px; padding: 4px 8px; font-size: 11px; }
+.hcm-stack-card { margin: 10px 12px; }
+.simple-site select { width: 100%; margin-top: 4px; padding: 8px; border-radius: 8px; border: 1px solid rgba(139,162,199,0.3); background: #0b1320; color: #e8f0ff; }
+.li-pagination { display: flex; align-items: center; gap: 6px; padding: 8px 10px; border-top: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06); background: rgba(10,16,27,0.82); }
+.li-pagination button { border: 1px solid rgba(132,150,178,0.28); background: rgba(14,23,37,0.92); color: #bfd3f1; border-radius: 6px; padding: 5px 9px; font-size: 11px; }
+.li-pagination button.active { background: rgba(10,102,194,0.26); border-color: rgba(10,102,194,0.6); color: #dce9ff; }
+.li-pagination button:disabled { opacity: 0.45; cursor: not-allowed; }
+.li-page-meta { margin-left: auto; font-size: 11px; color: #7f95b8; }

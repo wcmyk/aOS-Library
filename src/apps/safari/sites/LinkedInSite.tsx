@@ -142,6 +142,7 @@ const ROLE_MAP = {
   risk:      ['Risk Analyst','Credit Risk Analyst','Market Risk Analyst','Enterprise Risk Manager','Operational Risk Analyst','Model Risk Analyst'],
   consulting:['Strategy Consultant','Management Consultant','Technology Consultant','Business Analyst','Associate Consultant','Senior Analyst','Salesforce Consultant','SFMC Engineer'],
   analyst:   ['Data Analyst','Financial Analyst','Senior Financial Analyst','FP&A Analyst','Treasury Analyst','Accounting Analyst','Business Intelligence Analyst','Research Analyst','Pricing Analyst','Revenue Analyst'],
+  financebiz:['Accounting Analyst','Staff Accountant','Senior Accountant','Accounting Manager','Financial Analyst','Senior Financial Analyst','FP&A Analyst','FP&A Manager','Finance Manager','Corporate Finance Analyst','Treasury Analyst','Treasury Manager','Cash Management Analyst','Risk Analyst','Enterprise Risk Analyst','Credit Risk Analyst','Market Risk Analyst','Operational Risk Analyst','Compliance Analyst','Internal Audit Analyst','Auditor','Fraud Analyst','Fraud Operations Analyst','Fraud Risk Analyst','AML Analyst','KYC Analyst','Underwriting Analyst','Pricing Analyst','Revenue Analyst','Billing Analyst','Payroll Analyst','Compensation Analyst','Benefits Analyst','Procurement Analyst','Cost Analyst','Budget Analyst','Investor Relations Analyst','Business Analyst','Strategy Analyst','Operations Analyst','Business Operations Analyst','Sales Operations Analyst','Go-To-Market Analyst','GTM Analyst','Revenue Operations Analyst','Deal Desk Analyst','Commercial Analyst','Data Analyst (Finance)','Reporting Analyst','Product Analyst','Trust & Safety Analyst','Controls Analyst','SOX Analyst','Model Risk Analyst','BI Analyst'],
 } as const;
 
 const CATEGORIES = Object.keys(ROLE_MAP) as RoleCategory[];
@@ -151,7 +152,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   aiintegr: 'AI Integration', devops: 'DevOps / Infrastructure',
   quant: 'Quantitative Research', quantfin: 'Quantitative Finance',
   insurance: 'Insurance & Actuarial', risk: 'Risk Management',
-  consulting: 'Consulting', analyst: 'Analytics',
+  consulting: 'Consulting', analyst: 'Analytics', financebiz: 'Finance, Risk & Operations',
 };
 
 const LOCATIONS = [
@@ -174,6 +175,7 @@ const SALARY_RANGES: Record<string, string[]> = {
   risk:      ['$75K–$105K','$95K–$130K','$115K–$155K'],
   consulting:['$85K–$120K','$105K–$145K','$130K–$175K'],
   analyst:   ['$65K–$90K','$80K–$115K','$95K–$130K'],
+  financebiz:['$70K–$95K','$90K–$125K','$110K–$155K','$130K–$190K'],
 };
 
 // ── Rich descriptions by (category, archetype) ────────────────────────────────
@@ -457,9 +459,9 @@ type Job = {
   compensation: number;
 };
 
-function generateJobs(count: number): Job[] {
+function generateJobs(count: number, start = 0): Job[] {
   const jobs: Job[] = [];
-  for (let i = 0; i < count; i++) {
+  for (let i = start; i < start + count; i++) {
     const rng = seeded(i * 7919 + 31337);
     const category = pick(CATEGORIES, rng);
     const roles = ROLE_MAP[category] as readonly string[];
@@ -493,7 +495,8 @@ function generateJobs(count: number): Job[] {
   return jobs;
 }
 
-const ALL_JOBS = generateJobs(220);
+const INITIAL_JOB_BATCH = 40;
+const PAGE_SIZE = 10;
 
 // ── Manager name generation ───────────────────────────────────────────────────
 
@@ -527,7 +530,9 @@ export function LinkedInSite() {
   const { sendEmail } = useMailStore();
   const { fullName, preferredEmail, roleHeadline, location } = useProfileStore();
   const [tab, setTab] = useState<LinkedInTab>('jobs');
-  const [selectedJobId, setSelectedJobId] = useState<string>(ALL_JOBS[0].id);
+  const [jobs, setJobs] = useState<Job[]>(() => generateJobs(INITIAL_JOB_BATCH));
+  const [selectedJobId, setSelectedJobId] = useState<string>('job-0');
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [applyState, setApplyState] = useState<Record<string, 'idle' | 'applying' | 'applied'>>(() => {
     try { return JSON.parse(localStorage.getItem('li_apply_state') ?? '{}'); }
     catch { return {}; }
@@ -540,9 +545,9 @@ export function LinkedInSite() {
     localStorage.setItem('li_apply_state', JSON.stringify(applyState));
   }, [applyState]);
 
-  const selectedJob = ALL_JOBS.find((j) => j.id === selectedJobId) ?? ALL_JOBS[0];
+  const selectedJob = jobs.find((j) => j.id === selectedJobId) ?? jobs[0] ?? null;
 
-  const filteredJobs = useMemo(() => ALL_JOBS.filter((j) => {
+  const filteredJobs = useMemo(() => jobs.filter((j) => {
     if (categoryFilter !== 'all' && j.category !== categoryFilter) return false;
     if (typeFilter !== 'all' && j.type !== typeFilter) return false;
     if (searchQuery.trim()) {
@@ -554,7 +559,34 @@ export function LinkedInSite() {
              j.location.toLowerCase().includes(q);
     }
     return true;
-  }), [categoryFilter, typeFilter, searchQuery]);
+  }), [jobs, categoryFilter, typeFilter, searchQuery]);
+
+
+  const totalPages = Math.max(1, Math.ceil(filteredJobs.length / PAGE_SIZE));
+
+  const ensureJobsForPage = (page: number) => {
+    const requiredCount = page * PAGE_SIZE;
+    setJobs((prev) => {
+      if (prev.length >= requiredCount) return prev;
+      const additional = generateJobs(requiredCount - prev.length, prev.length);
+      return [...prev, ...additional];
+    });
+  };
+
+  const pagedJobs = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredJobs.slice(start, start + PAGE_SIZE);
+  }, [filteredJobs, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [categoryFilter, typeFilter, searchQuery]);
+
+  useEffect(() => {
+    if (pagedJobs.length > 0 && !pagedJobs.find((j) => j.id === selectedJobId)) {
+      setSelectedJobId(pagedJobs[0].id);
+    }
+  }, [pagedJobs, selectedJobId]);
 
   const applyToJob = (job: Job) => {
     setApplyState((prev) => ({ ...prev, [job.id]: 'applying' }));
@@ -683,15 +715,15 @@ Talent Acquisition, ${job.company}<br>
                   <option value="Contract">Contract</option>
                 </select>
               </div>
-              <div className="li-filter-count">{filteredJobs.length} results</div>
+              <div className="li-filter-count">{filteredJobs.length} results · {PAGE_SIZE} per page</div>
             </aside>
 
             {/* Job list */}
             <div className="li-job-list">
-              {filteredJobs.length === 0 ? (
+              {pagedJobs.length === 0 ? (
                 <div className="li-empty">No jobs match your filters.</div>
               ) : (
-                filteredJobs.map((job) => {
+                pagedJobs.map((job) => {
                   const state = applyState[job.id] ?? 'idle';
                   return (
                     <button
@@ -718,10 +750,44 @@ Talent Acquisition, ${job.company}<br>
               )}
             </div>
 
+            <div className="li-pagination">
+              <button type="button" disabled={currentPage === 1} onClick={() => { const p = Math.max(1, currentPage - 1); setCurrentPage(p); }}>
+                Previous
+              </button>
+              {Array.from({ length: Math.min(totalPages, 8) }, (_, idx) => {
+                const pageNum = idx + 1;
+                return (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    className={pageNum === currentPage ? 'active' : ''}
+                    onClick={() => {
+                      ensureJobsForPage(pageNum);
+                      setCurrentPage(pageNum);
+                    }}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => {
+                  const next = currentPage + 1;
+                  ensureJobsForPage(next);
+                  setCurrentPage(next);
+                }}
+              >
+                Next
+              </button>
+              <span className="li-page-meta">Page {currentPage} / {totalPages}</span>
+            </div>
+
             {/* Job detail */}
             <div className="li-job-detail">
               {(() => {
                 const job = selectedJob;
+                if (!job) return <div className="li-empty">No job selected.</div>;
                 const state = applyState[job.id] ?? 'idle';
                 return (
                   <>
