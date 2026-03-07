@@ -2983,3 +2983,58 @@ kbd {
 .colab-thread { max-height: 300px; overflow: auto; }
 .colab-form { display: flex; gap: 8px; }
 .colab-form button { border: 1px solid rgba(139,162,199,0.35); background: #10233e; color: #dbe7ff; border-radius: 8px; padding: 8px 12px; }
+
+.workday-shell { display: grid; grid-template-columns: 220px 1fr; height: 100%; background: #f5f7fb; color: #111827; }
+.workday-nav { background: #0e1d3b; color: #d6e1ff; padding: 14px; display: flex; flex-direction: column; gap: 6px; }
+.workday-logo { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: #fff; }
+.workday-nav button { text-align: left; background: transparent; border: 0; color: inherit; padding: 8px; border-radius: 8px; }
+.workday-nav button.active, .workday-nav button:hover { background: rgba(255,255,255,0.14); }
+.workday-main { padding: 16px; overflow: auto; }
+.workday-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.workday-header h2 { margin: 0; }
+.workday-header p { margin: 4px 0 0; color: #4b5563; }
+.workday-user { font-size: 12px; background: #e5edff; border: 1px solid #c7d7ff; border-radius: 999px; padding: 6px 10px; }
+.workday-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+.workday-card { border: 1px solid #d7e0f2; border-radius: 10px; background: white; padding: 12px; }
+.workday-time { grid-column: span 2; }
+.workday-empty { padding: 18px; }
+
+.workfront-shell { display: grid; grid-template-columns: 220px 1fr; height: 100%; background: #f6f7fb; color: #0f172a; }
+.workfront-rail { background: #1b1f3b; color: #dbe1ff; display: flex; flex-direction: column; padding: 14px; gap: 6px; }
+.workfront-logo { font-weight: 700; margin-bottom: 8px; }
+.workfront-rail button { background: transparent; border: 0; color: inherit; text-align: left; border-radius: 8px; padding: 8px; }
+.workfront-rail button.active, .workfront-rail button:hover { background: rgba(255,255,255,0.14); }
+.workfront-main { padding: 16px; overflow: auto; }
+.workfront-header { display: flex; justify-content: space-between; align-items: center; }
+.workfront-header h2 { margin: 0; }
+.workfront-header p { margin: 4px 0 0; color: #64748b; }
+.workfront-badge { font-size: 12px; background: #e9ecff; border: 1px solid #ccd4ff; border-radius: 999px; padding: 6px 10px; }
+.workfront-note { margin: 12px 0; padding: 10px; border: 1px solid #d6deef; border-radius: 8px; background: white; }
+.workfront-board { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; }
+.workfront-col { background: #eef2fb; border: 1px solid #d4dff6; border-radius: 10px; padding: 10px; }
+.workfront-col h3 { margin: 0 0 8px; font-size: 13px; }
+.workfront-task { background: white; border: 1px solid #d8e1f4; border-radius: 8px; padding: 8px; margin-bottom: 8px; font-size: 12px; }
+
+.colab-shell { height: 100%; display: grid; grid-template-columns: 92px 1fr; background: #f3f4f8; }
+.colab-left { background: #4b53bc; color: #eef1ff; padding: 12px 8px; display: flex; flex-direction: column; gap: 8px; }
+.colab-brand { font-weight: 700; text-align: center; margin-bottom: 8px; }
+.colab-nav { border: 0; background: transparent; color: inherit; padding: 8px 6px; border-radius: 8px; font-size: 12px; }
+.colab-nav.active, .colab-nav:hover { background: rgba(255,255,255,0.18); }
+.colab-main { display: grid; grid-template-rows: auto 1fr auto; }
+.colab-header { background: white; border-bottom: 1px solid #dce0ee; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
+.colab-title { font-weight: 700; }
+.colab-subtitle { font-size: 12px; color: #64748b; }
+.colab-pill { font-size: 11px; background: #edf0fb; border: 1px solid #d7def5; border-radius: 999px; padding: 6px 10px; }
+.colab-messages { padding: 14px; overflow: auto; }
+.colab-msg { max-width: 70%; margin-bottom: 10px; background: white; border: 1px solid #dde3f5; border-radius: 10px; padding: 10px; }
+.colab-msg.me { margin-left: auto; background: #e8efff; }
+.colab-msg-author { font-size: 11px; color: #64748b; margin-bottom: 4px; }
+.colab-msg-author span { margin-left: 8px; }
+.colab-typing { color: #64748b; font-style: italic; }
+.colab-inputbar { border-top: 1px solid #dce0ee; background: white; padding: 10px; display: flex; gap: 8px; }
+.colab-inputbar input { flex: 1; border: 1px solid #cfd8ee; border-radius: 8px; padding: 8px; }
+.colab-inputbar button { border: 1px solid #5b5fc7; background: #5b5fc7; color: white; border-radius: 8px; padding: 8px 12px; }
+.colab-empty { padding: 18px; }
+
+.vsn-link-btn { border: 0; background: transparent; color: #70a3ff; padding: 0; text-decoration: underline; cursor: pointer; }
+.vsn-inline-frame { width: 100%; min-height: 260px; border: 1px solid rgba(112,163,255,0.25); border-radius: 10px; margin-top: 10px; background: white; }

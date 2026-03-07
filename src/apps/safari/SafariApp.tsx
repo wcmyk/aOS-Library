@@ -24,6 +24,14 @@ const SITES: SiteEntry[] = [
     kind: 'component',
     component: WorkdaySite,
   },
+
+  {
+    id: 'adobe-workfront',
+    title: 'Adobe Workfront',
+    domain: 'workfront.aos',
+    kind: 'component',
+    component: ProjectHubSite,
+  },
   {
     id: 'project-hub',
     title: 'Project Hub',

@@ -17,26 +17,50 @@ export function ProjectHubSite() {
   const emails = useMailStore((s) => s.emails);
   const onboarding = useMemo(() => emails.find((e) => e.jobMeta?.stage === 'onboarding')?.jobMeta, [emails]);
 
-  if (!onboarding) return <div className="simple-site"><h2>Project Hub</h2><p>Accept a job offer first to load your company-specific PM stack.</p></div>;
+  if (!onboarding) return <div className="workfront-shell"><div className="workfront-empty">Accept a job offer first to load your company-specific PM stack.</div></div>;
 
   const tool = getTool(onboarding.company);
 
   return (
-    <div className="simple-site">
-      <h2>Project Management — {onboarding.company}</h2>
-      <div className="simple-card">
-        <h3>Primary platform</h3>
-        <p><strong>{tool.tool}</strong></p>
-        <p>{tool.notes}</p>
-      </div>
-      <div className="simple-card">
-        <h3>Role-specific task lanes for {onboarding.role}</h3>
-        <ul>
-          <li>Sprint commitments scoped to your team domain and compliance requirements.</li>
-          <li>Manager review checkpoints linked with CoLab daily updates.</li>
-          <li>Company handbook controls applied to approvals, delivery sign-off, and audit history.</li>
-        </ul>
-      </div>
+    <div className="workfront-shell">
+      <aside className="workfront-rail">
+        <div className="workfront-logo">Workfront</div>
+        <button className="active" type="button">My Work</button>
+        <button type="button">Projects</button>
+        <button type="button">Requests</button>
+        <button type="button">Reports</button>
+        <button type="button">Proofing</button>
+      </aside>
+      <section className="workfront-main">
+        <header className="workfront-header">
+          <div>
+            <h2>{onboarding.company} Delivery Workspace</h2>
+            <p>{tool.tool}</p>
+          </div>
+          <span className="workfront-badge">Role: {onboarding.role}</span>
+        </header>
+        <div className="workfront-note">{tool.notes}</div>
+        <div className="workfront-board">
+          <div className="workfront-col">
+            <h3>Backlog</h3>
+            <div className="workfront-task">Onboarding access audit</div>
+            <div className="workfront-task">Role-specific handbook review</div>
+          </div>
+          <div className="workfront-col">
+            <h3>In Progress</h3>
+            <div className="workfront-task">Sprint commitments for {onboarding.role}</div>
+            <div className="workfront-task">Manager checkpoint setup</div>
+          </div>
+          <div className="workfront-col">
+            <h3>Review</h3>
+            <div className="workfront-task">Compliance approval routing</div>
+          </div>
+          <div className="workfront-col">
+            <h3>Done</h3>
+            <div className="workfront-task">Tenant provisioning</div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
