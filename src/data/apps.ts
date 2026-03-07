@@ -99,6 +99,14 @@ export const apps: ShellApp[] = [
     defaultSize: { width: 850, height: 550 },
   },
   {
+    id: 'outlook',
+    name: 'Outlook',
+    icon: `${BASE_URL}assets/apps/Oracle.png`,
+    description: 'Email client for workspace communications',
+    accent: '#0078d4',
+    defaultSize: { width: 1100, height: 680 },
+  },
+  {
     id: 'sanctum',
     name: 'Sanctum',
     icon: `${BASE_URL}assets/apps/Sanctum.png`,

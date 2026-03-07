@@ -9,6 +9,7 @@ import { useShellStore, type WindowState } from './state/useShellStore';
 
 const AccelApp = lazy(() => import('./apps/accel/AccelApp').then((m) => ({ default: m.AccelApp })));
 const OracleApp = lazy(() => import('./apps/oracle/OracleApp').then((m) => ({ default: m.OracleApp })));
+const OutlookApp = lazy(() => import('./apps/outlook/OutlookApp').then((m) => ({ default: m.OutlookApp })));
 const SanctumApp = lazy(() => import('./apps/sanctum/SanctumApp').then((m) => ({ default: m.SanctumApp })));
 const SafariApp = lazy(() => import('./apps/safari/SafariApp').then((m) => ({ default: m.SafariApp })));
 const SpotifyApp = lazy(() => import('./apps/spotify/SpotifyApp').then((m) => ({ default: m.SpotifyApp })));
@@ -125,6 +126,7 @@ function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDoc
 
   if (window.appId === 'archive') return <Suspense fallback={null}><AccelApp /></Suspense>;
   if (window.appId === 'oracle') return <Suspense fallback={null}><OracleApp /></Suspense>;
+  if (window.appId === 'outlook') return <Suspense fallback={null}><OutlookApp /></Suspense>;
   if (window.appId === 'sanctum') return <Suspense fallback={null}><SanctumApp onOpenDocument={onOpenDocument} /></Suspense>;
   if (window.appId === 'vision') return <Suspense fallback={null}><VisionApp /></Suspense>;
   if (window.appId === 'spotify') return <Suspense fallback={null}><SpotifyApp /></Suspense>;
