@@ -2972,3 +2972,14 @@ kbd {
 .li-exp-role { font-size: 13px; font-weight: 600; color: #c8d8f4; }
 .li-exp-company { font-size: 12px; color: #6a7ea8; }
 .li-exp-date { font-size: 11px; color: #3e5478; }
+
+.simple-site { padding: 18px; color: #dbe7ff; overflow: auto; height: 100%; background: #0f1724; }
+.simple-site h2 { margin: 0 0 12px; }
+.simple-card { border: 1px solid rgba(139,162,199,0.25); background: rgba(15,27,45,0.85); border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+.simple-card h3 { margin: 0 0 10px; font-size: 14px; }
+.simple-site label { display: block; font-size: 12px; color: #9db0d1; margin-bottom: 8px; }
+.simple-site input { width: 100%; margin-top: 4px; padding: 8px; border-radius: 8px; border: 1px solid rgba(139,162,199,0.3); background: #0b1320; color: #e8f0ff; }
+.hours-grid { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 8px; }
+.colab-thread { max-height: 300px; overflow: auto; }
+.colab-form { display: flex; gap: 8px; }
+.colab-form button { border: 1px solid rgba(139,162,199,0.35); background: #10233e; color: #dbe7ff; border-radius: 8px; padding: 8px 12px; }

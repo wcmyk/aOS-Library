@@ -1,5 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { LinkedInSite } from './sites/LinkedInSite';
+import { WorkdaySite } from './sites/WorkdaySite';
+import { ProjectHubSite } from './sites/ProjectHubSite';
+import { CoLabSite } from './sites/CoLabSite';
+import { useSafariStore } from '../../state/useSafariStore';
 
 type SiteEntry =
   | { id: string; title: string; domain: string; kind: 'component'; component: React.ComponentType }
@@ -12,6 +16,27 @@ const SITES: SiteEntry[] = [
     domain: 'linkedin.com',
     kind: 'component',
     component: LinkedInSite,
+  },
+  {
+    id: 'workday',
+    title: 'Workday',
+    domain: 'workday.aos',
+    kind: 'component',
+    component: WorkdaySite,
+  },
+  {
+    id: 'project-hub',
+    title: 'Project Hub',
+    domain: 'projects.aos',
+    kind: 'component',
+    component: ProjectHubSite,
+  },
+  {
+    id: 'colab',
+    title: 'CoLab',
+    domain: 'colab.aos',
+    kind: 'component',
+    component: CoLabSite,
   },
   {
     id: 'sanctum-web',
@@ -27,13 +52,21 @@ const SITES: SiteEntry[] = [
 
 export function SafariApp() {
   const [activeSiteId, setActiveSiteId] = useState(SITES[0].id);
+  const currentUrl = useSafariStore((s) => s.currentUrl);
+  const navigate = useSafariStore((s) => s.navigate);
   const site = useMemo(() => SITES.find((s) => s.id === activeSiteId) ?? SITES[0], [activeSiteId]);
+
+  useEffect(() => {
+    const target = currentUrl.replace(/^https?:\/\//, '').toLowerCase();
+    const matched = SITES.find((s) => target.includes(s.domain));
+    if (matched && matched.id !== activeSiteId) setActiveSiteId(matched.id);
+  }, [activeSiteId, currentUrl]);
 
   return (
     <div className="safari-shell">
       <div className="safari-toolbar">
         <div className="safari-dots"><span /><span /><span /></div>
-        <input value={`https://${site.domain}`} readOnly className="safari-address" />
+        <input value={currentUrl} onChange={(e) => navigate(e.target.value)} className="safari-address" />
       </div>
       <div className="safari-layout">
         <aside className="safari-sidebar">
@@ -42,7 +75,7 @@ export function SafariApp() {
               key={s.id}
               type="button"
               className={s.id === activeSiteId ? 'active' : ''}
-              onClick={() => setActiveSiteId(s.id)}
+              onClick={() => { setActiveSiteId(s.id); navigate(`https://${s.domain}`); }}
             >
               <strong>{s.title}</strong>
               <span>{s.domain}</span>
