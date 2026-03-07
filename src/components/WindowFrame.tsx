@@ -25,8 +25,9 @@ export function WindowFrame({
   const frameRef = useRef<HTMLElement | null>(null);
   const dragStart = useRef<{ x: number; y: number; originX: number; originY: number } | null>(null);
   const resizeStart = useRef<{ x: number; y: number; width: number; height: number } | null>(null);
-  const dragPosition = useRef<{ x: number; y: number } | null>(null);
-  const dragSize = useRef<{ width: number; height: number } | null>(null);
+  const rafId = useRef<number | null>(null);
+  const pendingMove = useRef<{ x: number; y: number } | null>(null);
+  const pendingResize = useRef<{ width: number; height: number } | null>(null);
 
   useEffect(() => {
     const node = frameRef.current;
@@ -37,54 +38,61 @@ export function WindowFrame({
   }, [frame.height, frame.width, frame.x, frame.y]);
 
   useEffect(() => {
-    const flushPointerUpdates = () => {
+    const flush = () => {
       rafId.current = null;
-      if (pendingMove.current) {
-        onMove(frame.id, pendingMove.current.x, pendingMove.current.y);
-        pendingMove.current = null;
+      if (pendingMove.current && frameRef.current) {
+        frameRef.current.style.transform = `translate(${pendingMove.current.x}px, ${pendingMove.current.y}px)`;
       }
-      if (pendingResize.current) {
-        onResize(frame.id, pendingResize.current.width, pendingResize.current.height);
-        pendingResize.current = null;
+      if (pendingResize.current && frameRef.current) {
+        frameRef.current.style.width = `${pendingResize.current.width}px`;
+        frameRef.current.style.height = `${pendingResize.current.height}px`;
       }
     };
 
-    const queueFrame = () => {
+    const queue = () => {
       if (rafId.current !== null) return;
-      rafId.current = window.requestAnimationFrame(flushPointerUpdates);
+      rafId.current = window.requestAnimationFrame(flush);
     };
 
     const handleMove = (event: MouseEvent) => {
       if (dragStart.current && frameRef.current) {
         const deltaX = event.clientX - dragStart.current.x;
         const deltaY = event.clientY - dragStart.current.y;
-        const x = dragStart.current.originX + deltaX;
-        const y = dragStart.current.originY + deltaY;
-        dragPosition.current = { x, y };
-        frameRef.current.style.transform = `translate(${x}px, ${y}px)`;
+        pendingMove.current = {
+          x: dragStart.current.originX + deltaX,
+          y: dragStart.current.originY + deltaY,
+        };
       }
 
-      if (resizeStart.current && frameRef.current) {
+      if (resizeStart.current) {
         const deltaX = event.clientX - resizeStart.current.x;
         const deltaY = event.clientY - resizeStart.current.y;
-        const width = Math.max(340, resizeStart.current.width + deltaX);
-        const height = Math.max(260, resizeStart.current.height + deltaY);
-        dragSize.current = { width, height };
-        frameRef.current.style.width = `${width}px`;
-        frameRef.current.style.height = `${height}px`;
+        pendingResize.current = {
+          width: Math.max(340, resizeStart.current.width + deltaX),
+          height: Math.max(260, resizeStart.current.height + deltaY),
+        };
       }
+
+      if (dragStart.current || resizeStart.current) queue();
     };
 
     const handleUp = () => {
       dragStart.current = null;
       resizeStart.current = null;
-      if (dragPosition.current) {
-        onMove(frame.id, dragPosition.current.x, dragPosition.current.y);
-        dragPosition.current = null;
+
+      if (rafId.current !== null) {
+        window.cancelAnimationFrame(rafId.current);
+        rafId.current = null;
       }
-      if (dragSize.current) {
-        onResize(frame.id, dragSize.current.width, dragSize.current.height);
-        dragSize.current = null;
+
+      if (pendingMove.current) {
+        onMove(frame.id, pendingMove.current.x, pendingMove.current.y);
+        pendingMove.current = null;
+      }
+
+      if (pendingResize.current) {
+        onResize(frame.id, pendingResize.current.width, pendingResize.current.height);
+        pendingResize.current = null;
       }
     };
 

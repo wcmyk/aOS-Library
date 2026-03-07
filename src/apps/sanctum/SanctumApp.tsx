@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useDriveStore, type DriveDocument } from '../../state/useDriveStore';
 
 type SanctumAppProps = {
-  onOpenDocument: (doc: DriveDocument) => void;
+  onOpenDocument?: (doc: DriveDocument) => void;
 };
 
 export function SanctumApp({ onOpenDocument }: SanctumAppProps) {
@@ -43,7 +43,7 @@ export function SanctumApp({ onOpenDocument }: SanctumAppProps) {
 
       <section className="sanctum-grid">
         {visibleDocuments.map((doc) => (
-          <button key={doc.id} type="button" className="sanctum-card" onClick={() => onOpenDocument(doc)}>
+          <button key={doc.id} type="button" className="sanctum-card" onClick={() => onOpenDocument?.(doc)}>
             <div className="sanctum-doc-icon">{doc.type === 'spreadsheet' ? 'X' : 'W'}</div>
             <div>
               <h3>{doc.title}</h3>

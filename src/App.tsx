@@ -124,18 +124,6 @@ function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDoc
   if (window.appId === 'spotify') return <SpotifyApp />;
   if (window.appId === 'safari') return <SafariApp />;
 
-  if (window.appId === 'oracle') {
-    return <OracleApp />;
-  }
-
-  if (window.appId === 'sanctum') {
-    return <SanctumApp />;
-  }
-
-  if (window.appId === 'vision') {
-    return <VisionApp />;
-  }
-
   return (
     <div className="window-grid">
       <div className="card">
