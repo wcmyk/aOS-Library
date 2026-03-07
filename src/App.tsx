@@ -16,6 +16,7 @@ const SpotifyApp = lazy(() => import('./apps/spotify/SpotifyApp').then((m) => ({
 const VisionApp = lazy(() => import('./apps/vision/VisionApp').then((m) => ({ default: m.VisionApp })));
 const SettingsApp = lazy(() => import('./apps/settings/SettingsApp').then((m) => ({ default: m.SettingsApp })));
 const CoLabApp = lazy(() => import('./apps/colab/CoLabApp').then((m) => ({ default: m.CoLabApp })));
+const WorkHubApp = lazy(() => import('./apps/workhub/WorkHubApp').then((m) => ({ default: m.WorkHubApp })));
 
 const artifacts = [
   { title: 'Roadmap.md', kind: 'Report', updated: '2h ago', detail: 'Phase 1 delivery outline', accent: '#7c8cff' },
@@ -135,6 +136,7 @@ function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDoc
   if (window.appId === 'safari') return <Suspense fallback={null}><SafariApp /></Suspense>;
   if (window.appId === 'settings') return <Suspense fallback={null}><SettingsApp /></Suspense>;
   if (window.appId === 'colab') return <Suspense fallback={null}><CoLabApp /></Suspense>;
+  if (window.appId === 'sentinel-flow') return <Suspense fallback={null}><WorkHubApp /></Suspense>;
 
   return (
     <div className="window-grid">

@@ -10,6 +10,15 @@ export type ShellApp = {
 const BASE_URL = import.meta.env.BASE_URL;
 
 export const apps: ShellApp[] = [
+
+  {
+    id: 'sentinel-flow',
+    name: 'SentinelFlow',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23111a2b'/%3E%3Cpath d='M10 18h44v7H10zM10 29h30v7H10zM10 40h22v7H10z' fill='%233b82f6'/%3E%3Ccircle cx='48' cy='43' r='8' fill='%2393c5fd'/%3E%3C/svg%3E`,
+    description: 'Enterprise work management platform for operations and PMO teams',
+    accent: '#3b82f6',
+    defaultSize: { width: 1380, height: 820 },
+  },
   {
     id: 'spotify',
     name: 'Spotify',

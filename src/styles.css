@@ -3038,3 +3038,64 @@ kbd {
 
 .vsn-link-btn { border: 0; background: transparent; color: #70a3ff; padding: 0; text-decoration: underline; cursor: pointer; }
 .vsn-inline-frame { width: 100%; min-height: 260px; border: 1px solid rgba(112,163,255,0.25); border-radius: 10px; margin-top: 10px; background: white; }
+
+/* SentinelFlow enterprise work platform */
+.wh-shell { height: 100%; display: grid; grid-template-columns: 240px 1fr; background: #0b1018; color: #d9e1ee; }
+.wh-sidebar { border-right: 1px solid #1d2633; background: #0d141f; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+.wh-brand { font-weight: 700; font-size: 18px; color: #93c5fd; margin-bottom: 8px; }
+.wh-sidebar button { border: 1px solid transparent; background: transparent; color: #c2cedd; text-align: left; padding: 8px 10px; border-radius: 8px; font-size: 12px; }
+.wh-sidebar button.active, .wh-sidebar button:hover { background: #141f2d; border-color: #243449; color: #e3ecfb; }
+.wh-main { display: grid; grid-template-rows: auto auto 1fr; min-width: 0; }
+.wh-topbar { border-bottom: 1px solid #1d2633; padding: 10px 14px; display: flex; justify-content: space-between; gap: 10px; background: #0f1723; }
+.wh-topbar input { flex: 1; max-width: 620px; background: #0b111a; border: 1px solid #243449; color: #dce6f5; border-radius: 8px; padding: 8px 10px; }
+.wh-top-actions { display: flex; align-items: center; gap: 8px; }
+.wh-top-actions button, .wh-toolbar button, .wh-bulk-row button { border: 1px solid #2a3b53; background: #132337; color: #dce8ff; border-radius: 8px; padding: 7px 10px; font-size: 12px; }
+.wh-page-header { padding: 12px 14px; border-bottom: 1px solid #1d2633; display: flex; justify-content: space-between; align-items: center; background: #111927; }
+.wh-page-header h1, .wh-page-header h2 { margin: 0; font-size: 18px; color: #eef4ff; }
+.wh-page-header p { margin: 4px 0 0; font-size: 12px; color: #8ea1ba; }
+.wh-content-stack { padding: 10px 12px; overflow: auto; display: flex; flex-direction: column; gap: 8px; }
+.wh-toolbar { display: flex; flex-wrap: wrap; gap: 8px; }
+.wh-toolbar input, .wh-toolbar select, .wh-table select { background: #0f1724; color: #dce6f5; border: 1px solid #26384f; border-radius: 6px; padding: 6px 8px; font-size: 12px; }
+.wh-filter-row { display: flex; justify-content: space-between; gap: 8px; }
+.wh-chip-group { display: flex; flex-wrap: wrap; gap: 6px; }
+.wh-chip { border: 1px solid #2a3a4f; background: #101826; color: #9eb0cb; border-radius: 999px; padding: 4px 10px; font-size: 11px; }
+.wh-chip.active { background: #17325a; color: #d8e8ff; border-color: #2d5ea0; }
+.wh-saved-views { font-size: 12px; color: #9fb0c8; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.wh-bulk-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #91a5c3; }
+.wh-table-wrap { border: 1px solid #1f2d41; border-radius: 10px; background: #0d1521; overflow: auto; }
+.wh-group-header { position: sticky; top: 0; z-index: 2; background: #132031; border-top: 1px solid #22344b; padding: 7px 10px; font-size: 12px; color: #a8b9d1; display: flex; justify-content: space-between; }
+.wh-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.wh-table th { position: sticky; top: 30px; z-index: 1; background: #101a28; color: #98abc7; text-align: left; padding: 8px; border-bottom: 1px solid #203148; white-space: nowrap; }
+.wh-table td { border-bottom: 1px solid #1a283a; padding: 7px 8px; color: #d6dfed; white-space: nowrap; }
+.wh-table tr:hover td { background: #101c2d; }
+.wh-table tr.overdue td { background: rgba(153,27,27,0.18); }
+.wh-table tr.selected td { background: rgba(30,64,175,0.22); }
+.wh-link-btn { border: 0; background: transparent; color: #93c5fd; cursor: pointer; text-decoration: underline; padding: 0; }
+.wh-badge { display: inline-flex; align-items: center; border: 1px solid #2d3e56; background: #152235; color: #bfd3f1; border-radius: 999px; padding: 3px 8px; font-size: 11px; }
+.wh-badge.success { border-color: #1f6d51; color: #a5e6cd; background: #103326; }
+.wh-badge.warn { border-color: #8a5b17; color: #f4daaf; background: #33240f; }
+.wh-badge.danger { border-color: #8f2727; color: #ffd0d0; background: #361616; }
+.wh-badge.info { border-color: #205f8f; color: #cde6fb; background: #122a3a; }
+.wh-drawer { position: fixed; right: 34px; top: 120px; width: 360px; max-height: 70vh; overflow: auto; background: #111b2a; border: 1px solid #2a3c57; border-radius: 12px; box-shadow: 0 16px 40px rgba(0,0,0,0.45); }
+.wh-drawer-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #22344c; padding: 10px 12px; }
+.wh-drawer-header h3 { margin: 0; font-size: 14px; }
+.wh-drawer-header button { border: 1px solid #2a3f5b; background: #14243b; color: #dbe7ff; border-radius: 8px; padding: 6px 9px; }
+.wh-drawer-body { padding: 10px 12px; }
+.wh-meta-row { font-size: 12px; color: #a2b3c9; margin-bottom: 6px; }
+.wh-panel-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+.wh-card { border: 1px solid #22354d; border-radius: 10px; padding: 12px; background: #0f1826; }
+.wh-card h3 { margin: 0 0 8px; font-size: 13px; color: #c9d7ea; }
+.wh-kpi { font-size: 26px; font-weight: 700; margin: 0; color: #d7e8ff; }
+.wh-project-layout { display: grid; grid-template-columns: 44% 56%; min-height: 0; height: 100%; }
+.wh-project-list { padding: 10px; border-right: 1px solid #1f2d42; overflow: auto; }
+.wh-project-detail { padding: 10px; overflow: auto; }
+.wh-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.wh-tabs button { border: 1px solid #2a3b53; background: #101b2a; color: #aebfda; padding: 6px 10px; border-radius: 7px; font-size: 12px; }
+.wh-tabs button.active { background: #19345b; color: #d8e8ff; border-color: #2f5f9d; }
+.wh-login { height: 100%; display: grid; place-items: center; background: #080d15; }
+.wh-login-card { width: 420px; border: 1px solid #273851; background: #111a28; border-radius: 12px; padding: 18px; color: #d6e2f5; display: flex; flex-direction: column; gap: 10px; }
+.wh-login-card h2 { margin: 0; font-size: 18px; }
+.wh-login-card p { margin: 0; font-size: 12px; color: #92a5c4; }
+.wh-login-card label { font-size: 12px; color: #b6c6de; display: flex; flex-direction: column; gap: 6px; }
+.wh-login-card select { background: #0d1522; border: 1px solid #2a3d57; color: #dbe8fc; border-radius: 8px; padding: 8px; }
+.wh-login-card button { border: 1px solid #3663a1; background: #1a3d6d; color: #e7f0ff; border-radius: 8px; padding: 9px 12px; font-weight: 600; }
