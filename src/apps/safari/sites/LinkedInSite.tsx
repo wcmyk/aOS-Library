@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useMailStore, type JobMeta } from '../../../state/useMailStore';
+import { useProfileStore } from '../../../state/useProfileStore';
 
 // ── Seeded random ─────────────────────────────────────────────────────────────
 
@@ -45,23 +46,25 @@ function makeName(rng: () => number) {
 
 // ── Company name algorithm ────────────────────────────────────────────────────
 
-const C_PREFIX  = ['Fin','Ax','Neu','Dyn','Cal','Vor','Clar','Apex','Xen','Ven','Lux','Strat','Nav','Bex','Omni','Kine','Quor','Pell','Sev','Arc','Vect','Prox','Onyx','Zeph'];
-const C_CORE    = ['ec','en','al','ic','ix','ar','os','um','on','ev','ex','id','iq','ov','ur','an','em'];
-const C_SUFFIX  = ['a','is','us','io','ax','ix','al','ys','ia','ux'];
-const C_TYPE    = ['LLC','Group','Partners','Capital','Solutions','Technologies','Advisory','Consulting','Systems','Ventures','Analytics','Advisors'];
+const COMPANY_POOL = [
+  '3M Company','AbbVie Inc.','Activision Publishing, Inc.','Adobe Inc.','AECOM','Airbnb, Inc.','Alcoa Corp.','Amgen Inc.','Applied Materials, Inc.','Arrow Electronics, Inc.','Assurant, Inc.','AT&T, Services Inc.','Bank of America, N.A.','Becton, Dickinson and Company','Biogen MA Inc.','BlackRock, Inc.','Booz Allen Hamilton, Inc.','BorgWarner Inc.','Bristol-Myers Squibb Company','Cardinal Health, Inc.','CarMax Enterprise Services, LLC','Caterpillar Inc.','Charles Schwab & Co., Inc.','Chevron U.S.A. Inc.','Citibank, N.A.','Cognizant Worldwide Limited','Comcast Cable Communications Management, LLC','ConocoPhillips Company','DaVita Inc.','Dell USA L.P.','Disney Worldwide Services, Inc.','DXC Technology Services LLC','eBay Inc.','Equinix, Inc.','ExxonMobil Global Services Company','Federal National Mortgage Association','FedEx Corporate Services, Inc.','Fiserv Solutions, LLC','General Electric Company','Hewlett Packard Enterprise Company','Home Depot Store Support, Inc.','HP Inc.','Humana, Inc.','International Business Machines Corporation','Intuit Inc.','IQVIA Inc.','JP Morgan','Jabil, Inc.','KeyBank N.A.','Leidos, Inc.','LPL Financial LLC','M&T Bank','Marathon Petroleum Company LP','Marsh & McLennan Companies, Inc.','META','Google','Anthropic','OpenAI','Morgan Stanley','Netflix','NVIDIA','APPLE','SAMSUNG','BMW Group','Mercedes-Benz Group','Ford Motor Company','General Motors','Tesla, Inc.',
+];
 
 function makeCompany(rng: () => number): string {
-  const name = pick(C_PREFIX, rng) + pick(C_CORE, rng) + pick(C_SUFFIX, rng);
-  const type = pick(C_TYPE, rng);
-  return `${name} ${type}`;
+  return pick(COMPANY_POOL, rng);
 }
 
 function getCompanyType(company: string): string {
-  return company.split(' ').pop() ?? 'LLC';
+  const c = company.toLowerCase();
+  if (/bank|capital|financial|morgan|blackrock|schwab|citibank/.test(c)) return 'Capital';
+  if (/consult|booz allen|aec/.test(c)) return 'Consulting';
+  if (/inc|technology|google|meta|openai|anthropic|nvidia|apple|samsung|ibm|adobe/.test(c)) return 'Technologies';
+  return 'Group';
 }
 
 function makeDomain(company: string): string {
-  return company.toLowerCase().split(' ')[0].replace(/[^a-z]/g, '') + '.io';
+  const base = company.toLowerCase().replace(/[^a-z0-9 ]/g, '').split(' ').slice(0,2).join('');
+  return `${base}.com`;
 }
 
 // ── Archetype (from company type) ─────────────────────────────────────────────
@@ -128,7 +131,7 @@ function extractCompensation(salary: string): number {
 type RoleCategory = keyof typeof ROLE_MAP;
 
 const ROLE_MAP = {
-  swe:       ['Software Engineer','Senior Software Engineer','Staff Engineer','Principal Engineer','Backend Engineer','Systems Engineer'],
+  swe:       ['Software Engineer','Senior Software Engineer','Staff Engineer','Principal Engineer','Backend Engineer','Systems Engineer','API Engineer','Distributed Systems Engineer'],
   fullstack: ['Full Stack Developer','Full Stack Engineer','Senior Full Stack Engineer','Software Development Engineer'],
   aiml:      ['ML Engineer','Applied ML Scientist','AI Research Engineer','ML Platform Engineer','Senior ML Engineer','Research Scientist'],
   aiintegr:  ['AI Integration Engineer','LLM Systems Engineer','AI Solutions Architect','Generative AI Engineer','AI Product Engineer'],
@@ -137,8 +140,8 @@ const ROLE_MAP = {
   quantfin:  ['Quantitative Finance Analyst','Fixed Income Analyst','Derivatives Pricing Analyst','Structured Products Analyst','Rates Analyst','Equity Quant Analyst'],
   insurance: ['Actuarial Analyst','Insurance Risk Analyst','Underwriting Analyst','Claims Analyst','Reinsurance Analyst','Property Risk Analyst'],
   risk:      ['Risk Analyst','Credit Risk Analyst','Market Risk Analyst','Enterprise Risk Manager','Operational Risk Analyst','Model Risk Analyst'],
-  consulting:['Strategy Consultant','Management Consultant','Technology Consultant','Business Analyst','Associate Consultant','Senior Analyst'],
-  analyst:   ['Data Analyst','Financial Analyst','Operations Research Analyst','Business Intelligence Analyst','Research Analyst','Pricing Analyst'],
+  consulting:['Strategy Consultant','Management Consultant','Technology Consultant','Business Analyst','Associate Consultant','Senior Analyst','Salesforce Consultant','SFMC Engineer'],
+  analyst:   ['Data Analyst','Financial Analyst','Senior Financial Analyst','FP&A Analyst','Treasury Analyst','Accounting Analyst','Business Intelligence Analyst','Research Analyst','Pricing Analyst','Revenue Analyst'],
 } as const;
 
 const CATEGORIES = Object.keys(ROLE_MAP) as RoleCategory[];
@@ -490,7 +493,7 @@ function generateJobs(count: number): Job[] {
   return jobs;
 }
 
-const ALL_JOBS = generateJobs(20);
+const ALL_JOBS = generateJobs(220);
 
 // ── Manager name generation ───────────────────────────────────────────────────
 
@@ -522,6 +525,7 @@ type LinkedInTab = 'feed' | 'jobs' | 'network' | 'profile';
 
 export function LinkedInSite() {
   const { sendEmail } = useMailStore();
+  const { fullName, preferredEmail, roleHeadline, location } = useProfileStore();
   const [tab, setTab] = useState<LinkedInTab>('jobs');
   const [selectedJobId, setSelectedJobId] = useState<string>(ALL_JOBS[0].id);
   const [applyState, setApplyState] = useState<Record<string, 'idle' | 'applying' | 'applied'>>(() => {
@@ -571,10 +575,11 @@ export function LinkedInSite() {
         managerName,
         compensation: job.compensation,
         location: job.location,
+        employmentType: job.type,
       };
       sendEmail({
         from: `${job.recruiter} — Talent Acquisition at ${job.company} <careers@${job.domain}>`,
-        to: 'user@workspace.aos',
+        to: preferredEmail,
         subject: `Thank you for applying — ${job.role} at ${job.company}`,
         body: `
 <p>Dear Applicant,</p>
@@ -802,12 +807,12 @@ Talent Acquisition, ${job.company}<br>
             <div className="li-profile-card">
               <div className="li-profile-banner" />
               <div className="li-profile-main">
-                <div className="li-profile-avatar">U</div>
+                <div className="li-profile-avatar">{(fullName[0] ?? "U").toUpperCase()}</div>
                 <div className="li-profile-info">
-                  <div className="li-profile-name">Workspace User</div>
-                  <div className="li-profile-headline">Software Professional · aOS Workspace</div>
-                  <div className="li-profile-location">Remote</div>
-                  <div className="li-profile-email">user@workspace.aos</div>
+                  <div className="li-profile-name">{fullName}</div>
+                  <div className="li-profile-headline">{roleHeadline}</div>
+                  <div className="li-profile-location">{location}</div>
+                  <div className="li-profile-email">{preferredEmail}</div>
                 </div>
               </div>
             </div>

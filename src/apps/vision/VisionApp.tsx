@@ -114,6 +114,7 @@ export function VisionApp() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [tab, setTab] = useState<SearchTab>('all');
+  const [activeResult, setActiveResult] = useState<SearchResult | null>(null);
 
   const runSearch = async (q: string) => {
     const trimmed = q.trim();
@@ -123,6 +124,7 @@ export function VisionApp() {
     setError('');
     setAbstract(null);
     setTab('all');
+    setActiveResult(null);
     try {
       const params = new URLSearchParams({ q: trimmed, format: 'json', no_html: '1', no_redirect: '1' });
       const res = await fetch(`https://api.duckduckgo.com/?${params}`);
@@ -200,7 +202,7 @@ export function VisionApp() {
                           key={i}
                           className="vsn-result-card"
                           style={{ cursor: isClickable ? 'pointer' : 'default' }}
-                          onClick={() => isClickable && window.open(r.url, '_blank', 'noopener noreferrer')}
+                          onClick={() => isClickable && setActiveResult(r)}
                         >
                           <div className="vsn-result-source-row">
                             <span className="vsn-favicon" style={{ background: `hsl(${hue}deg 55% 38%)` }}>{faviconLetter(r.url)}</span>
@@ -228,7 +230,7 @@ export function VisionApp() {
                           key={i}
                           className="vsn-result-card vsn-news-card"
                           style={{ cursor: isClickable ? 'pointer' : 'default' }}
-                          onClick={() => isClickable && window.open(r.url, '_blank', 'noopener noreferrer')}
+                          onClick={() => isClickable && setActiveResult(r)}
                         >
                           <div className="vsn-news-meta">
                             <span className="vsn-favicon vsn-favicon-sm" style={{ background: `hsl(${hue}deg 55% 38%)` }}>{faviconLetter(r.url)}</span>
@@ -245,12 +247,25 @@ export function VisionApp() {
             )}
           </div>
 
+
+          {activeResult && (
+            <aside className="vsn-knowledge">
+              <div className="vsn-knowledge-heading">In-app reader</div>
+              <div className="vsn-knowledge-answer">{activeResult.title}</div>
+              <div className="vsn-knowledge-body">{activeResult.snippet || 'This source does not expose a preview snippet. You can still continue browsing in-app.'}</div>
+              <div className="vsn-knowledge-link">
+                <div className="vsn-breadcrumb">{activeResult.url}</div>
+              </div>
+              <iframe title={activeResult.title} src={activeResult.url} className="vsn-inline-frame" sandbox="allow-scripts allow-same-origin allow-forms" />
+            </aside>
+          )}
+
           {abstract && tab === 'all' && (
             <aside className="vsn-knowledge">
               <div className="vsn-knowledge-heading">{abstract.heading}</div>
               {abstract.answer && <div className="vsn-knowledge-answer">{abstract.answer}</div>}
               <div className="vsn-knowledge-body">{abstract.text}</div>
-              {abstract.url && <div className="vsn-knowledge-link"><a href={abstract.url} target="_blank" rel="noopener noreferrer" className="vsn-breadcrumb" style={{cursor:'pointer',textDecoration:'underline'}}>{abstract.url}</a></div>}
+              {abstract.url && <div className="vsn-knowledge-link"><button type="button" className="vsn-link-btn" onClick={() => setActiveResult({ title: abstract.heading, snippet: abstract.text, url: abstract.url })}>{abstract.url}</button></div>}
               <div className="vsn-knowledge-chips">
                 <span className="vsn-kchip">Summary</span>
                 <span className="vsn-kchip">Related</span>
