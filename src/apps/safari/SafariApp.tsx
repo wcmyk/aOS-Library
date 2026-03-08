@@ -4,10 +4,12 @@ import { WorkdaySite } from './sites/WorkdaySite';
 import { ProjectHubSite } from './sites/ProjectHubSite';
 import { WorkfrontSite } from './sites/WorkfrontSite';
 import { RadarSite } from './sites/RadarSite';
+import { BuganizerSite } from './sites/BuganizerSite';
+import { ProjectSailSite } from './sites/ProjectSailSite';
 import { CoLabSite } from './sites/CoLabSite';
 import { useSafariStore } from '../../state/useSafariStore';
 
-type SiteId = 'linkedin' | 'workday' | 'adobe-workfront' | 'workfront' | 'radar' | 'project-hub' | 'colab' | 'sanctum-web';
+type SiteId = 'linkedin' | 'workday' | 'adobe-workfront' | 'workfront' | 'radar' | 'buganizer' | 'project-sail' | 'project-hub' | 'colab' | 'sanctum-web';
 
 type SiteEntry =
   | { id: SiteId; title: string; domain: string; kind: 'component'; component: React.ComponentType }
@@ -137,6 +139,65 @@ const SITES: SiteEntry[] = [
     domain: 'radar.aos',
     kind: 'component',
     component: RadarSite,
+  },
+  {
+    id: 'project-hub',
+    title: 'Project Hub',
+    domain: 'projects.aos',
+    kind: 'component',
+    component: WorkfrontSite,
+  },
+  {
+    id: 'colab',
+    title: 'CoLab',
+    domain: 'colab.aos',
+    kind: 'component',
+    component: CoLabSite,
+  },
+  {
+    id: 'workday',
+    title: 'Workday',
+    domain: 'workday.aos',
+    kind: 'component',
+    component: WorkdaySite,
+  },
+
+  {
+    id: 'adobe-workfront',
+    title: 'Adobe Workfront',
+    domain: 'workfront.aos',
+    kind: 'component',
+    component: WorkfrontSite,
+  },
+
+  {
+    id: 'workfront',
+    title: 'Workfront',
+    domain: 'workfront.internal',
+    kind: 'component',
+    component: WorkfrontSite,
+  },
+  {
+    id: 'radar',
+    title: 'Radar',
+    domain: 'radar.aos',
+    kind: 'component',
+    component: RadarSite,
+  },
+
+  {
+    id: 'buganizer',
+    title: 'Buganizer',
+    domain: 'buganizer.aos',
+    kind: 'component',
+    component: BuganizerSite,
+  },
+  {
+    id: 'project-sail',
+    title: 'Project SAIL',
+    domain: 'projectsail.aos',
+    kind: 'component',
+    component: ProjectSailSite,
   },
   {
     id: 'project-hub',
