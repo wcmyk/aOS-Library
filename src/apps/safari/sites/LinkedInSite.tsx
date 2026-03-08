@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useMailStore, type JobMeta } from '../../../state/useMailStore';
+import { useProfileStore } from '../../../state/useProfileStore';
 
 // ── Seeded random ─────────────────────────────────────────────────────────────
 
@@ -45,23 +46,25 @@ function makeName(rng: () => number) {
 
 // ── Company name algorithm ────────────────────────────────────────────────────
 
-const C_PREFIX  = ['Fin','Ax','Neu','Dyn','Cal','Vor','Clar','Apex','Xen','Ven','Lux','Strat','Nav','Bex','Omni','Kine','Quor','Pell','Sev','Arc','Vect','Prox','Onyx','Zeph'];
-const C_CORE    = ['ec','en','al','ic','ix','ar','os','um','on','ev','ex','id','iq','ov','ur','an','em'];
-const C_SUFFIX  = ['a','is','us','io','ax','ix','al','ys','ia','ux'];
-const C_TYPE    = ['LLC','Group','Partners','Capital','Solutions','Technologies','Advisory','Consulting','Systems','Ventures','Analytics','Advisors'];
+const COMPANY_POOL = [
+  '3M Company','AbbVie Inc.','Activision Publishing, Inc.','Adobe Inc.','AECOM','Airbnb, Inc.','Alcoa Corp.','Amgen Inc.','Applied Materials, Inc.','Arrow Electronics, Inc.','Assurant, Inc.','AT&T, Services Inc.','Bank of America, N.A.','Becton, Dickinson and Company','Biogen MA Inc.','BlackRock, Inc.','Booz Allen Hamilton, Inc.','BorgWarner Inc.','Bristol-Myers Squibb Company','Cardinal Health, Inc.','CarMax Enterprise Services, LLC','Caterpillar Inc.','Charles Schwab & Co., Inc.','Chevron U.S.A. Inc.','Citibank, N.A.','Cognizant Worldwide Limited','Comcast Cable Communications Management, LLC','ConocoPhillips Company','DaVita Inc.','Dell USA L.P.','Disney Worldwide Services, Inc.','DXC Technology Services LLC','eBay Inc.','Equinix, Inc.','ExxonMobil Global Services Company','Federal National Mortgage Association','FedEx Corporate Services, Inc.','Fiserv Solutions, LLC','General Electric Company','Hewlett Packard Enterprise Company','Home Depot Store Support, Inc.','HP Inc.','Humana, Inc.','International Business Machines Corporation','Intuit Inc.','IQVIA Inc.','JP Morgan','Jabil, Inc.','KeyBank N.A.','Leidos, Inc.','LPL Financial LLC','M&T Bank','Marathon Petroleum Company LP','Marsh & McLennan Companies, Inc.','META','Google','Anthropic','OpenAI','Morgan Stanley','Netflix','NVIDIA','APPLE','SAMSUNG','BMW Group','Mercedes-Benz Group','Ford Motor Company','General Motors','Tesla, Inc.',
+];
 
 function makeCompany(rng: () => number): string {
-  const name = pick(C_PREFIX, rng) + pick(C_CORE, rng) + pick(C_SUFFIX, rng);
-  const type = pick(C_TYPE, rng);
-  return `${name} ${type}`;
+  return pick(COMPANY_POOL, rng);
 }
 
 function getCompanyType(company: string): string {
-  return company.split(' ').pop() ?? 'LLC';
+  const c = company.toLowerCase();
+  if (/bank|capital|financial|morgan|blackrock|schwab|citibank/.test(c)) return 'Capital';
+  if (/consult|booz allen|aec/.test(c)) return 'Consulting';
+  if (/inc|technology|google|meta|openai|anthropic|nvidia|apple|samsung|ibm|adobe/.test(c)) return 'Technologies';
+  return 'Group';
 }
 
 function makeDomain(company: string): string {
-  return company.toLowerCase().split(' ')[0].replace(/[^a-z]/g, '') + '.io';
+  const base = company.toLowerCase().replace(/[^a-z0-9 ]/g, '').split(' ').slice(0,2).join('');
+  return `${base}.com`;
 }
 
 // ── Archetype (from company type) ─────────────────────────────────────────────
@@ -128,7 +131,7 @@ function extractCompensation(salary: string): number {
 type RoleCategory = keyof typeof ROLE_MAP;
 
 const ROLE_MAP = {
-  swe:       ['Software Engineer','Senior Software Engineer','Staff Engineer','Principal Engineer','Backend Engineer','Systems Engineer'],
+  swe:       ['Software Engineer','Senior Software Engineer','Staff Engineer','Principal Engineer','Backend Engineer','Systems Engineer','API Engineer','Distributed Systems Engineer'],
   fullstack: ['Full Stack Developer','Full Stack Engineer','Senior Full Stack Engineer','Software Development Engineer'],
   aiml:      ['ML Engineer','Applied ML Scientist','AI Research Engineer','ML Platform Engineer','Senior ML Engineer','Research Scientist'],
   aiintegr:  ['AI Integration Engineer','LLM Systems Engineer','AI Solutions Architect','Generative AI Engineer','AI Product Engineer'],
@@ -137,8 +140,9 @@ const ROLE_MAP = {
   quantfin:  ['Quantitative Finance Analyst','Fixed Income Analyst','Derivatives Pricing Analyst','Structured Products Analyst','Rates Analyst','Equity Quant Analyst'],
   insurance: ['Actuarial Analyst','Insurance Risk Analyst','Underwriting Analyst','Claims Analyst','Reinsurance Analyst','Property Risk Analyst'],
   risk:      ['Risk Analyst','Credit Risk Analyst','Market Risk Analyst','Enterprise Risk Manager','Operational Risk Analyst','Model Risk Analyst'],
-  consulting:['Strategy Consultant','Management Consultant','Technology Consultant','Business Analyst','Associate Consultant','Senior Analyst'],
-  analyst:   ['Data Analyst','Financial Analyst','Operations Research Analyst','Business Intelligence Analyst','Research Analyst','Pricing Analyst'],
+  consulting:['Strategy Consultant','Management Consultant','Technology Consultant','Business Analyst','Associate Consultant','Senior Analyst','Salesforce Consultant','SFMC Engineer'],
+  analyst:   ['Data Analyst','Financial Analyst','Senior Financial Analyst','FP&A Analyst','Treasury Analyst','Accounting Analyst','Business Intelligence Analyst','Research Analyst','Pricing Analyst','Revenue Analyst'],
+  financebiz:['Accounting Analyst','Staff Accountant','Senior Accountant','Accounting Manager','Financial Analyst','Senior Financial Analyst','FP&A Analyst','FP&A Manager','Finance Manager','Corporate Finance Analyst','Treasury Analyst','Treasury Manager','Cash Management Analyst','Risk Analyst','Enterprise Risk Analyst','Credit Risk Analyst','Market Risk Analyst','Operational Risk Analyst','Compliance Analyst','Internal Audit Analyst','Auditor','Fraud Analyst','Fraud Operations Analyst','Fraud Risk Analyst','AML Analyst','KYC Analyst','Underwriting Analyst','Pricing Analyst','Revenue Analyst','Billing Analyst','Payroll Analyst','Compensation Analyst','Benefits Analyst','Procurement Analyst','Cost Analyst','Budget Analyst','Investor Relations Analyst','Business Analyst','Strategy Analyst','Operations Analyst','Business Operations Analyst','Sales Operations Analyst','Go-To-Market Analyst','GTM Analyst','Revenue Operations Analyst','Deal Desk Analyst','Commercial Analyst','Data Analyst (Finance)','Reporting Analyst','Product Analyst','Trust & Safety Analyst','Controls Analyst','SOX Analyst','Model Risk Analyst','BI Analyst'],
 } as const;
 
 const CATEGORIES = Object.keys(ROLE_MAP) as RoleCategory[];
@@ -148,7 +152,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   aiintegr: 'AI Integration', devops: 'DevOps / Infrastructure',
   quant: 'Quantitative Research', quantfin: 'Quantitative Finance',
   insurance: 'Insurance & Actuarial', risk: 'Risk Management',
-  consulting: 'Consulting', analyst: 'Analytics',
+  consulting: 'Consulting', analyst: 'Analytics', financebiz: 'Finance, Risk & Operations',
 };
 
 const LOCATIONS = [
@@ -171,6 +175,7 @@ const SALARY_RANGES: Record<string, string[]> = {
   risk:      ['$75K–$105K','$95K–$130K','$115K–$155K'],
   consulting:['$85K–$120K','$105K–$145K','$130K–$175K'],
   analyst:   ['$65K–$90K','$80K–$115K','$95K–$130K'],
+  financebiz:['$70K–$95K','$90K–$125K','$110K–$155K','$130K–$190K'],
 };
 
 // ── Rich descriptions by (category, archetype) ────────────────────────────────
@@ -454,9 +459,9 @@ type Job = {
   compensation: number;
 };
 
-function generateJobs(count: number): Job[] {
+function generateJobs(count: number, start = 0): Job[] {
   const jobs: Job[] = [];
-  for (let i = 0; i < count; i++) {
+  for (let i = start; i < start + count; i++) {
     const rng = seeded(i * 7919 + 31337);
     const category = pick(CATEGORIES, rng);
     const roles = ROLE_MAP[category] as readonly string[];
@@ -490,7 +495,8 @@ function generateJobs(count: number): Job[] {
   return jobs;
 }
 
-const ALL_JOBS = generateJobs(20);
+const INITIAL_JOB_BATCH = 40;
+const PAGE_SIZE = 10;
 
 // ── Manager name generation ───────────────────────────────────────────────────
 
@@ -522,8 +528,11 @@ type LinkedInTab = 'feed' | 'jobs' | 'network' | 'profile';
 
 export function LinkedInSite() {
   const { sendEmail } = useMailStore();
+  const { fullName, preferredEmail, roleHeadline, location } = useProfileStore();
   const [tab, setTab] = useState<LinkedInTab>('jobs');
-  const [selectedJobId, setSelectedJobId] = useState<string>(ALL_JOBS[0].id);
+  const [jobs, setJobs] = useState<Job[]>(() => generateJobs(INITIAL_JOB_BATCH));
+  const [selectedJobId, setSelectedJobId] = useState<string>('job-0');
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [applyState, setApplyState] = useState<Record<string, 'idle' | 'applying' | 'applied'>>(() => {
     try { return JSON.parse(localStorage.getItem('li_apply_state') ?? '{}'); }
     catch { return {}; }
@@ -536,9 +545,9 @@ export function LinkedInSite() {
     localStorage.setItem('li_apply_state', JSON.stringify(applyState));
   }, [applyState]);
 
-  const selectedJob = ALL_JOBS.find((j) => j.id === selectedJobId) ?? ALL_JOBS[0];
+  const selectedJob = jobs.find((j) => j.id === selectedJobId) ?? jobs[0] ?? null;
 
-  const filteredJobs = useMemo(() => ALL_JOBS.filter((j) => {
+  const filteredJobs = useMemo(() => jobs.filter((j) => {
     if (categoryFilter !== 'all' && j.category !== categoryFilter) return false;
     if (typeFilter !== 'all' && j.type !== typeFilter) return false;
     if (searchQuery.trim()) {
@@ -550,7 +559,34 @@ export function LinkedInSite() {
              j.location.toLowerCase().includes(q);
     }
     return true;
-  }), [categoryFilter, typeFilter, searchQuery]);
+  }), [jobs, categoryFilter, typeFilter, searchQuery]);
+
+
+  const totalPages = Math.max(1, Math.ceil(filteredJobs.length / PAGE_SIZE));
+
+  const ensureJobsForPage = (page: number) => {
+    const requiredCount = page * PAGE_SIZE;
+    setJobs((prev) => {
+      if (prev.length >= requiredCount) return prev;
+      const additional = generateJobs(requiredCount - prev.length, prev.length);
+      return [...prev, ...additional];
+    });
+  };
+
+  const pagedJobs = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredJobs.slice(start, start + PAGE_SIZE);
+  }, [filteredJobs, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [categoryFilter, typeFilter, searchQuery]);
+
+  useEffect(() => {
+    if (pagedJobs.length > 0 && !pagedJobs.find((j) => j.id === selectedJobId)) {
+      setSelectedJobId(pagedJobs[0].id);
+    }
+  }, [pagedJobs, selectedJobId]);
 
   const applyToJob = (job: Job) => {
     setApplyState((prev) => ({ ...prev, [job.id]: 'applying' }));
@@ -571,10 +607,11 @@ export function LinkedInSite() {
         managerName,
         compensation: job.compensation,
         location: job.location,
+        employmentType: job.type,
       };
       sendEmail({
         from: `${job.recruiter} — Talent Acquisition at ${job.company} <careers@${job.domain}>`,
-        to: 'user@workspace.aos',
+        to: preferredEmail,
         subject: `Thank you for applying — ${job.role} at ${job.company}`,
         body: `
 <p>Dear Applicant,</p>
@@ -678,15 +715,15 @@ Talent Acquisition, ${job.company}<br>
                   <option value="Contract">Contract</option>
                 </select>
               </div>
-              <div className="li-filter-count">{filteredJobs.length} results</div>
+              <div className="li-filter-count">{filteredJobs.length} results · {PAGE_SIZE} per page</div>
             </aside>
 
             {/* Job list */}
             <div className="li-job-list">
-              {filteredJobs.length === 0 ? (
+              {pagedJobs.length === 0 ? (
                 <div className="li-empty">No jobs match your filters.</div>
               ) : (
-                filteredJobs.map((job) => {
+                pagedJobs.map((job) => {
                   const state = applyState[job.id] ?? 'idle';
                   return (
                     <button
@@ -713,10 +750,44 @@ Talent Acquisition, ${job.company}<br>
               )}
             </div>
 
+            <div className="li-pagination">
+              <button type="button" disabled={currentPage === 1} onClick={() => { const p = Math.max(1, currentPage - 1); setCurrentPage(p); }}>
+                Previous
+              </button>
+              {Array.from({ length: Math.min(totalPages, 8) }, (_, idx) => {
+                const pageNum = idx + 1;
+                return (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    className={pageNum === currentPage ? 'active' : ''}
+                    onClick={() => {
+                      ensureJobsForPage(pageNum);
+                      setCurrentPage(pageNum);
+                    }}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => {
+                  const next = currentPage + 1;
+                  ensureJobsForPage(next);
+                  setCurrentPage(next);
+                }}
+              >
+                Next
+              </button>
+              <span className="li-page-meta">Page {currentPage} / {totalPages}</span>
+            </div>
+
             {/* Job detail */}
             <div className="li-job-detail">
               {(() => {
                 const job = selectedJob;
+                if (!job) return <div className="li-empty">No job selected.</div>;
                 const state = applyState[job.id] ?? 'idle';
                 return (
                   <>
@@ -802,12 +873,12 @@ Talent Acquisition, ${job.company}<br>
             <div className="li-profile-card">
               <div className="li-profile-banner" />
               <div className="li-profile-main">
-                <div className="li-profile-avatar">U</div>
+                <div className="li-profile-avatar">{(fullName[0] ?? "U").toUpperCase()}</div>
                 <div className="li-profile-info">
-                  <div className="li-profile-name">Workspace User</div>
-                  <div className="li-profile-headline">Software Professional · aOS Workspace</div>
-                  <div className="li-profile-location">Remote</div>
-                  <div className="li-profile-email">user@workspace.aos</div>
+                  <div className="li-profile-name">{fullName}</div>
+                  <div className="li-profile-headline">{roleHeadline}</div>
+                  <div className="li-profile-location">{location}</div>
+                  <div className="li-profile-email">{preferredEmail}</div>
                 </div>
               </div>
             </div>
