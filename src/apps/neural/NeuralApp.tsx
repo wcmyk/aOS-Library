@@ -28,6 +28,157 @@ const emptyConversations: Record<AgentId, Message[]> = {
   science: [],
 };
 
+const TOKEN_RE = /[a-zA-Z0-9']+/g;
+
+function tokenize(text: string): string[] {
+  return (text.toLowerCase().match(TOKEN_RE) ?? []).filter(Boolean);
+}
+
+function splitSentences(text: string): string[] {
+  return text
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function trainLanguageModel(lines: string[]): LanguageModel {
+  const unigram: Record<string, number> = {};
+  const bigram: Record<string, Record<string, number>> = {};
+  const starts: string[] = [];
+
+  let tokenCount = 0;
+
+  for (const line of lines) {
+    for (const sentence of splitSentences(line)) {
+      const words = ['<s>', ...tokenize(sentence), '</s>'];
+      if (words.length > 2) starts.push(words[1]);
+      for (let i = 1; i < words.length; i++) {
+        const prev = words[i - 1];
+        const cur = words[i];
+
+        unigram[cur] = (unigram[cur] ?? 0) + 1;
+        tokenCount += 1;
+
+        if (!bigram[prev]) bigram[prev] = {};
+        bigram[prev][cur] = (bigram[prev][cur] ?? 0) + 1;
+      }
+    }
+  }
+
+  return {
+    unigram,
+    bigram,
+    starts,
+    tokenCount,
+    vocabSize: Object.keys(unigram).length,
+  };
+}
+
+function crossEntropy(lines: string[], model: LanguageModel): number {
+  const vocab = Math.max(model.vocabSize, 1);
+  let nll = 0;
+  let n = 0;
+
+  for (const line of lines) {
+    for (const sentence of splitSentences(line)) {
+      const words = ['<s>', ...tokenize(sentence), '</s>'];
+      for (let i = 1; i < words.length; i++) {
+        const prev = words[i - 1];
+        const cur = words[i];
+        const nexts = model.bigram[prev] ?? {};
+        const total = Object.values(nexts).reduce((a, b) => a + b, 0);
+        const count = nexts[cur] ?? 0;
+        const prob = (count + 1) / (total + vocab);
+        nll += -Math.log(prob);
+        n += 1;
+      }
+    }
+  }
+
+  return n === 0 ? 0 : nll / n;
+}
+
+function pickWeighted(candidates: Record<string, number>, seed: number): string {
+  const entries = Object.entries(candidates);
+  if (entries.length === 0) return '</s>';
+  const total = entries.reduce((sum, [, count]) => sum + count, 0);
+  if (total <= 0) return entries[0][0];
+
+  let cursor = seed % total;
+  for (const [token, count] of entries) {
+    cursor -= count;
+    if (cursor < 0) return token;
+  }
+  return entries[entries.length - 1][0];
+}
+
+function hashText(text: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
+  }
+  return Math.abs(h >>> 0);
+}
+
+function generateSentence(model: LanguageModel, prompt: string, maxTokens = 18): string {
+  const promptTokens = tokenize(prompt);
+  const candidateStart = promptTokens.find((t) => model.unigram[t]);
+  const seed = hashText(prompt + String(model.tokenCount));
+
+  let cur = candidateStart || model.starts[seed % Math.max(model.starts.length, 1)] || 'analysis';
+  const out: string[] = [cur];
+
+  for (let i = 1; i < maxTokens; i++) {
+    const nextMap = model.bigram[cur] ?? model.bigram['<s>'] ?? {};
+    const nxt = pickWeighted(nextMap, seed + i * 17);
+    if (!nxt || nxt === '</s>') break;
+    out.push(nxt);
+    cur = nxt;
+  }
+
+  return out.join(' ');
+}
+
+function retrieveContext(lines: string[], prompt: string): string[] {
+  const promptSet = new Set(tokenize(prompt));
+  const scored = lines
+    .map((line) => {
+      const tokens = tokenize(line);
+      const overlap = tokens.reduce((acc, t) => acc + (promptSet.has(t) ? 1 : 0), 0);
+      return { line, score: overlap };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  return scored.slice(0, 2).map((s) => s.line);
+}
+
+function buildReply(agent: Agent, prompt: string, model: LanguageModel, dataset: string[]): string {
+  const context = retrieveContext(dataset, prompt).join(' ');
+  const sentenceA = generateSentence(model, `${prompt} ${context}`);
+  const sentenceB = generateSentence(model, `${agent.desc} ${prompt}`);
+
+  const preface = prompt.trim().endsWith('?')
+    ? `Good question. ${agent.name} analyzed your request.`
+    : `${agent.name} processed your request and generated a response.`;
+
+  return `${preface} ${sentenceA}. ${sentenceB}.`;
+}
+
+function computeStats(dataset: string[], model: LanguageModel, epochs: number): TrainingStats {
+  const entropy = crossEntropy(dataset, model);
+  const loss = Number(entropy.toFixed(3));
+  const accuracy = Number(Math.max(40, Math.min(99.5, 100 - entropy * 18)).toFixed(1));
+
+  return {
+    epochs,
+    loss,
+    accuracy,
+    tokens: model.tokenCount,
+    vocab: model.vocabSize,
+  };
+}
+
 export function NeuralApp() {
   const [activeAgentId, setActiveAgentId] = useState<AgentId>('general');
   const [conversations, setConversations] = useState<Record<AgentId, Message[]>>(emptyConversations);
