@@ -7,9 +7,10 @@ import { RadarSite } from './sites/RadarSite';
 import { BuganizerSite } from './sites/BuganizerSite';
 import { ProjectSailSite } from './sites/ProjectSailSite';
 import { CoLabSite } from './sites/CoLabSite';
+import { SamsungPortalSite } from './sites/SamsungPortalSite';
 import { useSafariStore } from '../../state/useSafariStore';
 
-type SiteId = 'linkedin' | 'workday' | 'adobe-workfront' | 'workfront' | 'radar' | 'buganizer' | 'project-sail' | 'project-hub' | 'colab' | 'sanctum-web';
+type SiteId = 'linkedin' | 'workday' | 'adobe-workfront' | 'workfront' | 'radar' | 'buganizer' | 'project-sail' | 'project-hub' | 'colab' | 'sanctum-web' | 'samsung-portal';
 
 type SiteEntry =
   | { id: SiteId; title: string; domain: string; kind: 'component'; component: React.ComponentType }
