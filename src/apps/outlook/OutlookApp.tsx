@@ -333,6 +333,70 @@ People Operations, ${meta.company}<br>
   };
 }
 
+
+const MORTGAGE_BANKS = ['CHASE', 'WELLS FARGO', 'TD AMERITRADE', 'PNC', '5/3', 'BANK OF AMERICA', 'CITIBANK', 'CAPITAL ONE'];
+
+function processHousingAutomation(
+  original: Email,
+  replyBody: string,
+  sendEmail: (e: Omit<Email, 'id' | 'read' | 'starred'> & { jobMeta?: JobMeta }) => void
+) {
+  const upper = replyBody.toUpperCase();
+  const subjectRoot = original.subject.replace(/^RE:\s*/i, '');
+
+  if (upper.includes('APPLY%%%')) {
+    sendEmail({
+      from: 'Prime Residential <leasing@prime-residential.com>',
+      to: 'user@workspace.aos',
+      subject: `Re: ${subjectRoot}`,
+      date: new Date().toISOString(),
+      folder: 'inbox',
+      body: '<p>Your application has been received. Reply with LEASEPLEASE to request lease packet delivery.</p>',
+    });
+  }
+  if (upper.includes('LEASEPLEASE')) {
+    sendEmail({
+      from: 'Prime Residential <leasing@prime-residential.com>',
+      to: 'user@workspace.aos',
+      subject: `Re: ${subjectRoot}`,
+      date: new Date().toISOString(),
+      folder: 'inbox',
+      body: '<p>Your lease packet is prepared. Reply with LEASEDONE% when signed to activate housing and RentCafe tracking.</p>',
+    });
+  }
+  if (upper.includes('LEASEDONE%')) {
+    sendEmail({
+      from: 'RentCafe <noreply@rentcafe.aos>',
+      to: 'user@workspace.aos',
+      subject: 'RentCafe account activated',
+      date: new Date().toISOString(),
+      folder: 'inbox',
+      body: '<p>Your residence has been confirmed and rent tracking is now active in RentCafe.</p>',
+    });
+  }
+  if (upper.includes('MORTPLEASE')) {
+    sendEmail({
+      from: 'Mortgage Desk <mortgage@banking.aos>',
+      to: 'user@workspace.aos',
+      subject: 'Mortgage intake received',
+      date: new Date().toISOString(),
+      folder: 'inbox',
+      body: '<p>It has come to our attention that you have multiple banks. Please respond with the bank you want to originate the mortgage with.</p>',
+    });
+  }
+  const selectedBank = MORTGAGE_BANKS.find((b) => upper.includes(b));
+  if (selectedBank) {
+    sendEmail({
+      from: `${selectedBank} Mortgage Team <home-loans@${selectedBank.toLowerCase().replace(/\s+/g, '')}.aos>`,
+      to: 'user@workspace.aos',
+      subject: `${selectedBank} mortgage confirmation`,
+      date: new Date().toISOString(),
+      folder: 'inbox',
+      body: `<p>Your mortgage has been initiated with ${selectedBank} and reflected in your banking profile.</p>`,
+    });
+  }
+}
+
 function processAtsReply(
   original: Email,
   replyBody: string,
@@ -387,6 +451,7 @@ function ComposeModal({ onClose, options, onSend }: { onClose: () => void; optio
     // ATS cheat code detection
     if (rt?.originalEmail) {
       processAtsReply(rt.originalEmail, body, (e) => sendEmail({ ...e, folder: 'inbox' }));
+      processHousingAutomation(rt.originalEmail, body, (e) => sendEmail({ ...e, folder: 'inbox' }));
     }
     onClose();
   };
