@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useState, useRef } from 'react';
 
 type SearchResult = {
   title: string;
@@ -106,6 +106,20 @@ function VideoResults({ query }: { query: string }) {
   );
 }
 
+// Domains that block iframe embedding
+const BLOCKED_DOMAINS = [
+  'youtube.com','youtu.be','chat.openai.com','chatgpt.com','openai.com',
+  'twitter.com','x.com','facebook.com','instagram.com','linkedin.com',
+  'reddit.com','netflix.com','amazon.com','google.com','wikipedia.org',
+];
+
+function isLikelyBlocked(url: string): boolean {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, '');
+    return BLOCKED_DOMAINS.some((d) => host === d || host.endsWith('.' + d));
+  } catch { return false; }
+}
+
 export function VisionApp() {
   const [query, setQuery] = useState('');
   const [activeQuery, setActiveQuery] = useState('');
@@ -200,7 +214,7 @@ export function VisionApp() {
                       return (
                         <div
                           key={i}
-                          className="vsn-result-card"
+                          className={`vsn-result-card${readerUrl === r.url ? ' vsn-result-active' : ''}`}
                           style={{ cursor: isClickable ? 'pointer' : 'default' }}
                           onClick={() => isClickable && setActiveResult(r)}
                         >
@@ -228,7 +242,7 @@ export function VisionApp() {
                       return (
                         <div
                           key={i}
-                          className="vsn-result-card vsn-news-card"
+                          className={`vsn-result-card vsn-news-card${readerUrl === r.url ? ' vsn-result-active' : ''}`}
                           style={{ cursor: isClickable ? 'pointer' : 'default' }}
                           onClick={() => isClickable && setActiveResult(r)}
                         >

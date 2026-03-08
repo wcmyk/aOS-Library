@@ -2405,7 +2405,12 @@ kbd {
 .vsn-result-card {
   padding: 14px 0;
   border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.1s;
 }
+.vsn-result-card:hover { background: rgba(255,255,255,0.03); padding: 14px 8px; }
+.vsn-result-card.vsn-result-active { background: rgba(79,140,255,0.08); padding: 14px 8px; border-left: 2px solid #4f8cff; }
 .vsn-result-card:last-child { border-bottom: none; }
 .vsn-result-source-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
 .vsn-favicon {
@@ -2857,6 +2862,12 @@ kbd {
 /* Job list */
 .li-job-list {
   border-right: 1px solid rgba(255,255,255,0.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.li-job-scroll {
+  flex: 1;
   overflow-y: auto;
   display: flex;
   flex-direction: column;

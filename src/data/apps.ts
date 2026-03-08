@@ -69,12 +69,12 @@ export const apps: ShellApp[] = [
     defaultSize: { width: 720, height: 460 },
   },
   {
-    id: 'agent-console',
-    name: 'Agent Console',
-    icon: `${BASE_URL}assets/apps/agent-console.png`,
-    description: 'Conversation and command console for agents',
-    accent: '#f59e0b',
-    defaultSize: { width: 680, height: 420 },
+    id: 'neural',
+    name: 'Neural Studio',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%230d1018'/%3E%3Cdefs%3E%3ClinearGradient id='ng' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%238b5cf6'/%3E%3Cstop offset='1' stop-color='%234f8cff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='24' cy='24' r='10' fill='none' stroke='url(%23ng)' stroke-width='2'/%3E%3Ccircle cx='24' cy='24' r='3' fill='url(%23ng)'/%3E%3Ccircle cx='24' cy='10' r='3' fill='%238b5cf6'/%3E%3Ccircle cx='24' cy='38' r='3' fill='%234f8cff'/%3E%3Ccircle cx='10' cy='17' r='3' fill='%238b5cf6'/%3E%3Ccircle cx='38' cy='17' r='3' fill='%234f8cff'/%3E%3Ccircle cx='10' cy='31' r='3' fill='%238b5cf6'/%3E%3Ccircle cx='38' cy='31' r='3' fill='%234f8cff'/%3E%3Cline x1='24' y1='13' x2='24' y2='21' stroke='url(%23ng)' stroke-width='1.2'/%3E%3Cline x1='24' y1='27' x2='24' y2='35' stroke='url(%23ng)' stroke-width='1.2'/%3E%3Cline x1='13' y1='19' x2='21' y2='22' stroke='url(%23ng)' stroke-width='1.2'/%3E%3Cline x1='27' y1='26' x2='35' y2='29' stroke='url(%23ng)' stroke-width='1.2'/%3E%3Cline x1='13' y1='29' x2='21' y2='26' stroke='url(%23ng)' stroke-width='1.2'/%3E%3Cline x1='27' y1='22' x2='35' y2='19' stroke='url(%23ng)' stroke-width='1.2'/%3E%3C/svg%3E`,
+    description: 'Train and interact with 5 specialized AI agents: Math, Automation, Coding, General, Science',
+    accent: '#8b5cf6',
+    defaultSize: { width: 900, height: 580 },
   },
   {
     id: 'settings',
