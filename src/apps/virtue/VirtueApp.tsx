@@ -23,6 +23,7 @@ export function VirtueApp() {
     sortMode,
     recentSearches,
     installStates,
+    downloadProgress,
     setView,
     setSelectedApp,
     setSearchQuery,

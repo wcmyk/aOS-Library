@@ -71,9 +71,9 @@ export const apps: ShellApp[] = [
   {
     id: 'neural',
     name: 'Neural Studio',
-    icon: `${BASE_URL}assets/apps/neural-ai.svg`,
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='galaxy' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' stop-color='%23c084fc'/%3E%3Cstop offset='40%25' stop-color='%237c3aed'/%3E%3Cstop offset='100%25' stop-color='%231e1b4b'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23galaxy)'/%3E%3Ccircle cx='32' cy='32' r='8' fill='%23f0abfc' opacity='0.9'/%3E%3Ccircle cx='32' cy='32' r='14' fill='none' stroke='%23c084fc' stroke-width='1.2' opacity='0.6'/%3E%3Ccircle cx='32' cy='32' r='20' fill='none' stroke='%23a855f7' stroke-width='0.8' opacity='0.4'/%3E%3Ccircle cx='32' cy='18' r='2.5' fill='%23f0abfc'/%3E%3Ccircle cx='44' cy='24' r='2' fill='%23e879f9'/%3E%3Ccircle cx='46' cy='38' r='2.5' fill='%23c084fc'/%3E%3Ccircle cx='38' cy='48' r='2' fill='%23f0abfc'/%3E%3Ccircle cx='26' cy='48' r='2.5' fill='%23e879f9'/%3E%3Ccircle cx='18' cy='40' r='2' fill='%23c084fc'/%3E%3Ccircle cx='18' cy='26' r='2.5' fill='%23f0abfc'/%3E%3Ccircle cx='24' cy='16' r='2' fill='%23e879f9'/%3E%3Cline x1='32' y1='18' x2='44' y2='24' stroke='%23c084fc' stroke-width='0.8' opacity='0.5'/%3E%3Cline x1='44' y1='24' x2='46' y2='38' stroke='%23c084fc' stroke-width='0.8' opacity='0.5'/%3E%3Cline x1='46' y1='38' x2='38' y2='48' stroke='%23c084fc' stroke-width='0.8' opacity='0.5'/%3E%3Cline x1='38' y1='48' x2='26' y2='48' stroke='%23c084fc' stroke-width='0.8' opacity='0.5'/%3E%3Cline x1='26' y1='48' x2='18' y2='40' stroke='%23c084fc' stroke-width='0.8' opacity='0.5'/%3E%3Cline x1='18' y1='40' x2='18' y2='26' stroke='%23c084fc' stroke-width='0.8' opacity='0.5'/%3E%3Cline x1='18' y1='26' x2='24' y2='16' stroke='%23c084fc' stroke-width='0.8' opacity='0.5'/%3E%3Cline x1='24' y1='16' x2='32' y2='18' stroke='%23c084fc' stroke-width='0.8' opacity='0.5'/%3E%3Ccircle cx='12' cy='12' r='1.2' fill='%23f0abfc' opacity='0.7'/%3E%3Ccircle cx='52' cy='14' r='1' fill='%23e879f9' opacity='0.6'/%3E%3Ccircle cx='8' cy='48' r='1.5' fill='%23c084fc' opacity='0.5'/%3E%3Ccircle cx='56' cy='52' r='1.2' fill='%23f0abfc' opacity='0.7'/%3E%3C/svg%3E`,
     description: 'Train and interact with 5 specialized AI agents: Math, Automation, Coding, General, Science',
-    accent: '#8b5cf6',
+    accent: '#c084fc',
     defaultSize: { width: 900, height: 580 },
   },
   {
@@ -139,5 +139,29 @@ export const apps: ShellApp[] = [
     description: 'Cloud storage and file sync',
     accent: '#0364b8',
     defaultSize: { width: 780, height: 520 },
+  },
+  {
+    id: 'banking',
+    name: 'Chase Bank',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='cg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231a6abf'/%3E%3Cstop offset='1' stop-color='%230a4f99'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23cg)'/%3E%3Cpath d='M20 14h6v36h-6zM38 14h6v36h-6zM14 28h36v8H14z' fill='white' opacity='0.95'/%3E%3C/svg%3E`,
+    description: 'Full-featured banking app with Chase-like UI, transactions, investments and mortgage',
+    accent: '#1a6abf',
+    defaultSize: { width: 1100, height: 700 },
+  },
+  {
+    id: 'realtor',
+    name: 'HomeFind',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='rg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231a3c5e'/%3E%3Cstop offset='1' stop-color='%232a6496'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23rg)'/%3E%3Cpath d='M32 12L14 28h8v24h20V28h8z' fill='white' opacity='0.95'/%3E%3Crect x='26' y='36' width='12' height='16' rx='2' fill='%231a3c5e'/%3E%3C/svg%3E`,
+    description: 'Real estate marketplace with 150+ properties across 250 US locations',
+    accent: '#1a3c5e',
+    defaultSize: { width: 1200, height: 760 },
+  },
+  {
+    id: 'appcenter',
+    name: 'App Center',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='ag' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23667eea'/%3E%3Cstop offset='1' stop-color='%23764ba2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23ag)'/%3E%3Crect x='12' y='12' width='18' height='18' rx='5' fill='white' opacity='0.9'/%3E%3Crect x='34' y='12' width='18' height='18' rx='5' fill='white' opacity='0.9'/%3E%3Crect x='12' y='34' width='18' height='18' rx='5' fill='white' opacity='0.9'/%3E%3Crect x='34' y='34' width='18' height='18' rx='5' fill='white' opacity='0.9'/%3E%3C/svg%3E`,
+    description: 'Organize and launch all your apps. Drag to reorder with persistent layout.',
+    accent: '#667eea',
+    defaultSize: { width: 960, height: 640 },
   },
 ];
