@@ -77,6 +77,14 @@ export const apps: ShellApp[] = [
     defaultSize: { width: 900, height: 580 },
   },
   {
+    id: 'virtue',
+    name: 'Virtue',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%232f7bff'/%3E%3Cstop offset='1' stop-color='%2366b1ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Cpath d='M18 44l9-15m10 0l9 15M22 37h20M26 22l6 10m6-10l-6 10' stroke='white' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E`,
+    description: 'App marketplace for discovering and installing workspace apps',
+    accent: '#2f7bff',
+    defaultSize: { width: 1180, height: 760 },
+  },
+  {
     id: 'settings',
     name: 'Settings',
     icon: `${BASE_URL}assets/apps/settings.png`,
