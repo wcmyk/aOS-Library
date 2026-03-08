@@ -1,15 +1,8 @@
-export function BuganizerSite() {
-  return (
-    <div className="simple-site">
-      <h2>Buganizer</h2>
-      <div className="simple-card">
-        <h3>Issue Tracking Workspace</h3>
-        <p>Internal bug and issue management surface for large-scale engineering organizations.</p>
 import { useState } from 'react';
 import { useProfileStore } from '../../../state/useProfileStore';
 
 type BugPriority = 'P0' | 'P1' | 'P2' | 'P3';
-type BugStatus = 'New' | 'Assigned' | 'Accepted' | 'Fixed' | 'Won\'t Fix' | 'Verified';
+type BugStatus = 'New' | 'Assigned' | 'Accepted' | 'Fixed' | "Won't Fix" | 'Verified';
 
 type Issue = {
   id: number;
@@ -36,29 +29,37 @@ const ISSUES: Issue[] = [
 ];
 
 const P_COLOR: Record<BugPriority, string> = {
-  P0: '#d32f2f', P1: '#e65100', P2: '#1565c0', P3: '#455a64',
+  P0: '#d32f2f',
+  P1: '#e65100',
+  P2: '#1565c0',
+  P3: '#455a64',
 };
-const S_COLOR: Record<string, string> = {
-  New: '#0288d1', Assigned: '#7b1fa2', Accepted: '#0288d1',
-  Fixed: '#2e7d32', "Won't Fix": '#616161', Verified: '#2e7d32',
+
+const S_COLOR: Record<BugStatus, string> = {
+  New: '#0288d1',
+  Assigned: '#7b1fa2',
+  Accepted: '#0288d1',
+  Fixed: '#2e7d32',
+  "Won't Fix": '#616161',
+  Verified: '#2e7d32',
 };
 
 export function BuganizerSite() {
-  const { acceptedJob } = useProfileStore();
+  const profile = useProfileStore();
   const [selected, setSelected] = useState<number | null>(null);
-  const [filter, setFilter] = useState<string>('all');
+  const [filter, setFilter] = useState<'all' | BugPriority>('all');
 
-  const company = acceptedJob?.company ?? 'Google';
-  const filtered = filter === 'all' ? ISSUES : ISSUES.filter(i => i.priority === filter);
-  const selectedIssue = ISSUES.find(i => i.id === selected);
+  const company = profile.preferredEmail.includes('@') ? profile.preferredEmail.split('@')[1].split('.')[0] : 'Google';
+  const filtered = filter === 'all' ? ISSUES : ISSUES.filter((i) => i.priority === filter);
+  const selectedIssue = ISSUES.find((i) => i.id === selected);
 
   return (
     <div className="bug-shell">
       <header className="bug-header">
         <div className="bug-logo">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#4285f4"/>
-            <path d="M8 12l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#4285f4" />
+            <path d="M8 12l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
           </svg>
           <span className="bug-brand">Buganizer</span>
         </div>
@@ -68,19 +69,21 @@ export function BuganizerSite() {
       <div className="bug-layout">
         <aside className="bug-sidebar">
           <div className="bug-sidebar-title">Hotlists</div>
-          {['all','P0','P1','P2','P3'].map((f) => (
-            <button key={f} type="button"
+          {(['all', 'P0', 'P1', 'P2', 'P3'] as const).map((f) => (
+            <button
+              key={f}
+              type="button"
               className={`bug-filter-btn${filter === f ? ' active' : ''}`}
               onClick={() => setFilter(f)}
             >
               {f === 'all' ? 'All Issues' : f}
-              <span className="bug-count" style={{ background: f !== 'all' ? P_COLOR[f as BugPriority] : '#5e7399' }}>
-                {f === 'all' ? ISSUES.length : ISSUES.filter(i => i.priority === f).length}
+              <span className="bug-count" style={{ background: f !== 'all' ? P_COLOR[f] : '#5e7399' }}>
+                {f === 'all' ? ISSUES.length : ISSUES.filter((i) => i.priority === f).length}
               </span>
             </button>
           ))}
           <div className="bug-sidebar-title" style={{ marginTop: 16 }}>Components</div>
-          {['Search/Infra','ML Platform','BigQuery','Spanner','JAX'].map(c => (
+          {['Search/Infra', 'ML Platform', 'BigQuery', 'Spanner', 'JAX'].map((c) => (
             <button key={c} type="button" className="bug-filter-btn">{c}</button>
           ))}
         </aside>
@@ -96,7 +99,7 @@ export function BuganizerSite() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(issue => (
+              {filtered.map((issue) => (
                 <tr
                   key={issue.id}
                   className={`bug-row${selected === issue.id ? ' selected' : ''}`}
@@ -133,13 +136,13 @@ export function BuganizerSite() {
                 {selectedIssue.hotlist && <div><label>Hotlist</label><span className="bug-hotlist">{selectedIssue.hotlist}</span></div>}
               </div>
               <div className="bug-detail-desc">
-                <strong>Description:</strong><br/>
-                {selectedIssue.title}.<br/><br/>
-                <strong>Steps to reproduce:</strong><br/>
-                1. Set up environment as documented in go/repro-steps<br/>
-                2. Execute the referenced changelist<br/>
-                3. Observe the behavior described above<br/><br/>
-                <strong>Impact:</strong> Affects production traffic for {selectedIssue.component} users.<br/>
+                <strong>Description:</strong><br />
+                {selectedIssue.title}.<br /><br />
+                <strong>Steps to reproduce:</strong><br />
+                1. Set up environment as documented in go/repro-steps<br />
+                2. Execute the referenced changelist<br />
+                3. Observe the behavior described above<br /><br />
+                <strong>Impact:</strong> Affects production traffic for {selectedIssue.component} users.<br />
                 <strong>Reported via:</strong> Monarch alert / manual observation
               </div>
             </div>
