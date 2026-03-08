@@ -850,8 +850,10 @@ Talent Acquisition, ${job.company}<br>
                       )}
                     </div>
                     <div className="li-detail-section">
-                      <div className="li-detail-section-title">About the role</div>
+                      <div className="li-detail-section-title">Job description</div>
                       <p className="li-detail-text">{job.description}</p>
+                      <div className="li-detail-section-title" style={{ marginTop: 12 }}>About this company</div>
+                      <p className="li-detail-text">{getCompanyAbout(job.archetype, job.id)}</p>
                     </div>
                     <div className="li-detail-section">
                       <div className="li-detail-section-title">Requirements</div>
