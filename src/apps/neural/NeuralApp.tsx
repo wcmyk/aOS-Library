@@ -20,6 +20,15 @@ type TrainingStats = {
   loss: number;
   accuracy: number;
   tokens: number;
+  vocab: number;
+};
+
+type LanguageModel = {
+  unigram: Record<string, number>;
+  bigram: Record<string, Record<string, number>>;
+  starts: string[];
+  tokenCount: number;
+  vocabSize: number;
 };
 
 const PROFILE_TRIGGER = 'active&&&%%%';
@@ -33,45 +42,32 @@ const AGENTS: Agent[] = [
   { id: 'science', name: 'Nova', icon: '⚗', color: '#f472b6', desc: 'Science research and technical analysis' },
 ];
 
-const RESPONSES: Record<AgentId, string[]> = {
+const AGENT_CORPUS: Record<AgentId, string[]> = {
   math: [
-    'Great question. I can break it down step by step and provide a full derivation if you want.',
-    'For this one, use substitution first, simplify, and then evaluate boundaries at the end.',
+    'To solve an equation, isolate variables and verify each algebraic transformation keeps equality intact.',
+    'Proof strategy depends on structure. Direct proof, contradiction, and induction are all useful tools.',
+    'For optimization, define constraints clearly and test boundary behavior before relying on calculus alone.',
   ],
   automation: [
-    'I recommend splitting this workflow into trigger, validation, execution, and retry layers.',
-    'A queue + idempotency key pattern will make this robust under retries and partial failure.',
+    'Reliable workflows separate triggering, validation, execution, and retry behavior.',
+    'Idempotent jobs and queue based processing reduce failure amplification in distributed systems.',
+    'Observability matters: collect latency, error rate, and throughput metrics for each workflow stage.',
   ],
   coding: [
-    'I can generate the code path for this. Tell me your language and constraints.',
-    'You can improve this by extracting reusable helpers and adding strict input typing.',
+    'Strong code starts with clear interfaces, typed boundaries, and focused modules with single purpose.',
+    'Debugging is faster when you reproduce minimal failing cases and inspect state transitions deterministically.',
+    'Performance work should begin with measurement, then targeted optimization, then regression tests.',
   ],
   general: [
-    'Here is the short answer first, then I can provide a deeper explanation if needed.',
-    'I see two good options. I can compare trade-offs based on speed vs quality.',
+    'Useful answers combine a direct recommendation, rationale, and practical next steps.',
+    'Tradeoffs often matter more than absolute choices, especially under time and resource constraints.',
+    'Good communication mirrors user goals, constraints, and the expected level of detail.',
   ],
   science: [
-    'Let us frame a hypothesis, define variables, and choose an evaluation method.',
-    'I can summarize the scientific consensus and highlight current open questions.',
+    'Scientific reasoning starts with hypotheses, controlled variables, and measurable outcomes.',
+    'Interpret results with uncertainty in mind and avoid overclaiming from small sample sizes.',
+    'Reproducibility requires explicit methods, clear assumptions, and transparent data handling.',
   ],
-};
-
-const initStats = (id: AgentId): TrainingStats => {
-  const seed = id.charCodeAt(0) + id.charCodeAt(id.length - 1);
-  return {
-    epochs: 12 + (seed % 24),
-    loss: Number((0.22 - (seed % 7) * 0.01).toFixed(3)),
-    accuracy: Number((82 + (seed % 12) * 0.7).toFixed(1)),
-    tokens: 900_000 + seed * 7_000,
-  };
-};
-
-const defaultTrainingStats: Record<AgentId, TrainingStats> = {
-  math: initStats('math'),
-  automation: initStats('automation'),
-  coding: initStats('coding'),
-  general: initStats('general'),
-  science: initStats('science'),
 };
 
 const emptyConversations: Record<AgentId, Message[]> = {
@@ -82,10 +78,175 @@ const emptyConversations: Record<AgentId, Message[]> = {
   science: [],
 };
 
+const TOKEN_RE = /[a-zA-Z0-9']+/g;
+
+function tokenize(text: string): string[] {
+  return (text.toLowerCase().match(TOKEN_RE) ?? []).filter(Boolean);
+}
+
+function splitSentences(text: string): string[] {
+  return text
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function trainLanguageModel(lines: string[]): LanguageModel {
+  const unigram: Record<string, number> = {};
+  const bigram: Record<string, Record<string, number>> = {};
+  const starts: string[] = [];
+
+  let tokenCount = 0;
+
+  for (const line of lines) {
+    for (const sentence of splitSentences(line)) {
+      const words = ['<s>', ...tokenize(sentence), '</s>'];
+      if (words.length > 2) starts.push(words[1]);
+      for (let i = 1; i < words.length; i++) {
+        const prev = words[i - 1];
+        const cur = words[i];
+
+        unigram[cur] = (unigram[cur] ?? 0) + 1;
+        tokenCount += 1;
+
+        if (!bigram[prev]) bigram[prev] = {};
+        bigram[prev][cur] = (bigram[prev][cur] ?? 0) + 1;
+      }
+    }
+  }
+
+  return {
+    unigram,
+    bigram,
+    starts,
+    tokenCount,
+    vocabSize: Object.keys(unigram).length,
+  };
+}
+
+function crossEntropy(lines: string[], model: LanguageModel): number {
+  const vocab = Math.max(model.vocabSize, 1);
+  let nll = 0;
+  let n = 0;
+
+  for (const line of lines) {
+    for (const sentence of splitSentences(line)) {
+      const words = ['<s>', ...tokenize(sentence), '</s>'];
+      for (let i = 1; i < words.length; i++) {
+        const prev = words[i - 1];
+        const cur = words[i];
+        const nexts = model.bigram[prev] ?? {};
+        const total = Object.values(nexts).reduce((a, b) => a + b, 0);
+        const count = nexts[cur] ?? 0;
+        const prob = (count + 1) / (total + vocab);
+        nll += -Math.log(prob);
+        n += 1;
+      }
+    }
+  }
+
+  return n === 0 ? 0 : nll / n;
+}
+
+function pickWeighted(candidates: Record<string, number>, seed: number): string {
+  const entries = Object.entries(candidates);
+  if (entries.length === 0) return '</s>';
+  const total = entries.reduce((sum, [, count]) => sum + count, 0);
+  if (total <= 0) return entries[0][0];
+
+  let cursor = seed % total;
+  for (const [token, count] of entries) {
+    cursor -= count;
+    if (cursor < 0) return token;
+  }
+  return entries[entries.length - 1][0];
+}
+
+function hashText(text: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
+  }
+  return Math.abs(h >>> 0);
+}
+
+function generateSentence(model: LanguageModel, prompt: string, maxTokens = 18): string {
+  const promptTokens = tokenize(prompt);
+  const candidateStart = promptTokens.find((t) => model.unigram[t]);
+  const seed = hashText(prompt + String(model.tokenCount));
+
+  let cur = candidateStart || model.starts[seed % Math.max(model.starts.length, 1)] || 'analysis';
+  const out: string[] = [cur];
+
+  for (let i = 1; i < maxTokens; i++) {
+    const nextMap = model.bigram[cur] ?? model.bigram['<s>'] ?? {};
+    const nxt = pickWeighted(nextMap, seed + i * 17);
+    if (!nxt || nxt === '</s>') break;
+    out.push(nxt);
+    cur = nxt;
+  }
+
+  return out.join(' ');
+}
+
+function retrieveContext(lines: string[], prompt: string): string[] {
+  const promptSet = new Set(tokenize(prompt));
+  const scored = lines
+    .map((line) => {
+      const tokens = tokenize(line);
+      const overlap = tokens.reduce((acc, t) => acc + (promptSet.has(t) ? 1 : 0), 0);
+      return { line, score: overlap };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  return scored.slice(0, 2).map((s) => s.line);
+}
+
+function buildReply(agent: Agent, prompt: string, model: LanguageModel, dataset: string[]): string {
+  const context = retrieveContext(dataset, prompt).join(' ');
+  const sentenceA = generateSentence(model, `${prompt} ${context}`);
+  const sentenceB = generateSentence(model, `${agent.desc} ${prompt}`);
+
+  const preface = prompt.trim().endsWith('?')
+    ? `Good question. ${agent.name} analyzed your request.`
+    : `${agent.name} processed your request and generated a response.`;
+
+  return `${preface} ${sentenceA}. ${sentenceB}.`;
+}
+
+function computeStats(dataset: string[], model: LanguageModel, epochs: number): TrainingStats {
+  const entropy = crossEntropy(dataset, model);
+  const loss = Number(entropy.toFixed(3));
+  const accuracy = Number(Math.max(40, Math.min(99.5, 100 - entropy * 18)).toFixed(1));
+
+  return {
+    epochs,
+    loss,
+    accuracy,
+    tokens: model.tokenCount,
+    vocab: model.vocabSize,
+  };
+}
+
 export function NeuralApp() {
   const [activeAgentId, setActiveAgentId] = useState<AgentId>('general');
   const [conversations, setConversations] = useState<Record<AgentId, Message[]>>(emptyConversations);
-  const [trainingStats, setTrainingStats] = useState<Record<AgentId, TrainingStats>>(defaultTrainingStats);
+  const [datasets, setDatasets] = useState<Record<AgentId, string[]>>(AGENT_CORPUS);
+  const [models, setModels] = useState<Record<AgentId, LanguageModel>>({
+    math: trainLanguageModel(AGENT_CORPUS.math),
+    automation: trainLanguageModel(AGENT_CORPUS.automation),
+    coding: trainLanguageModel(AGENT_CORPUS.coding),
+    general: trainLanguageModel(AGENT_CORPUS.general),
+    science: trainLanguageModel(AGENT_CORPUS.science),
+  });
+  const [epochsByAgent, setEpochsByAgent] = useState<Record<AgentId, number>>({
+    math: 1,
+    automation: 1,
+    coding: 1,
+    general: 1,
+    science: 1,
+  });
   const [profileImages, setProfileImages] = useState<Record<AgentId, string>>({ math: '', automation: '', coding: '', general: '', science: '' });
   const [typing, setTyping] = useState(false);
   const [input, setInput] = useState('');
@@ -93,7 +254,10 @@ export function NeuralApp() {
 
   const activeAgent = useMemo(() => AGENTS.find((a) => a.id === activeAgentId) ?? AGENTS[0], [activeAgentId]);
   const messages = conversations[activeAgentId] ?? [];
-  const stats = trainingStats[activeAgentId];
+  const stats = useMemo(
+    () => computeStats(datasets[activeAgentId], models[activeAgentId], epochsByAgent[activeAgentId]),
+    [activeAgentId, datasets, models, epochsByAgent]
+  );
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -131,35 +295,35 @@ export function NeuralApp() {
     setTyping(true);
 
     window.setTimeout(() => {
-      const replyPool = RESPONSES[activeAgentId];
-      const response = replyPool[(messages.length + text.length) % replyPool.length];
+      const model = models[activeAgentId];
+      const dataset = datasets[activeAgentId];
+      const response = buildReply(activeAgent, text, model, dataset);
+
+      const trainingLine = `User: ${text} Agent: ${response}`;
+      const nextDataset = [...dataset, trainingLine];
+      const nextModel = trainLanguageModel(nextDataset);
 
       setConversations((prev) => ({ ...prev, [activeAgentId]: [...prev[activeAgentId], { role: 'agent', text: response }] }));
-      setTrainingStats((prev) => ({
-        ...prev,
-        [activeAgentId]: {
-          ...prev[activeAgentId],
-          epochs: prev[activeAgentId].epochs + 1,
-          loss: Math.max(0.02, Number((prev[activeAgentId].loss - 0.002).toFixed(3))),
-          accuracy: Math.min(99.9, Number((prev[activeAgentId].accuracy + 0.1).toFixed(1))),
-          tokens: prev[activeAgentId].tokens + Math.max(200, text.length * 10),
-        },
-      }));
+      setDatasets((prev) => ({ ...prev, [activeAgentId]: nextDataset }));
+      setModels((prev) => ({ ...prev, [activeAgentId]: nextModel }));
+      setEpochsByAgent((prev) => ({ ...prev, [activeAgentId]: prev[activeAgentId] + 1 }));
       setTyping(false);
     }, 650);
   };
 
   const runTrainingStep = () => {
-    setTrainingStats((prev) => ({
-      ...prev,
-      [activeAgentId]: {
-        ...prev[activeAgentId],
-        epochs: prev[activeAgentId].epochs + 5,
-        loss: Math.max(0.01, Number((prev[activeAgentId].loss - 0.01).toFixed(3))),
-        accuracy: Math.min(99.9, Number((prev[activeAgentId].accuracy + 0.3).toFixed(1))),
-        tokens: prev[activeAgentId].tokens + 250_000,
-      },
-    }));
+    const dataset = datasets[activeAgentId];
+    const augmentation = [
+      `${activeAgent.name} focuses on ${activeAgent.desc.toLowerCase()}.`,
+      `When uncertain, ${activeAgent.name} asks for constraints and success criteria before final recommendations.`,
+      `${activeAgent.name} response style is concise, practical, and grounded in evidence.`,
+    ];
+    const nextDataset = [...dataset, ...augmentation];
+    const nextModel = trainLanguageModel(nextDataset);
+
+    setDatasets((prev) => ({ ...prev, [activeAgentId]: nextDataset }));
+    setModels((prev) => ({ ...prev, [activeAgentId]: nextModel }));
+    setEpochsByAgent((prev) => ({ ...prev, [activeAgentId]: prev[activeAgentId] + 5 }));
   };
 
   const currentImage = profileImages[activeAgentId];
@@ -224,8 +388,9 @@ export function NeuralApp() {
           <div className="neural-stat"><span>Loss</span><strong>{stats.loss}</strong></div>
           <div className="neural-stat"><span>Accuracy</span><strong>{stats.accuracy}%</strong></div>
           <div className="neural-stat"><span>Tokens</span><strong>{(stats.tokens / 1_000_000).toFixed(2)}M</strong></div>
+          <div className="neural-stat"><span>Vocabulary</span><strong>{stats.vocab}</strong></div>
           <button type="button" className="neural-train-btn" onClick={runTrainingStep}>Run Training Step</button>
-          <p className="neural-hint">Profile switch: <code>active&&&%%% filename.png</code><br />Assets path: <code>public/assets/neural/</code></p>
+          <p className="neural-hint">Conversation quality improves as each agent trains on your prompts and prior dialogue. Profile switch: <code>active&&&%%% filename.png</code></p>
         </aside>
       </div>
     </div>
