@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useShellStore } from '../../state/useShellStore';
+import { useSafariStore } from '../../state/useSafariStore';
 import { useMailStore, type Email, type EmailFolder, type JobMeta } from '../../state/useMailStore';
 import { meetingToolLabel } from '../safari/sites/LinkedInSite';
 
@@ -429,6 +431,8 @@ function ComposeModal({ onClose, options, onSend }: { onClose: () => void; optio
 
 export function OutlookApp() {
   const { emails, markRead, toggleStar, moveToFolder } = useMailStore();
+  const openWindow = useShellStore((s) => s.openWindow);
+  const navigate = useSafariStore((s) => s.navigate);
   const [activeFolder, setActiveFolder] = useState<EmailFolder>('inbox');
   const [selectedId, setSelectedId] = useState<string | null>(emails[0]?.id ?? null);
   const [composing, setComposing] = useState<ComposeOptions | null>(null);
@@ -567,6 +571,14 @@ export function OutlookApp() {
               </div>
               <div
                 className="out-detail-body"
+                onClick={(event) => {
+                  const target = event.target as HTMLElement;
+                  const anchorEl = target.closest('a') as HTMLAnchorElement | null;
+                  if (!anchorEl?.href) return;
+                  event.preventDefault();
+                  navigate(anchorEl.href);
+                  openWindow('safari');
+                }}
                 dangerouslySetInnerHTML={{ __html: selectedEmail.body }}
               />
             </>
