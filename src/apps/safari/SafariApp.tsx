@@ -2,8 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { LinkedInSite } from './sites/LinkedInSite';
 import { WorkdaySite } from './sites/WorkdaySite';
 import { ProjectHubSite } from './sites/ProjectHubSite';
+import { WorkfrontSite } from './sites/WorkfrontSite';
 import { CoLabSite } from './sites/CoLabSite';
 import { useSafariStore } from '../../state/useSafariStore';
+
+type SiteId = 'linkedin' | 'workday' | 'adobe-workfront' | 'project-hub' | 'colab' | 'sanctum-web';
 
 type SiteEntry =
   | { id: SiteId; title: string; domain: string; kind: 'component'; component: React.ComponentType }
@@ -76,6 +79,35 @@ const SITES: SiteEntry[] = [
     component: CoLabSite,
   },
   {
+    id: 'workday',
+    title: 'Workday',
+    domain: 'workday.aos',
+    kind: 'component',
+    component: WorkdaySite,
+  },
+
+  {
+    id: 'adobe-workfront',
+    title: 'Adobe Workfront',
+    domain: 'workfront.aos',
+    kind: 'component',
+    component: WorkfrontSite,
+  },
+  {
+    id: 'project-hub',
+    title: 'Project Hub',
+    domain: 'projects.aos',
+    kind: 'component',
+    component: WorkfrontSite,
+  },
+  {
+    id: 'colab',
+    title: 'CoLab',
+    domain: 'colab.aos',
+    kind: 'component',
+    component: CoLabSite,
+  },
+  {
     id: 'sanctum-web',
     title: 'Sanctum Web',
     domain: 'drive.aos',
@@ -120,7 +152,7 @@ const BOOKMARKS: { label: string; url: string; siteId: SiteId }[] = [
 ];
 
 export function SafariApp() {
-  const [activeSiteId, setActiveSiteId] = useState(SITES[0].id);
+  const [activeSiteId, setActiveSiteId] = useState<SiteId>(SITES[0].id);
   const currentUrl = useSafariStore((s) => s.currentUrl);
   const navigate = useSafariStore((s) => s.navigate);
   const site = useMemo(() => SITES.find((s) => s.id === activeSiteId) ?? SITES[0], [activeSiteId]);
