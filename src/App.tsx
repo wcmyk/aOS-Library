@@ -115,6 +115,9 @@ function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDoc
   if (window.appId === 'vision') return <Suspense fallback={null}><VisionApp /></Suspense>;
   if (window.appId === 'spotify') return <Suspense fallback={null}><SpotifyApp /></Suspense>;
   if (window.appId === 'safari') return <Suspense fallback={null}><SafariApp /></Suspense>;
+  if (window.appId === 'settings') return <Suspense fallback={null}><SettingsApp /></Suspense>;
+  if (window.appId === 'colab') return <Suspense fallback={null}><CoLabApp /></Suspense>;
+  if (window.appId === 'sentinel-flow') return <Suspense fallback={null}><WorkHubApp /></Suspense>;
 
   return (
     <div className="window-grid">

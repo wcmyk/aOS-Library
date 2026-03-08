@@ -23,6 +23,35 @@ const SITES: SiteEntry[] = [
   { id: 'project-sail',    title: 'Project SAIL',      domain: 'projectsail.jpmorgan.com', kind: 'component', component: ProjectSailSite },
   { id: 'samsung-portal',  title: 'Samsung PLCM Portal', domain: 'portal.samsung-dev.net', kind: 'component', component: SamsungPortalSite },
   {
+    id: 'workday',
+    title: 'Workday',
+    domain: 'workday.aos',
+    kind: 'component',
+    component: WorkdaySite,
+  },
+
+  {
+    id: 'adobe-workfront',
+    title: 'Adobe Workfront',
+    domain: 'workfront.aos',
+    kind: 'component',
+    component: ProjectHubSite,
+  },
+  {
+    id: 'project-hub',
+    title: 'Project Hub',
+    domain: 'projects.aos',
+    kind: 'component',
+    component: ProjectHubSite,
+  },
+  {
+    id: 'colab',
+    title: 'CoLab',
+    domain: 'colab.aos',
+    kind: 'component',
+    component: CoLabSite,
+  },
+  {
     id: 'sanctum-web',
     title: 'Sanctum Web',
     domain: 'drive.aos',
@@ -101,6 +130,12 @@ export function SafariApp() {
     }
     inputRef.current?.blur();
   };
+
+  useEffect(() => {
+    const target = currentUrl.replace(/^https?:\/\//, '').toLowerCase();
+    const matched = SITES.find((s) => target.includes(s.domain));
+    if (matched && matched.id !== activeSiteId) setActiveSiteId(matched.id);
+  }, [activeSiteId, currentUrl]);
 
   return (
     <div className="safari-shell">

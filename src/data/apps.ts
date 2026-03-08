@@ -10,6 +10,15 @@ export type ShellApp = {
 const BASE_URL = import.meta.env.BASE_URL;
 
 export const apps: ShellApp[] = [
+
+  {
+    id: 'sentinel-flow',
+    name: 'SentinelFlow',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23111a2b'/%3E%3Cpath d='M10 18h44v7H10zM10 29h30v7H10zM10 40h22v7H10z' fill='%233b82f6'/%3E%3Ccircle cx='48' cy='43' r='8' fill='%2393c5fd'/%3E%3C/svg%3E`,
+    description: 'Enterprise work management platform for operations and PMO teams',
+    accent: '#3b82f6',
+    defaultSize: { width: 1380, height: 820 },
+  },
   {
     id: 'spotify',
     name: 'Spotify',
@@ -25,6 +34,15 @@ export const apps: ShellApp[] = [
     description: 'Mac-style browser shell for custom AoS websites',
     accent: '#2563eb',
     defaultSize: { width: 1120, height: 700 },
+  },
+
+  {
+    id: 'colab',
+    name: 'CoLab',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%235b5fc7'/%3E%3Cpath d='M17 20h30a5 5 0 0 1 5 5v16a5 5 0 0 1-5 5H27l-10 8v-8h0a5 5 0 0 1-5-5V25a5 5 0 0 1 5-5z' fill='white' opacity='0.96'/%3E%3Ccircle cx='28' cy='33' r='3' fill='%235b5fc7'/%3E%3Ccircle cx='36' cy='33' r='3' fill='%235b5fc7'/%3E%3Ccircle cx='44' cy='33' r='3' fill='%235b5fc7'/%3E%3C/svg%3E`,
+    description: 'Company-scoped team chat and collaboration workspace',
+    accent: '#5b5fc7',
+    defaultSize: { width: 1100, height: 700 },
   },
   {
     id: 'vision',

@@ -145,6 +145,7 @@ export function VisionApp() {
     setError('');
     setAbstract(null);
     setTab('all');
+    setActiveResult(null);
     try {
       const params = new URLSearchParams({ q: trimmed, format: 'json', no_html: '1', no_redirect: '1' });
       const res = await fetch(`https://api.duckduckgo.com/?${params}`);
@@ -310,7 +311,7 @@ export function VisionApp() {
               <div className="vsn-knowledge-heading">{abstract.heading}</div>
               {abstract.answer && <div className="vsn-knowledge-answer">{abstract.answer}</div>}
               <div className="vsn-knowledge-body">{abstract.text}</div>
-              {abstract.url && <div className="vsn-knowledge-link"><a href={abstract.url} target="_blank" rel="noopener noreferrer" className="vsn-breadcrumb" style={{cursor:'pointer',textDecoration:'underline'}}>{abstract.url}</a></div>}
+              {abstract.url && <div className="vsn-knowledge-link"><button type="button" className="vsn-link-btn" onClick={() => setActiveResult({ title: abstract.heading, snippet: abstract.text, url: abstract.url })}>{abstract.url}</button></div>}
               <div className="vsn-knowledge-chips">
                 <span className="vsn-kchip">Summary</span>
                 <span className="vsn-kchip">Related</span>
