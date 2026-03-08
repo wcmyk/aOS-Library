@@ -1,14 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { LinkedInSite } from './sites/LinkedInSite';
 import { WorkdaySite } from './sites/WorkdaySite';
-import { WorkfrontSite } from './sites/WorkfrontSite';
-import { RadarSite } from './sites/RadarSite';
-import { BuganizerSite } from './sites/BuganizerSite';
-import { ProjectSailSite } from './sites/ProjectSailSite';
-import { SamsungPortalSite } from './sites/SamsungPortalSite';
+import { ProjectHubSite } from './sites/ProjectHubSite';
+import { CoLabSite } from './sites/CoLabSite';
 import { useSafariStore } from '../../state/useSafariStore';
-
-type SiteId = 'linkedin' | 'workday' | 'workfront' | 'radar' | 'buganizer' | 'project-sail' | 'samsung-portal' | 'sanctum-web';
 
 type SiteEntry =
   | { id: SiteId; title: string; domain: string; kind: 'component'; component: React.ComponentType }
@@ -22,6 +17,35 @@ const SITES: SiteEntry[] = [
   { id: 'buganizer',       title: 'Buganizer',         domain: 'b.corp.google.com',     kind: 'component', component: BuganizerSite },
   { id: 'project-sail',    title: 'Project SAIL',      domain: 'projectsail.jpmorgan.com', kind: 'component', component: ProjectSailSite },
   { id: 'samsung-portal',  title: 'Samsung PLCM Portal', domain: 'portal.samsung-dev.net', kind: 'component', component: SamsungPortalSite },
+  {
+    id: 'workday',
+    title: 'Workday',
+    domain: 'workday.aos',
+    kind: 'component',
+    component: WorkdaySite,
+  },
+
+  {
+    id: 'adobe-workfront',
+    title: 'Adobe Workfront',
+    domain: 'workfront.aos',
+    kind: 'component',
+    component: ProjectHubSite,
+  },
+  {
+    id: 'project-hub',
+    title: 'Project Hub',
+    domain: 'projects.aos',
+    kind: 'component',
+    component: ProjectHubSite,
+  },
+  {
+    id: 'colab',
+    title: 'CoLab',
+    domain: 'colab.aos',
+    kind: 'component',
+    component: CoLabSite,
+  },
   {
     id: 'workday',
     title: 'Workday',
@@ -96,40 +120,10 @@ const BOOKMARKS: { label: string; url: string; siteId: SiteId }[] = [
 ];
 
 export function SafariApp() {
-  const { pendingUrl, clearPending } = useSafariStore();
-  const [activeSiteId, setActiveSiteId] = useState<SiteId>('linkedin');
-  const [addressInput, setAddressInput] = useState('https://linkedin.com');
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  // Consume pending URL from other apps (e.g. Outlook)
-  useEffect(() => {
-    if (pendingUrl) {
-      const resolved = resolveUrl(pendingUrl);
-      if (resolved) {
-        setActiveSiteId(resolved);
-        setAddressInput(pendingUrl);
-      }
-      clearPending();
-    }
-  }, [pendingUrl, clearPending]);
-
-  const site = SITES.find((s) => s.id === activeSiteId) ?? SITES[0];
-
-  const navigateTo = (siteId: SiteId) => {
-    setActiveSiteId(siteId);
-    const found = SITES.find(s => s.id === siteId);
-    if (found) setAddressInput(`https://${found.domain}`);
-  };
-
-  const handleAddressSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const url = addressInput.trim();
-    const resolved = resolveUrl(url);
-    if (resolved) {
-      setActiveSiteId(resolved);
-    }
-    inputRef.current?.blur();
-  };
+  const [activeSiteId, setActiveSiteId] = useState(SITES[0].id);
+  const currentUrl = useSafariStore((s) => s.currentUrl);
+  const navigate = useSafariStore((s) => s.navigate);
+  const site = useMemo(() => SITES.find((s) => s.id === activeSiteId) ?? SITES[0], [activeSiteId]);
 
   useEffect(() => {
     const target = currentUrl.replace(/^https?:\/\//, '').toLowerCase();
@@ -142,41 +136,28 @@ export function SafariApp() {
       {/* Toolbar */}
       <div className="safari-toolbar">
         <div className="safari-dots"><span /><span /><span /></div>
-        <div className="safari-nav-btns">
-          <button type="button" className="safari-nav-btn" aria-label="Back">&#8249;</button>
-          <button type="button" className="safari-nav-btn" aria-label="Forward">&#8250;</button>
-        </div>
-        <form onSubmit={handleAddressSubmit} style={{ flex: 1 }}>
-          <input
-            ref={inputRef}
-            value={addressInput}
-            onChange={(e) => setAddressInput(e.target.value)}
-            className="safari-address"
-            spellCheck={false}
-            onFocus={(e) => e.target.select()}
-          />
-        </form>
+        <input value={currentUrl} onChange={(e) => navigate(e.target.value)} className="safari-address" />
       </div>
-
-      {/* Bookmarks bar */}
-      <div className="safari-bookmarks">
-        {BOOKMARKS.map((b) => (
-          <button
-            key={b.siteId}
-            type="button"
-            className={`safari-bookmark-btn${activeSiteId === b.siteId ? ' active' : ''}`}
-            onClick={() => navigateTo(b.siteId)}
-          >
-            {b.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="safari-view safari-view-react">
-        {site.kind === 'component'
-          ? <site.component />
-          : <iframe title={site.title} srcDoc={site.html} sandbox="allow-same-origin" />
-        }
+      <div className="safari-layout">
+        <aside className="safari-sidebar">
+          {SITES.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              className={s.id === activeSiteId ? 'active' : ''}
+              onClick={() => { setActiveSiteId(s.id); navigate(`https://${s.domain}`); }}
+            >
+              <strong>{s.title}</strong>
+              <span>{s.domain}</span>
+            </button>
+          ))}
+        </aside>
+        <section className="safari-view safari-view-react">
+          {site.kind === 'component'
+            ? <site.component />
+            : <iframe title={site.title} srcDoc={site.html} sandbox="allow-same-origin" />
+          }
+        </section>
       </div>
     </div>
   );

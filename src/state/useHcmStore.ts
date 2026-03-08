@@ -199,6 +199,26 @@ export const useHcmStore = create<HcmStore>((set, get) => ({
       const permissions = permissionMap[payload.isPeopleManager && payload.roleType === 'employee' ? 'manager' : payload.roleType];
       const roleType = payload.isPeopleManager && payload.roleType === 'employee' ? 'manager' : payload.roleType;
 
+      const targetIsManager = payload.isPeopleManager || roleType === 'manager';
+
+      const userUnchanged = !!existingUser
+        && existingUser.displayName === payload.fullName
+        && existingUser.email === payload.preferredEmail
+        && existingUser.roleType === roleType
+        && existingUser.employeeId === employeeId;
+
+      const employeeUnchanged = !!existingEmployee
+        && existingEmployee.displayName === payload.fullName
+        && existingEmployee.email === payload.preferredEmail
+        && existingEmployee.location === payload.location
+        && existingEmployee.jobTitle === payload.jobTitle
+        && existingEmployee.department === payload.department
+        && existingEmployee.isManager === targetIsManager;
+
+      if (existingUser && existingEmployee && userUnchanged && employeeUnchanged && state.currentUserId === userId) {
+        return state;
+      }
+
       const users = existingUser
         ? state.users.map((u) =>
             u.id === existingUser.id
@@ -221,7 +241,7 @@ export const useHcmStore = create<HcmStore>((set, get) => ({
                   location: payload.location,
                   jobTitle: payload.jobTitle,
                   department: payload.department,
-                  isManager: payload.isPeopleManager || roleType === 'manager',
+                  isManager: targetIsManager,
                 }
               : e
           )
@@ -236,7 +256,7 @@ export const useHcmStore = create<HcmStore>((set, get) => ({
               jobTitle: payload.jobTitle,
               department: payload.department,
               employmentStatus: 'active' as EmploymentStatus,
-              isManager: payload.isPeopleManager || roleType === 'manager',
+              isManager: targetIsManager,
               managerEmployeeId: 'e-seed-manager',
               location: payload.location,
               baseSalaryUSD: 132000,

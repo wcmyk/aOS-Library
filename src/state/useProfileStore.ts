@@ -1,28 +1,34 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { JobMeta } from './useMailStore';
 
-type ProfileStore = {
-  firstName: string;
-  lastName: string;
-  avatarColor: string;
-  acceptedJob: JobMeta | null;
-  setProfile: (firstName: string, lastName: string) => void;
-  setAvatarColor: (color: string) => void;
-  setAcceptedJob: (job: JobMeta | null) => void;
+export type SimulationRole = 'employee' | 'manager' | 'hrbp' | 'payroll_admin' | 'legal_admin' | 'admin';
+
+export type ProfileStore = {
+  fullName: string;
+  preferredEmail: string;
+  icloudEmail: string;
+  roleHeadline: string;
+  location: string;
+  workdayRole: SimulationRole;
+  isPeopleManager: boolean;
+  jobTitle: string;
+  department: string;
+  setProfile: (updates: Partial<Omit<ProfileStore, 'setProfile'>>) => void;
 };
 
 export const useProfileStore = create<ProfileStore>()(
   persist(
     (set) => ({
-      firstName: '',
-      lastName: '',
-      avatarColor: '#0078d4',
-      acceptedJob: null,
-
-      setProfile: (firstName, lastName) => set({ firstName, lastName }),
-      setAvatarColor: (avatarColor) => set({ avatarColor }),
-      setAcceptedJob: (acceptedJob) => set({ acceptedJob }),
+      fullName: 'Workspace User',
+      preferredEmail: 'user@workspace.aos',
+      icloudEmail: 'user@icloud.com',
+      roleHeadline: 'Software Professional · aOS Workspace',
+      location: 'Remote',
+      workdayRole: 'employee',
+      isPeopleManager: false,
+      jobTitle: 'Software Engineer',
+      department: 'Engineering',
+      setProfile: (updates) => set((state) => ({ ...state, ...updates })),
     }),
     { name: 'aos-profile-store' }
   )

@@ -1,343 +1,374 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useHcmStore, type LeaveType, type PermissionContext } from '../../../state/useHcmStore';
 import { useProfileStore } from '../../../state/useProfileStore';
 
-const DAYS = ['Mon','Tue','Wed','Thu','Fri'];
+type WorkdayPage =
+  | 'home'
+  | 'me-profile'
+  | 'me-time'
+  | 'me-pay'
+  | 'me-documents'
+  | 'me-leave'
+  | 'me-calendar'
+  | 'team-timesheets'
+  | 'team-leave'
+  | 'team-directory'
+  | 'hr-core'
+  | 'hr-recruiting'
+  | 'hr-onboarding'
+  | 'hr-compliance'
+  | 'payroll-runs'
+  | 'payroll-adjustments'
+  | 'payroll-statements'
+  | 'admin-org'
+  | 'admin-roles'
+  | 'admin-audit'
+  | 'admin-settings';
 
-type WdTab = 'home' | 'time' | 'pay' | 'benefits' | 'directory';
+type NavItem = {
+  label: string;
+  route?: WorkdayPage;
+  children?: NavItem[];
+  visible: (ctx: PermissionContext) => boolean;
+};
 
-function formatComp(n: number) {
-  return `$${(n / 26).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+const LEAVE_TYPES: LeaveType[] = ['PTO', 'SICK', 'UNPAID', 'BEREAVEMENT', 'JURY DUTY', 'PARENTAL'];
+
+function DataTable({ headers, rows }: { headers: string[]; rows: Array<Array<string | number | JSX.Element>> }) {
+  return (
+    <div className="hcm-table-wrap">
+      <table className="hcm-table">
+        <thead><tr>{headers.map((h) => <th key={h}>{h}</th>)}</tr></thead>
+        <tbody>{rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={`${i}-${j}`}>{c}</td>)}</tr>)}</tbody>
+      </table>
+    </div>
+  );
 }
 
-function nextPayDate(): string {
-  const d = new Date();
-  d.setDate(d.getDate() + (d.getDate() <= 15 ? 15 - d.getDate() : 30 - d.getDate() + 1));
-  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+function getNavConfig(): NavItem[] {
+  return [
+    { label: 'Home', route: 'home', visible: () => true },
+    {
+      label: 'Me',
+      visible: () => true,
+      children: [
+        { label: 'Profile', route: 'me-profile', visible: () => true },
+        { label: 'Time', route: 'me-time', visible: () => true },
+        { label: 'Pay', route: 'me-pay', visible: () => true },
+        { label: 'Documents', route: 'me-documents', visible: () => true },
+        { label: 'Leave', route: 'me-leave', visible: () => true },
+        { label: 'Calendar', route: 'me-calendar', visible: () => true },
+      ],
+    },
+    {
+      label: 'Team',
+      visible: (ctx) => ctx.isManager,
+      children: [
+        { label: 'Team Timesheets', route: 'team-timesheets', visible: (ctx) => ctx.canApproveTeamTime },
+        { label: 'Team Leave', route: 'team-leave', visible: (ctx) => ctx.canApproveTeamLeave },
+        { label: 'Team Directory', route: 'team-directory', visible: (ctx) => ctx.isManager },
+      ],
+    },
+    {
+      label: 'HR',
+      visible: (ctx) => ctx.canAccessHR,
+      children: [
+        { label: 'Core HR', route: 'hr-core', visible: (ctx) => ctx.canAccessHR },
+        { label: 'Recruiting', route: 'hr-recruiting', visible: (ctx) => ctx.canAccessHR },
+        { label: 'Onboarding', route: 'hr-onboarding', visible: (ctx) => ctx.canAccessHR },
+        { label: 'Compliance', route: 'hr-compliance', visible: (ctx) => ctx.canAccessHR },
+      ],
+    },
+    {
+      label: 'Payroll',
+      visible: (ctx) => ctx.canAccessPayroll,
+      children: [
+        { label: 'Payroll Runs', route: 'payroll-runs', visible: (ctx) => ctx.canAccessPayroll },
+        { label: 'Adjustments', route: 'payroll-adjustments', visible: (ctx) => ctx.canAccessPayroll },
+        { label: 'Statements', route: 'payroll-statements', visible: (ctx) => ctx.canAccessPayroll },
+      ],
+    },
+    {
+      label: 'Admin',
+      visible: (ctx) => ctx.roleFlags.canAccessAdmin,
+      children: [
+        { label: 'Org Structure', route: 'admin-org', visible: (ctx) => ctx.roleFlags.canAccessAdmin },
+        { label: 'Roles', route: 'admin-roles', visible: (ctx) => ctx.roleFlags.canAccessAdmin },
+        { label: 'Audit Trail', route: 'admin-audit', visible: (ctx) => ctx.roleFlags.canAccessAdmin },
+        { label: 'Settings', route: 'admin-settings', visible: (ctx) => ctx.roleFlags.canAccessAdmin },
+      ],
+    },
+  ];
 }
 
-function getWeekDates(): string[] {
-  const d = new Date();
-  const mon = new Date(d);
-  mon.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-  return DAYS.map((_, i) => {
-    const day = new Date(mon);
-    day.setDate(mon.getDate() + i);
-    return day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  });
+function visibleRoutes(nav: NavItem[], ctx: PermissionContext): WorkdayPage[] {
+  const out: WorkdayPage[] = [];
+  for (const item of nav) {
+    if (!item.visible(ctx)) continue;
+    if (item.route) out.push(item.route);
+    if (item.children) {
+      for (const c of item.children) {
+        if (c.visible(ctx) && c.route) out.push(c.route);
+      }
+    }
+  }
+  return out;
 }
 
 export function WorkdaySite() {
-  const { firstName, lastName, acceptedJob } = useProfileStore();
-  const [tab, setTab] = useState<WdTab>('home');
-  const [timeEntries, setTimeEntries] = useState<Record<string, { in: string; out: string }>>({});
-  const [benefitEnrolled, setBenefitEnrolled] = useState<Record<string, boolean>>({});
+  const {
+    fullName,
+    preferredEmail,
+    location,
+    workdayRole,
+    isPeopleManager,
+    jobTitle,
+    department,
+  } = useProfileStore();
 
-  const displayName = firstName && lastName ? `${firstName} ${lastName}` : 'Employee';
-  const weekDates = getWeekDates();
+  const syncSimulationUser = useHcmStore((s) => s.syncSimulationUser);
+  const getPermissionContext = useHcmStore((s) => s.getPermissionContext);
+  const employees = useHcmStore((s) => s.employees);
+  const timesheets = useHcmStore((s) => s.timesheets);
+  const leaveRequests = useHcmStore((s) => s.leaveRequests);
+  const payStubs = useHcmStore((s) => s.payStubs);
+  const documents = useHcmStore((s) => s.documents);
+  const calendarItems = useHcmStore((s) => s.calendarItems);
+  const users = useHcmStore((s) => s.users);
+  const auditEvents = useHcmStore((s) => s.auditEvents);
+  const submitTimesheet = useHcmStore((s) => s.submitTimesheet);
+  const requestLeave = useHcmStore((s) => s.requestLeave);
+  const approveTimesheet = useHcmStore((s) => s.approveTimesheet);
+  const approveLeave = useHcmStore((s) => s.approveLeave);
 
-  if (!acceptedJob) {
-    return (
-      <div className="wd-shell wd-login">
-        <div className="wd-login-card">
-          <div className="wd-workday-logo">
-            <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-              <circle cx="18" cy="18" r="18" fill="#f68220"/>
-              <text x="18" y="24" textAnchor="middle" fontSize="16" fontWeight="bold" fill="white" fontFamily="Arial">W</text>
-            </svg>
-            <span className="wd-login-brand">Workday</span>
-          </div>
-          <div className="wd-login-title">Sign in to your organization</div>
-          <input className="wd-input" placeholder="Work email" type="email" defaultValue="employee@company.com" />
-          <input className="wd-input" placeholder="Password" type="password" defaultValue="••••••••" />
-          <button type="button" className="wd-login-btn">Sign In</button>
-          <p className="wd-login-note">Accept a job offer in Outlook to activate your Workday account.</p>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    syncSimulationUser({
+      fullName,
+      preferredEmail,
+      location,
+      roleType: workdayRole,
+      isPeopleManager,
+      jobTitle,
+      department,
+    });
+  }, [syncSimulationUser, fullName, preferredEmail, location, workdayRole, isPeopleManager, jobTitle, department]);
 
-  const job = acceptedJob;
-  const employeeEmail = firstName && lastName
-    ? `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${job.domain}`
-    : `employee@${job.domain}`;
-  const managerEmail = job.managerName.toLowerCase().replace(' ', '.') + `@${job.domain}`;
-  const isFullTime = job.salary.includes('K') && !['Contract'].includes('Contract'); // all jobs are effectively shown as active
-  const biweeklyPay = job.compensation / 26;
+  const permissionCtx = getPermissionContext();
+  const nav = useMemo(() => getNavConfig(), []);
+  const allowedRoutes = useMemo(() => visibleRoutes(nav, permissionCtx), [nav, permissionCtx]);
 
-  const clockIn = (day: string) => {
-    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setTimeEntries((p) => ({ ...p, [day]: { in: now, out: p[day]?.out ?? '' } }));
-  };
-  const clockOut = (day: string) => {
-    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setTimeEntries((p) => ({ ...p, [day]: { in: p[day]?.in ?? '', out: now } }));
-  };
+  const [page, setPage] = useState<WorkdayPage>('home');
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({ Me: true, Team: true });
+  const [hoursInput, setHoursInput] = useState(40);
+  const [leaveType, setLeaveType] = useState<LeaveType>('PTO');
+  const [leaveHours, setLeaveHours] = useState(8);
+  const [leaveStart, setLeaveStart] = useState('2026-03-18');
+  const [leaveEnd, setLeaveEnd] = useState('2026-03-18');
+  const [leaveReason, setLeaveReason] = useState('Personal time');
 
-  const totalHours = Object.values(timeEntries).reduce((sum, e) => {
-    if (!e.in || !e.out) return sum;
-    const [ih, im] = e.in.split(':').map(Number);
-    const [oh, om] = e.out.split(':').map(Number);
-    return sum + (oh * 60 + om - (ih * 60 + im)) / 60;
-  }, 0);
+  useEffect(() => {
+    if (!allowedRoutes.includes(page)) setPage(allowedRoutes[0] ?? 'home');
+  }, [allowedRoutes, page]);
 
-  const tabs: { id: WdTab; label: string }[] = [
-    { id: 'home', label: 'Home' },
-    { id: 'time', label: 'Time & Absence' },
-    { id: 'pay', label: 'Pay' },
-    { id: 'benefits', label: 'Benefits' },
-    { id: 'directory', label: 'Directory' },
-  ];
+  const me = permissionCtx.currentUser;
+  const myEmployee = permissionCtx.employeeProfile;
 
-  const benefits = [
-    { id: 'medical', name: 'Medical Insurance', plan: `${job.company} Premium PPO`, provider: 'BlueCross BlueShield', employee: '$82/mo', employer: 'Covered 80%' },
-    { id: 'dental', name: 'Dental Insurance', plan: 'Delta Dental Complete', provider: 'Delta Dental', employee: '$14/mo', employer: 'Covered 75%' },
-    { id: 'vision', name: 'Vision Insurance', plan: 'VSP Choice Plus', provider: 'VSP', employee: '$6/mo', employer: 'Covered 80%' },
-    { id: '401k', name: '401(k) Retirement', plan: 'Traditional + Roth options', provider: 'Fidelity Investments', employee: 'Up to IRS limit', employer: '4% match' },
-    { id: 'life', name: 'Life Insurance', plan: '2× Annual Salary', provider: 'MetLife', employee: '$0 (employer-paid)', employer: 'Fully covered' },
-  ];
+  const myTimesheets = timesheets.filter((t) => t.employeeId === myEmployee.id);
+  const myLeave = leaveRequests.filter((l) => l.employeeId === myEmployee.id);
+  const myPay = payStubs.filter((p) => p.employeeId === myEmployee.id);
+  const myDocuments = documents.filter((d) => d.employeeId === myEmployee.id);
+  const myCalendar = calendarItems.filter((c) => c.employeeId === myEmployee.id);
+  const directReports = employees.filter((e) => e.managerEmployeeId === myEmployee.id);
+  const directReportIds = new Set(directReports.map((d) => d.id));
+  const teamTimesheets = permissionCtx.canApproveTeamTime ? timesheets.filter((t) => directReportIds.has(t.employeeId)) : [];
+  const teamLeave = permissionCtx.canApproveTeamLeave ? leaveRequests.filter((l) => directReportIds.has(l.employeeId)) : [];
 
   return (
-    <div className="wd-shell">
-      {/* Header */}
-      <header className="wd-header">
-        <div className="wd-logo">
-          <svg width="26" height="26" viewBox="0 0 36 36" fill="none">
-            <circle cx="18" cy="18" r="18" fill="#f68220"/>
-            <text x="18" y="24" textAnchor="middle" fontSize="16" fontWeight="bold" fill="white" fontFamily="Arial">W</text>
-          </svg>
-          <span className="wd-brand">Workday</span>
+    <div className="hcm-shell">
+      <aside className="hcm-sidebar">
+        <div className="hcm-logo">Workday</div>
+        <div className="hcm-subtitle">Workforce Portal</div>
+        {nav.filter((n) => n.visible(permissionCtx)).map((n) => {
+          if (!n.children) {
+            return (
+              <button key={n.label} type="button" className={page === n.route ? 'active' : ''} onClick={() => n.route && setPage(n.route)}>{n.label}</button>
+            );
+          }
+          const open = expanded[n.label] ?? false;
+          const children = n.children.filter((c) => c.visible(permissionCtx));
+          if (children.length === 0) return null;
+          return (
+            <div key={n.label} className="hcm-nav-group" onMouseEnter={() => setExpanded((p) => ({ ...p, [n.label]: true }))}>
+              <button type="button" className="hcm-nav-group-btn" onClick={() => setExpanded((p) => ({ ...p, [n.label]: !open }))}>{n.label}</button>
+              {open && (
+                <div className="hcm-subnav">
+                  {children.map((c) => (
+                    <button key={c.label} type="button" className={page === c.route ? 'active' : ''} onClick={() => c.route && setPage(c.route)}>{c.label}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </aside>
+
+      <section className="hcm-main">
+        <header className="hcm-topbar">
+          <input placeholder="Search my workday tasks, documents, and requests" />
+          <div className="hcm-top-right">
+            <span className="hcm-pill">{fullName}</span>
+            <span className="hcm-pill">{myEmployee.jobTitle}</span>
+          </div>
+        </header>
+
+        <div className="hcm-header">
+          <h2>Workday — {page.replace(/-/g, ' ')}</h2>
+          <p>{myEmployee.department} · {myEmployee.location} · Worker ID {myEmployee.workerId}</p>
         </div>
-        <nav className="wd-nav">
-          {tabs.map((t) => (
-            <button key={t.id} type="button" className={`wd-nav-btn${tab === t.id ? ' active' : ''}`} onClick={() => setTab(t.id)}>
-              {t.label}
-            </button>
-          ))}
-        </nav>
-        <div className="wd-header-right">
-          <div className="wd-user-pill">{displayName.split(' ').map(s => s[0]).join('')}</div>
-        </div>
-      </header>
 
-      <div className="wd-body">
-        {/* Home */}
-        {tab === 'home' && (
-          <div className="wd-home">
-            <div className="wd-welcome">
-              <div className="wd-welcome-name">Welcome back, {firstName || 'Employee'}</div>
-              <div className="wd-welcome-sub">{job.role} · {job.company}</div>
-            </div>
-            <div className="wd-home-grid">
-              <div className="wd-info-card">
-                <div className="wd-info-label">Employee ID</div>
-                <div className="wd-info-value">EMP-{Math.abs(job.jobId.split('').reduce((a, c) => a + c.charCodeAt(0), 0)) % 90000 + 10000}</div>
-              </div>
-              <div className="wd-info-card">
-                <div className="wd-info-label">Department</div>
-                <div className="wd-info-value">Engineering</div>
-              </div>
-              <div className="wd-info-card">
-                <div className="wd-info-label">Work Email</div>
-                <div className="wd-info-value" style={{fontSize:'12px'}}>{employeeEmail}</div>
-              </div>
-              <div className="wd-info-card">
-                <div className="wd-info-label">Manager</div>
-                <div className="wd-info-value" style={{fontSize:'12px'}}>{job.managerName}</div>
-              </div>
-            </div>
-            <div className="wd-action-items">
-              <div className="wd-action-title">Action Items</div>
-              <div className="wd-action-list">
-                <div className="wd-action-item">
-                  <div className="wd-action-dot" style={{background:'#e05c00'}} />
-                  <div>
-                    <div className="wd-action-name">Complete Form I-9</div>
-                    <div className="wd-action-due">Due: First day of employment</div>
-                  </div>
-                </div>
-                <div className="wd-action-item">
-                  <div className="wd-action-dot" style={{background:'#e05c00'}} />
-                  <div>
-                    <div className="wd-action-name">Set Up Direct Deposit</div>
-                    <div className="wd-action-due">Required before first paycheck</div>
-                  </div>
-                </div>
-                <div className="wd-action-item">
-                  <div className="wd-action-dot" style={{background:'#0078d4'}} />
-                  <div>
-                    <div className="wd-action-name">Enroll in Benefits</div>
-                    <div className="wd-action-due">30-day enrollment window open</div>
-                  </div>
-                </div>
-                <div className="wd-action-item">
-                  <div className="wd-action-dot" style={{background:'#0078d4'}} />
-                  <div>
-                    <div className="wd-action-name">Review Company Handbook</div>
-                    <div className="wd-action-due">Complete within first week</div>
-                  </div>
-                </div>
-                <div className="wd-action-item">
-                  <div className="wd-action-dot" style={{background:'#107c10'}} />
-                  <div>
-                    <div className="wd-action-name">IT Equipment Setup</div>
-                    <div className="wd-action-due">Self-paced onboarding guide</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+        {page === 'home' && (
+          <div className="hcm-grid">
+            <div className="hcm-card"><h3>My pending timesheets</h3><p className="hcm-kpi">{myTimesheets.filter((t) => t.status === 'pending').length}</p></div>
+            <div className="hcm-card"><h3>My pending leave requests</h3><p className="hcm-kpi">{myLeave.filter((l) => l.status === 'pending').length}</p></div>
+            <div className="hcm-card"><h3>My required docs</h3><p className="hcm-kpi">{myDocuments.filter((d) => d.status === 'REQUIRED').length}</p></div>
+            <div className="hcm-card"><h3>Team approvals</h3><p className="hcm-kpi">{permissionCtx.isManager ? teamTimesheets.length + teamLeave.length : 0}</p></div>
           </div>
         )}
 
-        {/* Time */}
-        {tab === 'time' && (
-          <div className="wd-time">
-            <div className="wd-page-title">Time &amp; Absence</div>
-            <div className="wd-timesheet">
-              <div className="wd-timesheet-header">
-                <span className="wd-ts-week">Current Week</span>
-                <span className="wd-ts-total">{totalHours.toFixed(1)} hrs logged</span>
+        {page === 'me-profile' && (
+          <DataTable
+            headers={['Field', 'Value']}
+            rows={[
+              ['Name', myEmployee.displayName],
+              ['Email', myEmployee.email],
+              ['Job Title', myEmployee.jobTitle],
+              ['Department', myEmployee.department],
+              ['Employment Status', myEmployee.employmentStatus.toUpperCase()],
+              ['Manager', employees.find((e) => e.id === myEmployee.managerEmployeeId)?.displayName ?? '-'],
+            ]}
+          />
+        )}
+
+        {page === 'me-time' && (
+          <div className="hcm-stack">
+            <div className="hcm-card">
+              <h3>Submit weekly hours</h3>
+              <div className="hcm-actions">
+                <input type="number" value={hoursInput} onChange={(e) => setHoursInput(Number(e.target.value))} />
+                <button type="button" onClick={() => submitTimesheet(hoursInput)}>Submit Timesheet</button>
               </div>
-              <table className="wd-ts-table">
-                <thead>
-                  <tr>
-                    <th>Day</th><th>Date</th><th>Time In</th><th>Time Out</th><th>Hours</th><th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {DAYS.map((day, i) => {
-                    const entry = timeEntries[day];
-                    let hrs = 0;
-                    if (entry?.in && entry?.out) {
-                      const [ih, im] = entry.in.split(':').map(Number);
-                      const [oh, om] = entry.out.split(':').map(Number);
-                      hrs = (oh * 60 + om - (ih * 60 + im)) / 60;
-                    }
-                    const isToday = new Date().getDay() === (i + 1);
-                    return (
-                      <tr key={day} className={isToday ? 'wd-ts-today' : ''}>
-                        <td className="wd-ts-day">{day}</td>
-                        <td className="wd-ts-date">{weekDates[i]}</td>
-                        <td>{entry?.in || <span className="wd-ts-empty">—</span>}</td>
-                        <td>{entry?.out || <span className="wd-ts-empty">—</span>}</td>
-                        <td>{entry?.in && entry?.out ? hrs.toFixed(1) : '—'}</td>
-                        <td>
-                          <button type="button" className="wd-ts-btn" onClick={() => clockIn(day)} disabled={!!entry?.in}>
-                            In
-                          </button>
-                          <button type="button" className="wd-ts-btn" onClick={() => clockOut(day)} disabled={!entry?.in || !!entry?.out}>
-                            Out
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              <div className="wd-ts-note">Full-time salaried employees are not required to submit timesheets. This view is for your records only.</div>
             </div>
+            <DataTable
+              headers={['Week', 'Total', 'OT', 'Status', 'Approver']}
+              rows={myTimesheets.map((t) => [
+                `${t.weekStart} → ${t.weekEnd}`,
+                t.totalHours,
+                t.overtimeHours,
+                t.status.toUpperCase(),
+                employees.find((e) => e.id === t.approverEmployeeId)?.displayName ?? '-',
+              ])}
+            />
           </div>
         )}
 
-        {/* Pay */}
-        {tab === 'pay' && (
-          <div className="wd-pay">
-            <div className="wd-page-title">Pay</div>
-            <div className="wd-pay-grid">
-              <div className="wd-pay-card wd-pay-next">
-                <div className="wd-pay-card-label">Next Paycheck</div>
-                <div className="wd-pay-amount">{formatComp(job.compensation)}</div>
-                <div className="wd-pay-date">{nextPayDate()}</div>
-                <div className="wd-pay-sub">Gross (before taxes & deductions)</div>
-              </div>
-              <div className="wd-pay-card">
-                <div className="wd-pay-card-label">Annual Base Salary</div>
-                <div className="wd-pay-amount">${job.compensation.toLocaleString()}</div>
-                <div className="wd-pay-sub">Paid bi-weekly (26 pay periods)</div>
-              </div>
-              <div className="wd-pay-card">
-                <div className="wd-pay-card-label">YTD Gross</div>
-                <div className="wd-pay-amount">${Math.round(biweeklyPay * (new Date().getMonth() * 2 + 1)).toLocaleString()}</div>
-                <div className="wd-pay-sub">Year-to-date earnings</div>
+        {page === 'me-leave' && (
+          <div className="hcm-stack">
+            <div className="hcm-card">
+              <h3>Request Leave</h3>
+              <div className="hcm-actions hcm-actions-leave">
+                <select value={leaveType} onChange={(e) => setLeaveType(e.target.value as LeaveType)}>
+                  {LEAVE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <input type="date" value={leaveStart} onChange={(e) => setLeaveStart(e.target.value)} />
+                <input type="date" value={leaveEnd} onChange={(e) => setLeaveEnd(e.target.value)} />
+                <input type="number" value={leaveHours} onChange={(e) => setLeaveHours(Number(e.target.value))} placeholder="Hours" />
+                <input value={leaveReason} onChange={(e) => setLeaveReason(e.target.value)} placeholder="Reason" />
+                <button type="button" onClick={() => requestLeave(leaveType, leaveStart, leaveEnd, leaveHours, leaveReason)}>Submit Leave</button>
               </div>
             </div>
-            <div className="wd-pay-deductions">
-              <div className="wd-pd-title">Estimated Per-Paycheck Deductions</div>
-              <div className="wd-pd-row"><span>Federal Income Tax (est.)</span><span>-${(biweeklyPay * 0.22).toFixed(2)}</span></div>
-              <div className="wd-pd-row"><span>State Income Tax (est.)</span><span>-${(biweeklyPay * 0.05).toFixed(2)}</span></div>
-              <div className="wd-pd-row"><span>Social Security (6.2%)</span><span>-${(biweeklyPay * 0.062).toFixed(2)}</span></div>
-              <div className="wd-pd-row"><span>Medicare (1.45%)</span><span>-${(biweeklyPay * 0.0145).toFixed(2)}</span></div>
-              <div className="wd-pd-row"><span>401(k) Contribution (6%)</span><span>-${(biweeklyPay * 0.06).toFixed(2)}</span></div>
-              <div className="wd-pd-row"><span>Medical / Dental / Vision</span><span>-$102.00</span></div>
-              <div className="wd-pd-row wd-pd-net"><span>Estimated Net Pay</span><span>${(biweeklyPay * 0.6455 - 102).toFixed(2)}</span></div>
-            </div>
+            <DataTable
+              headers={['Type', 'Dates', 'Hours', 'Status', 'Approver']}
+              rows={myLeave.map((l) => [l.type, `${l.startDate} → ${l.endDate}`, l.hours, l.status.toUpperCase(), employees.find((e) => e.id === l.approverEmployeeId)?.displayName ?? '-'])}
+            />
           </div>
         )}
 
-        {/* Benefits */}
-        {tab === 'benefits' && (
-          <div className="wd-benefits">
-            <div className="wd-page-title">Benefits Enrollment</div>
-            <div className="wd-enroll-note">Your 30-day enrollment window is open. Elections take effect on your first day of coverage.</div>
-            {benefits.map((b) => (
-              <div key={b.id} className={`wd-benefit-card${benefitEnrolled[b.id] ? ' enrolled' : ''}`}>
-                <div className="wd-benefit-info">
-                  <div className="wd-benefit-name">{b.name}</div>
-                  <div className="wd-benefit-plan">{b.plan} · {b.provider}</div>
-                  <div className="wd-benefit-cost">
-                    <span>Employee cost: <strong>{b.employee}</strong></span>
-                    <span className="wd-benefit-sep">·</span>
-                    <span>Employer: <strong>{b.employer}</strong></span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className={`wd-enroll-btn${benefitEnrolled[b.id] ? ' enrolled' : ''}`}
-                  onClick={() => setBenefitEnrolled((p) => ({ ...p, [b.id]: !p[b.id] }))}
-                >
-                  {benefitEnrolled[b.id] ? 'Enrolled' : 'Enroll'}
-                </button>
-              </div>
-            ))}
-          </div>
+        {page === 'me-pay' && (
+          <DataTable
+            headers={['Pay Date', 'Gross', 'Deductions', 'Net']}
+            rows={myPay.map((p) => [p.payDate, `$${p.grossUSD.toLocaleString()}`, `$${p.deductionsUSD.toLocaleString()}`, `$${p.netUSD.toLocaleString()}`])}
+          />
         )}
 
-        {/* Directory */}
-        {tab === 'directory' && (
-          <div className="wd-directory">
-            <div className="wd-page-title">Company Directory</div>
-            <div className="wd-dir-grid">
-              <div className="wd-dir-card wd-dir-self">
-                <div className="wd-dir-avatar" style={{background:'#0078d4'}}>{displayName.split(' ').map(s=>s[0]).join('')}</div>
-                <div className="wd-dir-name">{displayName}</div>
-                <div className="wd-dir-title">{job.role}</div>
-                <div className="wd-dir-email">{employeeEmail}</div>
-                <div className="wd-dir-tag">You</div>
-              </div>
-              <div className="wd-dir-card">
-                <div className="wd-dir-avatar" style={{background:'#d13438'}}>{job.managerName.split(' ').map(s=>s[0]).join('')}</div>
-                <div className="wd-dir-name">{job.managerName}</div>
-                <div className="wd-dir-title">Director of Engineering</div>
-                <div className="wd-dir-email">{managerEmail}</div>
-                <div className="wd-dir-tag">Your Manager</div>
-              </div>
-              <div className="wd-dir-card">
-                <div className="wd-dir-avatar" style={{background:'#107c10'}}>HR</div>
-                <div className="wd-dir-name">People Operations</div>
-                <div className="wd-dir-title">HR Department</div>
-                <div className="wd-dir-email">hr@{job.domain}</div>
-                <div className="wd-dir-tag">HR</div>
-              </div>
-              <div className="wd-dir-card">
-                <div className="wd-dir-avatar" style={{background:'#7719aa'}}>IT</div>
-                <div className="wd-dir-name">IT Help Desk</div>
-                <div className="wd-dir-title">Technology Support</div>
-                <div className="wd-dir-email">it@{job.domain}</div>
-                <div className="wd-dir-tag">IT</div>
-              </div>
-            </div>
-          </div>
+        {page === 'me-documents' && (
+          <DataTable headers={['Document', 'Status', 'Due Date']} rows={myDocuments.map((d) => [d.name, d.status, d.dueDate ?? '-'])} />
         )}
-      </div>
+
+        {page === 'me-calendar' && (
+          <DataTable headers={['Date', 'Event', 'Category']} rows={myCalendar.map((c) => [c.date, c.title, c.category])} />
+        )}
+
+        {page === 'team-directory' && permissionCtx.isManager && (
+          <DataTable headers={['Worker', 'Title', 'Department', 'Status']} rows={directReports.map((d) => [d.displayName, d.jobTitle, d.department, d.employmentStatus.toUpperCase()])} />
+        )}
+
+        {page === 'team-timesheets' && permissionCtx.canApproveTeamTime && (
+          <DataTable
+            headers={['Worker', 'Week', 'Hours', 'Status', 'Action']}
+            rows={teamTimesheets.map((t) => [
+              employees.find((e) => e.id === t.employeeId)?.displayName ?? '-',
+              `${t.weekStart} → ${t.weekEnd}`,
+              t.totalHours,
+              t.status.toUpperCase(),
+              t.status === 'pending'
+                ? <div className="hcm-inline-actions"><button type="button" onClick={() => approveTimesheet(t.id, 'approved')}>Approve</button><button type="button" onClick={() => approveTimesheet(t.id, 'rejected')}>Reject</button></div>
+                : 'Finalized',
+            ])}
+          />
+        )}
+
+        {page === 'team-leave' && permissionCtx.canApproveTeamLeave && (
+          <DataTable
+            headers={['Worker', 'Type', 'Dates', 'Hours', 'Status', 'Action']}
+            rows={teamLeave.map((l) => [
+              employees.find((e) => e.id === l.employeeId)?.displayName ?? '-',
+              l.type,
+              `${l.startDate} → ${l.endDate}`,
+              l.hours,
+              l.status.toUpperCase(),
+              l.status === 'pending'
+                ? <div className="hcm-inline-actions"><button type="button" onClick={() => approveLeave(l.id, 'approved')}>Approve</button><button type="button" onClick={() => approveLeave(l.id, 'rejected')}>Reject</button></div>
+                : 'Finalized',
+            ])}
+          />
+        )}
+
+        {page === 'hr-core' && permissionCtx.canAccessHR && (
+          <DataTable
+            headers={['Worker ID', 'Name', 'Title', 'Department', 'Manager', 'Status']}
+            rows={employees.map((e) => [e.workerId, e.displayName, e.jobTitle, e.department, employees.find((m) => m.id === e.managerEmployeeId)?.displayName ?? '-', e.employmentStatus.toUpperCase()])}
+          />
+        )}
+
+        {page === 'hr-recruiting' && permissionCtx.canAccessHR && <div className="hcm-card hcm-stack-card">Recruiting pipeline view available for HR roles.</div>}
+        {page === 'hr-onboarding' && permissionCtx.canAccessHR && <div className="hcm-card hcm-stack-card">Onboarding and offboarding administration for HR roles.</div>}
+        {page === 'hr-compliance' && permissionCtx.canAccessHR && <div className="hcm-card hcm-stack-card">Compliance packet oversight for HR/legal roles.</div>}
+
+        {(page === 'payroll-runs' || page === 'payroll-adjustments' || page === 'payroll-statements') && permissionCtx.canAccessPayroll && (
+          <div className="hcm-card hcm-stack-card">Payroll admin console scoped to authorized payroll roles only.</div>
+        )}
+
+        {page === 'admin-org' && permissionCtx.roleFlags.canAccessAdmin && <div className="hcm-card hcm-stack-card">Admin org structure controls.</div>}
+        {page === 'admin-roles' && permissionCtx.roleFlags.canAccessAdmin && <div className="hcm-card hcm-stack-card">Role and permission set management.</div>}
+        {page === 'admin-settings' && permissionCtx.roleFlags.canAccessAdmin && <div className="hcm-card hcm-stack-card">System settings and module flags.</div>}
+
+        {page === 'admin-audit' && permissionCtx.roleFlags.canAccessAdmin && (
+          <DataTable
+            headers={['At', 'Actor', 'Action', 'Entity', 'Detail']}
+            rows={auditEvents.map((a) => [new Date(a.at).toLocaleString(), users.find((u) => u.id === a.actorUserId)?.displayName ?? a.actorUserId, a.action, `${a.entityType}:${a.entityId}`, a.detail])}
+          />
+        )}
+      </section>
     </div>
   );
 }

@@ -557,7 +557,7 @@ type LinkedInTab = 'feed' | 'jobs' | 'network' | 'profile';
 
 export function LinkedInSite() {
   const { sendEmail } = useMailStore();
-  const { acceptedJob, firstName, lastName } = useProfileStore();
+  const { fullName, preferredEmail, roleHeadline, location } = useProfileStore();
   const [tab, setTab] = useState<LinkedInTab>('jobs');
   const [jobs, setJobs] = useState<Job[]>(() => generateJobs(INITIAL_JOB_BATCH));
   const [selectedJobId, setSelectedJobId] = useState<string>('job-0');
@@ -579,10 +579,7 @@ export function LinkedInSite() {
     localStorage.setItem('li_apply_state', JSON.stringify(applyState));
   }, [applyState]);
 
-  // Reset page when filters change
-  useEffect(() => { setPage(0); }, [categoryFilter, typeFilter, searchQuery]);
-
-  const selectedJob = ALL_JOBS.find((j) => j.id === selectedJobId) ?? ALL_JOBS[0];
+  const selectedJob = jobs.find((j) => j.id === selectedJobId) ?? jobs[0] ?? null;
 
   const filteredJobs = useMemo(() => jobs.filter((j) => {
     if (categoryFilter !== 'all' && j.category !== categoryFilter) return false;
@@ -624,9 +621,6 @@ export function LinkedInSite() {
       setSelectedJobId(pagedJobs[0].id);
     }
   }, [pagedJobs, selectedJobId]);
-
-  const totalPages = Math.ceil(filteredJobs.length / JOBS_PER_PAGE);
-  const pagedJobs = filteredJobs.slice(page * JOBS_PER_PAGE, (page + 1) * JOBS_PER_PAGE);
 
   const applyToJob = (job: Job) => {
     setApplyState((prev) => ({ ...prev, [job.id]: 'applying' }));
@@ -760,44 +754,33 @@ Talent Acquisition, ${job.company}<br>
 
             {/* Job list */}
             <div className="li-job-list">
-              <div className="li-job-scroll">
-                {pagedJobs.length === 0 ? (
-                  <div className="li-empty">No jobs match your filters.</div>
-                ) : (
-                  pagedJobs.map((job) => {
-                    const state = applyState[job.id] ?? 'idle';
-                    return (
-                      <button
-                        key={job.id}
-                        type="button"
-                        className={`li-job-card${selectedJobId === job.id ? ' active' : ''}`}
-                        onClick={() => setSelectedJobId(job.id)}
-                      >
-                        <div className="li-job-card-top">
-                          <span className="li-job-role">{job.role}</span>
-                          {state === 'applied' && <span className="li-applied-badge">Applied</span>}
-                        </div>
-                        <div className="li-job-company">{job.company}</div>
-                        <div className="li-job-meta">
-                          <span>{job.location}</span>
-                          <span className="li-job-sep">·</span>
-                          <span>{job.type}</span>
-                        </div>
-                        <div className="li-job-salary">{job.salary}</div>
-                        <div className="li-job-posted">{formatPosted(job.postedDays)}</div>
-                      </button>
-                    );
-                  })
-                )}
-              </div>
-              {totalPages > 1 && (
-                <div className="li-pagination">
-                  <button type="button" className="li-page-btn" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0}>‹ Prev</button>
-                  {Array.from({ length: totalPages }, (_, i) => (
-                    <button key={i} type="button" className={`li-page-btn li-page-num${page === i ? ' active' : ''}`} onClick={() => setPage(i)}>{i + 1}</button>
-                  ))}
-                  <button type="button" className="li-page-btn" onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))} disabled={page === totalPages - 1}>Next ›</button>
-                </div>
+              {pagedJobs.length === 0 ? (
+                <div className="li-empty">No jobs match your filters.</div>
+              ) : (
+                pagedJobs.map((job) => {
+                  const state = applyState[job.id] ?? 'idle';
+                  return (
+                    <button
+                      key={job.id}
+                      type="button"
+                      className={`li-job-card${selectedJobId === job.id ? ' active' : ''}`}
+                      onClick={() => setSelectedJobId(job.id)}
+                    >
+                      <div className="li-job-card-top">
+                        <span className="li-job-role">{job.role}</span>
+                        {state === 'applied' && <span className="li-applied-badge">Applied</span>}
+                      </div>
+                      <div className="li-job-company">{job.company}</div>
+                      <div className="li-job-meta">
+                        <span>{job.location}</span>
+                        <span className="li-job-sep">·</span>
+                        <span>{job.type}</span>
+                      </div>
+                      <div className="li-job-salary">{job.salary}</div>
+                      <div className="li-job-posted">{formatPosted(job.postedDays)}</div>
+                    </button>
+                  );
+                })
               )}
             </div>
 
@@ -982,14 +965,12 @@ Talent Acquisition, ${job.company}<br>
             <div className="li-profile-card">
               <div className="li-profile-banner" />
               <div className="li-profile-main">
-                <div className="li-profile-avatar">{firstName ? firstName.charAt(0).toUpperCase() : 'U'}</div>
+                <div className="li-profile-avatar">{(fullName[0] ?? "U").toUpperCase()}</div>
                 <div className="li-profile-info">
-                  <div className="li-profile-name">{firstName && lastName ? `${firstName} ${lastName}` : 'Workspace User'}</div>
-                  <div className="li-profile-headline">
-                    {acceptedJob ? `${acceptedJob.role} · ${acceptedJob.company}` : 'Software Professional · aOS Workspace'}
-                  </div>
-                  <div className="li-profile-location">{acceptedJob?.location ?? 'Remote'}</div>
-                  <div className="li-profile-email">{acceptedJob ? `${(firstName || 'user').toLowerCase()}.${(lastName || '').toLowerCase()}@${acceptedJob.domain}` : 'user@workspace.aos'}</div>
+                  <div className="li-profile-name">{fullName}</div>
+                  <div className="li-profile-headline">{roleHeadline}</div>
+                  <div className="li-profile-location">{location}</div>
+                  <div className="li-profile-email">{preferredEmail}</div>
                 </div>
               </div>
               <div className="li-profile-connections">
