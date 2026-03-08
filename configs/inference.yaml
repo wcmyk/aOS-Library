@@ -1,0 +1,8 @@
+inference:
+  mode: scratch # scratch | finetuned
+  scratch_checkpoint: outputs/checkpoints/best.pt
+  scratch_tokenizer: outputs/tokenizer/tokenizer.json
+  finetuned_base_model: google/gemma-2-2b-it
+  finetuned_adapter_path: outputs/finetuned/adapter
+  finetuned_merged_path: outputs/finetuned/merged
+  use_merged_if_available: true

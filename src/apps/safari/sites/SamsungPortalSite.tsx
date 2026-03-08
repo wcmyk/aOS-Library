@@ -33,9 +33,9 @@ const COLS: TaskStatus[] = ['todo', 'doing', 'review', 'done'];
 const SEVERITY_COLOR: Record<string, string> = { crit: '#d13438', warn: '#e05c00', info: '#0078d4' };
 
 export function SamsungPortalSite() {
-  const { acceptedJob } = useProfileStore();
+  const { jobTitle } = useProfileStore();
   const [taskStatuses, setTaskStatuses] = useState<Record<number, TaskStatus>>({});
-  const role = acceptedJob?.role ?? 'Engineer';
+  const role = jobTitle || 'Engineer';
 
   const tasks = SPRINT_TASKS.map((t) => ({ ...t, status: taskStatuses[t.id] ?? t.status }));
   const move = (id: number, s: TaskStatus) => setTaskStatuses((p) => ({ ...p, [id]: s }));
