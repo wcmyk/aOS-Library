@@ -145,6 +145,7 @@ export function WindowFrame({
         zIndex: frame.zIndex,
       }}
       onMouseDown={() => onFocus(frame.id)}
+      onMouseDownCapture={() => onFocus(frame.id)}
     >
       <div className="window-header" onMouseDown={handleHeaderMouseDown}>
         <div className="traffic-lights">

@@ -157,6 +157,14 @@ export const apps: ShellApp[] = [
     defaultSize: { width: 1200, height: 760 },
   },
   {
+    id: 'rentcafe',
+    name: 'RentCafe',
+    icon: `${BASE_URL}assets/apps/Sanctum.png`,
+    description: 'Property, lease, rent, and maintenance management portal',
+    accent: '#0b4ea2',
+    defaultSize: { width: 1100, height: 700 },
+  },
+  {
     id: 'appcenter',
     name: 'App Center',
     icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='ag' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23667eea'/%3E%3Cstop offset='1' stop-color='%23764ba2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23ag)'/%3E%3Crect x='12' y='12' width='18' height='18' rx='5' fill='white' opacity='0.9'/%3E%3Crect x='34' y='12' width='18' height='18' rx='5' fill='white' opacity='0.9'/%3E%3Crect x='12' y='34' width='18' height='18' rx='5' fill='white' opacity='0.9'/%3E%3Crect x='34' y='34' width='18' height='18' rx='5' fill='white' opacity='0.9'/%3E%3C/svg%3E`,

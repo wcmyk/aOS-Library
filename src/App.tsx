@@ -22,6 +22,7 @@ const VirtueApp = lazy(() => import('./apps/virtue/VirtueApp').then((m) => ({ de
 const BankingApp = lazy(() => import('./apps/banking/BankingApp').then((m) => ({ default: m.BankingApp })));
 const RealtorApp = lazy(() => import('./apps/realtor/RealtorApp').then((m) => ({ default: m.RealtorApp })));
 const AppCenterApp = lazy(() => import('./apps/appcenter/AppCenterApp').then((m) => ({ default: m.AppCenterApp })));
+const RentCafeApp = lazy(() => import('./apps/rentcafe/RentCafeApp').then((m) => ({ default: m.RentCafeApp })));
 
 const artifacts = [
   { title: 'Roadmap.md', kind: 'Report', updated: '2h ago', detail: 'Phase 1 delivery outline', accent: '#7c8cff' },
@@ -118,6 +119,7 @@ function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDoc
   if (window.appId === 'banking') return <Suspense fallback={null}><BankingApp /></Suspense>;
   if (window.appId === 'realtor') return <Suspense fallback={null}><RealtorApp /></Suspense>;
   if (window.appId === 'appcenter') return <Suspense fallback={null}><AppCenterApp /></Suspense>;
+  if (window.appId === 'rentcafe') return <Suspense fallback={null}><RentCafeApp /></Suspense>;
 
   if (window.appId === 'archive') return <Suspense fallback={null}><AccelApp /></Suspense>;
   if (window.appId === 'oracle') return <Suspense fallback={null}><OracleApp /></Suspense>;
