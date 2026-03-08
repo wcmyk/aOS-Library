@@ -108,24 +108,7 @@ function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDoc
     );
   }
 
-  if (window.appId === 'agent-console') {
-    return (
-      <div className="window-grid">
-        <div className="card">
-          <div className="card-title">Recent Commands</div>
-          <div className="card-subtitle">Open Sanctum, Open Safari, Play Focus Flow</div>
-        </div>
-        <div className="card">
-          <div className="card-title">Agent Activity</div>
-          {agentLog.map((entry) => (
-            <div key={entry.time} className="card-subtitle" style={{ marginBottom: 6 }}>
-              <strong>{entry.time}</strong> — {entry.text}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  if (window.appId === 'neural') return <Suspense fallback={null}><NeuralApp /></Suspense>;
 
   if (window.appId === 'archive') return <Suspense fallback={null}><AccelApp /></Suspense>;
   if (window.appId === 'oracle') return <Suspense fallback={null}><OracleApp /></Suspense>;
