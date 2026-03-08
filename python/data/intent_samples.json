@@ -1,0 +1,17 @@
+[
+  {"text":"What is your company culture like?", "label":"culture"},
+  {"text":"How does management handle blockers?", "label":"management"},
+  {"text":"Tell me about the company mission", "label":"company"},
+  {"text":"Can we reprioritize my work for this sprint?", "label":"prioritization"},
+  {"text":"Is drug use allowed at work?", "label":"policy"},
+  {"text":"Can I smoke during office hours?", "label":"policy"},
+  {"text":"What are the workplace conduct rules?", "label":"policy"},
+  {"text":"How should I plan tasks when deadlines conflict?", "label":"prioritization"},
+  {"text":"Need help balancing tickets and urgent asks", "label":"prioritization"},
+  {"text":"How do leaders run one on ones?", "label":"management"},
+  {"text":"How do you manage team accountability?", "label":"management"},
+  {"text":"What does this company build?", "label":"company"},
+  {"text":"What products does the company focus on?", "label":"company"},
+  {"text":"Describe day to day culture", "label":"culture"},
+  {"text":"How collaborative is the environment?", "label":"culture"}
+]

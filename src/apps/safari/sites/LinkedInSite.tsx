@@ -558,6 +558,8 @@ type LinkedInTab = 'feed' | 'jobs' | 'network' | 'profile';
 export function LinkedInSite() {
   const { sendEmail } = useMailStore();
   const { fullName, preferredEmail, roleHeadline, location } = useProfileStore();
+  const emails = useMailStore((s) => s.emails);
+  const acceptedJob = useMemo(() => emails.find((e) => e.jobMeta?.stage === 'onboarding')?.jobMeta, [emails]);
   const [tab, setTab] = useState<LinkedInTab>('jobs');
   const [jobs, setJobs] = useState<Job[]>(() => generateJobs(INITIAL_JOB_BATCH));
   const [selectedJobId, setSelectedJobId] = useState<string>('job-0');
