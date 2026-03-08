@@ -10,29 +10,7 @@ type Agent = {
   desc: string;
 };
 
-type Message = {
-  role: 'user' | 'agent';
-  text: string;
-};
-
-type TrainingStats = {
-  epochs: number;
-  loss: number;
-  accuracy: number;
-  tokens: number;
-  vocab: number;
-};
-
-type LanguageModel = {
-  unigram: Record<string, number>;
-  bigram: Record<string, Record<string, number>>;
-  starts: string[];
-  tokenCount: number;
-  vocabSize: number;
-};
-
-const PROFILE_TRIGGER = 'active&&&%%%';
-const ASSETS_BASE = `${import.meta.env.BASE_URL}assets/neural/`;
+type Message = { role: 'user' | 'agent'; text: string };
 
 const AGENTS: Agent[] = [
   { id: 'math', name: 'Axiom', icon: '∑', color: '#8b5cf6', desc: 'Math reasoning and problem solving' },
@@ -41,34 +19,6 @@ const AGENTS: Agent[] = [
   { id: 'general', name: 'Orbit', icon: '◉', color: '#34d399', desc: 'General knowledge and everyday tasks' },
   { id: 'science', name: 'Nova', icon: '⚗', color: '#f472b6', desc: 'Science research and technical analysis' },
 ];
-
-const AGENT_CORPUS: Record<AgentId, string[]> = {
-  math: [
-    'To solve an equation, isolate variables and verify each algebraic transformation keeps equality intact.',
-    'Proof strategy depends on structure. Direct proof, contradiction, and induction are all useful tools.',
-    'For optimization, define constraints clearly and test boundary behavior before relying on calculus alone.',
-  ],
-  automation: [
-    'Reliable workflows separate triggering, validation, execution, and retry behavior.',
-    'Idempotent jobs and queue based processing reduce failure amplification in distributed systems.',
-    'Observability matters: collect latency, error rate, and throughput metrics for each workflow stage.',
-  ],
-  coding: [
-    'Strong code starts with clear interfaces, typed boundaries, and focused modules with single purpose.',
-    'Debugging is faster when you reproduce minimal failing cases and inspect state transitions deterministically.',
-    'Performance work should begin with measurement, then targeted optimization, then regression tests.',
-  ],
-  general: [
-    'Useful answers combine a direct recommendation, rationale, and practical next steps.',
-    'Tradeoffs often matter more than absolute choices, especially under time and resource constraints.',
-    'Good communication mirrors user goals, constraints, and the expected level of detail.',
-  ],
-  science: [
-    'Scientific reasoning starts with hypotheses, controlled variables, and measurable outcomes.',
-    'Interpret results with uncertainty in mind and avoid overclaiming from small sample sizes.',
-    'Reproducibility requires explicit methods, clear assumptions, and transparent data handling.',
-  ],
-};
 
 const emptyConversations: Record<AgentId, Message[]> = {
   math: [],
@@ -232,101 +182,72 @@ function computeStats(dataset: string[], model: LanguageModel, epochs: number): 
 export function NeuralApp() {
   const [activeAgentId, setActiveAgentId] = useState<AgentId>('general');
   const [conversations, setConversations] = useState<Record<AgentId, Message[]>>(emptyConversations);
-  const [datasets, setDatasets] = useState<Record<AgentId, string[]>>(AGENT_CORPUS);
-  const [models, setModels] = useState<Record<AgentId, LanguageModel>>({
-    math: trainLanguageModel(AGENT_CORPUS.math),
-    automation: trainLanguageModel(AGENT_CORPUS.automation),
-    coding: trainLanguageModel(AGENT_CORPUS.coding),
-    general: trainLanguageModel(AGENT_CORPUS.general),
-    science: trainLanguageModel(AGENT_CORPUS.science),
-  });
-  const [epochsByAgent, setEpochsByAgent] = useState<Record<AgentId, number>>({
-    math: 1,
-    automation: 1,
-    coding: 1,
-    general: 1,
-    science: 1,
-  });
-  const [profileImages, setProfileImages] = useState<Record<AgentId, string>>({ math: '', automation: '', coding: '', general: '', science: '' });
   const [typing, setTyping] = useState(false);
   const [input, setInput] = useState('');
+  const [temperature, setTemperature] = useState(0.8);
+  const [topK, setTopK] = useState(40);
+  const [topP, setTopP] = useState(0.9);
+  const [maxTokens, setMaxTokens] = useState(120);
+  const [apiStatus, setApiStatus] = useState<'unknown' | 'ok' | 'down'>('unknown');
   const endRef = useRef<HTMLDivElement>(null);
 
   const activeAgent = useMemo(() => AGENTS.find((a) => a.id === activeAgentId) ?? AGENTS[0], [activeAgentId]);
   const messages = conversations[activeAgentId] ?? [];
-  const stats = useMemo(
-    () => computeStats(datasets[activeAgentId], models[activeAgentId], epochsByAgent[activeAgentId]),
-    [activeAgentId, datasets, models, epochsByAgent]
-  );
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, typing]);
 
-  const sendMessage = () => {
+  useEffect(() => {
+    fetch('http://localhost:8000/health')
+      .then((r) => r.json())
+      .then((d) => setApiStatus(d?.ok ? 'ok' : 'down'))
+      .catch(() => setApiStatus('down'));
+  }, []);
+
+  const sendMessage = async () => {
     const text = input.trim();
     if (!text || typing) return;
-
-    const triggerIdx = text.toLowerCase().indexOf(PROFILE_TRIGGER.toLowerCase());
-    if (triggerIdx !== -1) {
-      const filename = text.slice(triggerIdx + PROFILE_TRIGGER.length).trim();
-      const imagePath = filename ? `${ASSETS_BASE}${filename}` : '';
-
-      setProfileImages((prev) => ({ ...prev, [activeAgentId]: imagePath }));
-      setConversations((prev) => ({
-        ...prev,
-        [activeAgentId]: [
-          ...prev[activeAgentId],
-          { role: 'user', text },
-          {
-            role: 'agent',
-            text: filename
-              ? `Updated profile image for ${activeAgent.name} to ${filename}.`
-              : `Reset ${activeAgent.name} profile image to default icon.`,
-          },
-        ],
-      }));
-      setInput('');
-      return;
-    }
 
     setConversations((prev) => ({ ...prev, [activeAgentId]: [...prev[activeAgentId], { role: 'user', text }] }));
     setInput('');
     setTyping(true);
 
-    window.setTimeout(() => {
-      const model = models[activeAgentId];
-      const dataset = datasets[activeAgentId];
-      const response = buildReply(activeAgent, text, model, dataset);
+    try {
+      const prompt = `[Agent:${activeAgent.name}] ${activeAgent.desc}\n${text}`;
+      const res = await fetch('http://localhost:8000/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: prompt,
+          temperature,
+          top_k: topK,
+          top_p: topP,
+          max_new_tokens: maxTokens,
+        }),
+      });
 
-      const trainingLine = `User: ${text} Agent: ${response}`;
-      const nextDataset = [...dataset, trainingLine];
-      const nextModel = trainLanguageModel(nextDataset);
+      const payload = await res.json();
+      if (!res.ok) {
+        throw new Error(payload?.detail || 'Chat request failed');
+      }
 
-      setConversations((prev) => ({ ...prev, [activeAgentId]: [...prev[activeAgentId], { role: 'agent', text: response }] }));
-      setDatasets((prev) => ({ ...prev, [activeAgentId]: nextDataset }));
-      setModels((prev) => ({ ...prev, [activeAgentId]: nextModel }));
-      setEpochsByAgent((prev) => ({ ...prev, [activeAgentId]: prev[activeAgentId] + 1 }));
+      setApiStatus('ok');
+      setConversations((prev) => ({
+        ...prev,
+        [activeAgentId]: [...prev[activeAgentId], { role: 'agent', text: payload.reply || '(empty reply)' }],
+      }));
+    } catch (err) {
+      setApiStatus('down');
+      const msg = err instanceof Error ? err.message : 'unknown error';
+      setConversations((prev) => ({
+        ...prev,
+        [activeAgentId]: [...prev[activeAgentId], { role: 'agent', text: `API error: ${msg}` }],
+      }));
+    } finally {
       setTyping(false);
-    }, 650);
+    }
   };
-
-  const runTrainingStep = () => {
-    const dataset = datasets[activeAgentId];
-    const augmentation = [
-      `${activeAgent.name} focuses on ${activeAgent.desc.toLowerCase()}.`,
-      `When uncertain, ${activeAgent.name} asks for constraints and success criteria before final recommendations.`,
-      `${activeAgent.name} response style is concise, practical, and grounded in evidence.`,
-    ];
-    const nextDataset = [...dataset, ...augmentation];
-    const nextModel = trainLanguageModel(nextDataset);
-
-    setDatasets((prev) => ({ ...prev, [activeAgentId]: nextDataset }));
-    setModels((prev) => ({ ...prev, [activeAgentId]: nextModel }));
-    setEpochsByAgent((prev) => ({ ...prev, [activeAgentId]: prev[activeAgentId] + 5 }));
-  };
-
-  const currentImage = profileImages[activeAgentId];
 
   return (
     <div className="neural-shell">
@@ -334,7 +255,7 @@ export function NeuralApp() {
         <div className="neural-logo-mark">🧠</div>
         <div>
           <div className="neural-brand">Neural Studio</div>
-          <div className="neural-sub">Train and chat with 5 specialized agents</div>
+          <div className="neural-sub">Scratch-trained local LM via FastAPI · status: {apiStatus}</div>
         </div>
       </div>
 
@@ -342,9 +263,7 @@ export function NeuralApp() {
         <aside className="neural-agents">
           {AGENTS.map((agent) => (
             <button key={agent.id} className={`neural-agent${agent.id === activeAgentId ? ' active' : ''}`} onClick={() => setActiveAgentId(agent.id)} type="button">
-              <span className="neural-agent-glyph" style={{ background: `${agent.color}22`, color: agent.color }}>
-                {profileImages[agent.id] ? <img src={profileImages[agent.id]} alt={agent.name} /> : agent.icon}
-              </span>
+              <span className="neural-agent-glyph" style={{ background: `${agent.color}22`, color: agent.color }}>{agent.icon}</span>
               <span>
                 <strong>{agent.name}</strong>
                 <small>{agent.desc}</small>
@@ -355,8 +274,8 @@ export function NeuralApp() {
 
         <section className="neural-chat">
           <div className="neural-chat-head">
-            <div className="neural-avatar" style={{ background: currentImage ? 'transparent' : `${activeAgent.color}22` }}>
-              {currentImage ? <img src={currentImage} alt={activeAgent.name} /> : <span style={{ color: activeAgent.color }}>{activeAgent.icon}</span>}
+            <div className="neural-avatar" style={{ background: `${activeAgent.color}22` }}>
+              <span style={{ color: activeAgent.color }}>{activeAgent.icon}</span>
             </div>
             <div>
               <div className="neural-active-title">{activeAgent.name}</div>
@@ -374,23 +293,25 @@ export function NeuralApp() {
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') sendMessage(); }}
+              onKeyDown={(e) => { if (e.key === 'Enter') void sendMessage(); }}
               placeholder={`Message ${activeAgent.name}...`}
               className="neural-input"
             />
-            <button type="button" className="neural-send" onClick={sendMessage}>Send</button>
+            <button type="button" className="neural-send" onClick={() => void sendMessage()}>Send</button>
           </div>
         </section>
 
         <aside className="neural-train">
-          <h4>Training</h4>
-          <div className="neural-stat"><span>Epochs</span><strong>{stats.epochs}</strong></div>
-          <div className="neural-stat"><span>Loss</span><strong>{stats.loss}</strong></div>
-          <div className="neural-stat"><span>Accuracy</span><strong>{stats.accuracy}%</strong></div>
-          <div className="neural-stat"><span>Tokens</span><strong>{(stats.tokens / 1_000_000).toFixed(2)}M</strong></div>
-          <div className="neural-stat"><span>Vocabulary</span><strong>{stats.vocab}</strong></div>
-          <button type="button" className="neural-train-btn" onClick={runTrainingStep}>Run Training Step</button>
-          <p className="neural-hint">Conversation quality improves as each agent trains on your prompts and prior dialogue. Profile switch: <code>active&&&%%% filename.png</code></p>
+          <h4>Generation controls</h4>
+          <div className="neural-stat"><span>Temperature</span><strong>{temperature.toFixed(2)}</strong></div>
+          <input type="range" min="0.1" max="1.5" step="0.05" value={temperature} onChange={(e) => setTemperature(Number(e.target.value))} />
+          <div className="neural-stat"><span>Top-k</span><strong>{topK}</strong></div>
+          <input type="range" min="1" max="100" step="1" value={topK} onChange={(e) => setTopK(Number(e.target.value))} />
+          <div className="neural-stat"><span>Top-p</span><strong>{topP.toFixed(2)}</strong></div>
+          <input type="range" min="0.1" max="1" step="0.05" value={topP} onChange={(e) => setTopP(Number(e.target.value))} />
+          <div className="neural-stat"><span>Max new tokens</span><strong>{maxTokens}</strong></div>
+          <input type="range" min="16" max="256" step="8" value={maxTokens} onChange={(e) => setMaxTokens(Number(e.target.value))} />
+          <p className="neural-hint">Backend expected at <code>http://localhost:8000/chat</code>. Train the scratch model first with scripts in this repo.</p>
         </aside>
       </div>
     </div>

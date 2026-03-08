@@ -1,0 +1,5 @@
+data:
+  source_path: dataset/alpaca_data.json
+  processed_dir: dataset/processed
+  val_ratio: 0.05
+  seed: 42

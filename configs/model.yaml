@@ -1,0 +1,7 @@
+model:
+  context_length: 256
+  d_model: 256
+  n_heads: 4
+  n_layers: 4
+  ff_hidden_dim: 1024
+  dropout: 0.1

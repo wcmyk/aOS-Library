@@ -1,0 +1,4 @@
+tokenizer:
+  vocab_size: 8000
+  min_frequency: 2
+  output_dir: outputs/tokenizer
