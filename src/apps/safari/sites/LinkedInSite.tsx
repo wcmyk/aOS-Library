@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useMailStore, type JobMeta } from '../../../state/useMailStore';
+import { useProfileStore } from '../../../state/useProfileStore';
 
 // ── Seeded random ─────────────────────────────────────────────────────────────
 
@@ -516,12 +517,42 @@ function formatPosted(days: number): string {
   return `${days} days ago`;
 }
 
+// ── Company about blurbs ──────────────────────────────────────────────────────
+
+const COMPANY_ABOUT: Record<Archetype, string[]> = {
+  finance: [
+    'A leading financial services firm with a track record of delivering exceptional returns for institutional and individual clients. We operate across asset management, investment banking, and risk advisory with offices in major financial centers worldwide.',
+    'Founded on a commitment to disciplined investment and rigorous risk management, we serve pension funds, sovereign wealth funds, and family offices. Our culture values intellectual honesty, quantitative precision, and long-term thinking.',
+  ],
+  tech: [
+    'A high-growth technology company building the infrastructure layer for the next generation of digital experiences. We are backed by top-tier venture capital and serve millions of users across 40+ countries.',
+    'We develop cloud-native software solutions that help enterprise teams collaborate, ship faster, and scale securely. Our engineering culture prioritizes technical excellence, autonomy, and continuous learning.',
+  ],
+  consulting: [
+    'A global management consulting firm advising Fortune 500 companies, governments, and nonprofits on their most critical strategic challenges. We combine deep industry expertise with rigorous analytical frameworks.',
+    'Our advisory practice brings together specialists from finance, technology, and operations to deliver transformative outcomes for clients navigating complexity, regulation, and rapid market change.',
+  ],
+  startup: [
+    'A venture-backed startup disrupting an established industry through technology and data-driven innovation. We move fast, take calculated risks, and give our team the autonomy to solve hard problems in novel ways.',
+    'Early-stage company with a strong founding team, early customer traction, and a clear path to market leadership. We offer competitive equity, a lean team, and the rare opportunity to build something from scratch.',
+  ],
+};
+
+function getCompanyAbout(archetype: Archetype, jobId: string): string {
+  const pool = COMPANY_ABOUT[archetype];
+  const rng = seeded(strHash(jobId + 'about'));
+  return pick(pool, rng);
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
+
+const JOBS_PER_PAGE = 8;
 
 type LinkedInTab = 'feed' | 'jobs' | 'network' | 'profile';
 
 export function LinkedInSite() {
   const { sendEmail } = useMailStore();
+  const { acceptedJob, firstName, lastName } = useProfileStore();
   const [tab, setTab] = useState<LinkedInTab>('jobs');
   const [selectedJobId, setSelectedJobId] = useState<string>(ALL_JOBS[0].id);
   const [applyState, setApplyState] = useState<Record<string, 'idle' | 'applying' | 'applied'>>(() => {
@@ -531,10 +562,18 @@ export function LinkedInSite() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [page, setPage] = useState<number>(0);
+  const [connectState, setConnectState] = useState<Record<number, 'idle' | 'pending' | 'connected'>>({});
+  const [messageTarget, setMessageTarget] = useState<number | null>(null);
+  const [messageText, setMessageText] = useState<string>('');
+  const [sentMessages, setSentMessages] = useState<Record<number, string[]>>({});
 
   useEffect(() => {
     localStorage.setItem('li_apply_state', JSON.stringify(applyState));
   }, [applyState]);
+
+  // Reset page when filters change
+  useEffect(() => { setPage(0); }, [categoryFilter, typeFilter, searchQuery]);
 
   const selectedJob = ALL_JOBS.find((j) => j.id === selectedJobId) ?? ALL_JOBS[0];
 
@@ -551,6 +590,9 @@ export function LinkedInSite() {
     }
     return true;
   }), [categoryFilter, typeFilter, searchQuery]);
+
+  const totalPages = Math.ceil(filteredJobs.length / JOBS_PER_PAGE);
+  const pagedJobs = filteredJobs.slice(page * JOBS_PER_PAGE, (page + 1) * JOBS_PER_PAGE);
 
   const applyToJob = (job: Job) => {
     setApplyState((prev) => ({ ...prev, [job.id]: 'applying' }));
@@ -683,33 +725,44 @@ Talent Acquisition, ${job.company}<br>
 
             {/* Job list */}
             <div className="li-job-list">
-              {filteredJobs.length === 0 ? (
-                <div className="li-empty">No jobs match your filters.</div>
-              ) : (
-                filteredJobs.map((job) => {
-                  const state = applyState[job.id] ?? 'idle';
-                  return (
-                    <button
-                      key={job.id}
-                      type="button"
-                      className={`li-job-card${selectedJobId === job.id ? ' active' : ''}`}
-                      onClick={() => setSelectedJobId(job.id)}
-                    >
-                      <div className="li-job-card-top">
-                        <span className="li-job-role">{job.role}</span>
-                        {state === 'applied' && <span className="li-applied-badge">Applied</span>}
-                      </div>
-                      <div className="li-job-company">{job.company}</div>
-                      <div className="li-job-meta">
-                        <span>{job.location}</span>
-                        <span className="li-job-sep">·</span>
-                        <span>{job.type}</span>
-                      </div>
-                      <div className="li-job-salary">{job.salary}</div>
-                      <div className="li-job-posted">{formatPosted(job.postedDays)}</div>
-                    </button>
-                  );
-                })
+              <div className="li-job-scroll">
+                {pagedJobs.length === 0 ? (
+                  <div className="li-empty">No jobs match your filters.</div>
+                ) : (
+                  pagedJobs.map((job) => {
+                    const state = applyState[job.id] ?? 'idle';
+                    return (
+                      <button
+                        key={job.id}
+                        type="button"
+                        className={`li-job-card${selectedJobId === job.id ? ' active' : ''}`}
+                        onClick={() => setSelectedJobId(job.id)}
+                      >
+                        <div className="li-job-card-top">
+                          <span className="li-job-role">{job.role}</span>
+                          {state === 'applied' && <span className="li-applied-badge">Applied</span>}
+                        </div>
+                        <div className="li-job-company">{job.company}</div>
+                        <div className="li-job-meta">
+                          <span>{job.location}</span>
+                          <span className="li-job-sep">·</span>
+                          <span>{job.type}</span>
+                        </div>
+                        <div className="li-job-salary">{job.salary}</div>
+                        <div className="li-job-posted">{formatPosted(job.postedDays)}</div>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+              {totalPages > 1 && (
+                <div className="li-pagination">
+                  <button type="button" className="li-page-btn" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0}>‹ Prev</button>
+                  {Array.from({ length: totalPages }, (_, i) => (
+                    <button key={i} type="button" className={`li-page-btn li-page-num${page === i ? ' active' : ''}`} onClick={() => setPage(i)}>{i + 1}</button>
+                  ))}
+                  <button type="button" className="li-page-btn" onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))} disabled={page === totalPages - 1}>Next ›</button>
+                </div>
               )}
             </div>
 
@@ -755,6 +808,15 @@ Talent Acquisition, ${job.company}<br>
                       </ul>
                     </div>
                     <div className="li-detail-section">
+                      <div className="li-detail-section-title">About {job.company}</div>
+                      <p className="li-detail-text">{getCompanyAbout(job.archetype, job.id)}</p>
+                      <div className="li-company-meta">
+                        <span className="li-company-tag">{job.categoryLabel}</span>
+                        <span className="li-company-tag">{job.companyType}</span>
+                        <span className="li-company-tag">{job.domain}</span>
+                      </div>
+                    </div>
+                    <div className="li-detail-section">
                       <div className="li-detail-section-title">Recruiter</div>
                       <div className="li-recruiter">
                         <span className="li-recruiter-avatar">{job.recruiter.charAt(0)}</span>
@@ -774,21 +836,70 @@ Talent Acquisition, ${job.company}<br>
         {/* ── Network ── */}
         {tab === 'network' && (
           <div className="li-network">
-            <div className="li-network-title">People You May Know</div>
+            <div className="li-network-header">
+              <div className="li-network-title">People You May Know</div>
+              <div className="li-network-stats">
+                <span className="li-network-stat">{Object.values(connectState).filter(s => s === 'connected').length} connections</span>
+                <span className="li-network-stat">{Object.values(connectState).filter(s => s === 'pending').length} pending</span>
+              </div>
+            </div>
             <div className="li-network-grid">
-              {Array.from({ length: 6 }, (_, i) => {
+              {Array.from({ length: 9 }, (_, i) => {
                 const rng = seeded(i * 4211 + 9973);
                 const name = makeName(rng);
                 const company = makeCompany(rng);
                 const cat = pick(CATEGORIES, rng);
                 const role = pick([...ROLE_MAP[cat]], rng);
+                const cs = connectState[i] ?? 'idle';
+                const mutuals = Math.floor(seeded(i * 11 + 7)() * 12) + 1;
                 return (
                   <div key={i} className="li-person-card">
-                    <div className="li-person-avatar">{name.charAt(0)}</div>
+                    <div className="li-person-avatar" style={{background: `hsl(${(i * 47 + 200) % 360}deg 55% 38%)`}}>{name.charAt(0)}</div>
                     <div className="li-person-name">{name}</div>
                     <div className="li-person-role">{role}</div>
                     <div className="li-person-company">{company}</div>
-                    <button type="button" className="li-connect-btn">Connect</button>
+                    <div className="li-person-mutual">{mutuals} mutual connection{mutuals !== 1 ? 's' : ''}</div>
+                    <div className="li-person-actions">
+                      {cs === 'idle' && (
+                        <button type="button" className="li-connect-btn" onClick={() => setConnectState((p) => ({ ...p, [i]: 'pending' }))}>Connect</button>
+                      )}
+                      {cs === 'pending' && (
+                        <button type="button" className="li-connect-btn li-connect-pending" onClick={() => setConnectState((p) => ({ ...p, [i]: 'idle' }))}>Pending ✓</button>
+                      )}
+                      {cs === 'connected' && (
+                        <button type="button" className="li-connect-btn li-connect-done" onClick={() => setMessageTarget(i)}>Message</button>
+                      )}
+                      {cs !== 'connected' && cs !== 'idle' && (
+                        <button type="button" className="li-follow-btn" onClick={() => setConnectState((p) => ({ ...p, [i]: 'connected' }))}>Accept</button>
+                      )}
+                      {cs === 'idle' && (
+                        <button type="button" className="li-follow-btn" onClick={() => setConnectState((p) => ({ ...p, [i]: 'pending' }))}>Follow</button>
+                      )}
+                    </div>
+                    {messageTarget === i && (
+                      <div className="li-message-box">
+                        <textarea
+                          className="li-message-input"
+                          placeholder={`Message ${name.split(' ')[0]}…`}
+                          value={messageText}
+                          onChange={(e) => setMessageText(e.target.value)}
+                          rows={3}
+                        />
+                        <div className="li-message-actions">
+                          <button type="button" className="li-msg-send-btn" onClick={() => {
+                            if (messageText.trim()) {
+                              setSentMessages((p) => ({ ...p, [i]: [...(p[i] ?? []), messageText.trim()] }));
+                              setMessageText('');
+                              setMessageTarget(null);
+                            }
+                          }}>Send</button>
+                          <button type="button" className="li-msg-cancel-btn" onClick={() => setMessageTarget(null)}>Cancel</button>
+                        </div>
+                      </div>
+                    )}
+                    {(sentMessages[i] ?? []).length > 0 && (
+                      <div className="li-sent-badge">✓ Message sent</div>
+                    )}
                   </div>
                 );
               })}
@@ -802,27 +913,53 @@ Talent Acquisition, ${job.company}<br>
             <div className="li-profile-card">
               <div className="li-profile-banner" />
               <div className="li-profile-main">
-                <div className="li-profile-avatar">U</div>
+                <div className="li-profile-avatar">{firstName ? firstName.charAt(0).toUpperCase() : 'U'}</div>
                 <div className="li-profile-info">
-                  <div className="li-profile-name">Workspace User</div>
-                  <div className="li-profile-headline">Software Professional · aOS Workspace</div>
-                  <div className="li-profile-location">Remote</div>
-                  <div className="li-profile-email">user@workspace.aos</div>
+                  <div className="li-profile-name">{firstName && lastName ? `${firstName} ${lastName}` : 'Workspace User'}</div>
+                  <div className="li-profile-headline">
+                    {acceptedJob ? `${acceptedJob.role} · ${acceptedJob.company}` : 'Software Professional · aOS Workspace'}
+                  </div>
+                  <div className="li-profile-location">{acceptedJob?.location ?? 'Remote'}</div>
+                  <div className="li-profile-email">{acceptedJob ? `${(firstName || 'user').toLowerCase()}.${(lastName || '').toLowerCase()}@${acceptedJob.domain}` : 'user@workspace.aos'}</div>
                 </div>
+              </div>
+              <div className="li-profile-connections">
+                <span className="li-profile-conn-count">{Object.values(connectState).filter(s => s === 'connected').length}</span>
+                <span className="li-profile-conn-label"> connections</span>
               </div>
             </div>
             <div className="li-profile-section">
               <div className="li-profile-section-title">About</div>
-              <p className="li-profile-about">Experienced professional working across software engineering, data, and analytical domains. Open to new opportunities in high-impact, fast-paced environments.</p>
+              <p className="li-profile-about">Experienced professional working across software engineering, data, and analytical domains.{acceptedJob ? ` Currently ${acceptedJob.role} at ${acceptedJob.company}.` : ' Open to new opportunities in high-impact, fast-paced environments.'}</p>
             </div>
             <div className="li-profile-section">
               <div className="li-profile-section-title">Experience</div>
-              <div className="li-exp-item">
-                <div className="li-exp-role">Software Engineer</div>
-                <div className="li-exp-company">aOS Workspace · Full-time</div>
-                <div className="li-exp-date">Jan 2023 — Present</div>
-              </div>
+              {acceptedJob ? (
+                <div className="li-exp-item li-exp-current">
+                  <div className="li-exp-role">{acceptedJob.role}</div>
+                  <div className="li-exp-company">{acceptedJob.company} · Full-time</div>
+                  <div className="li-exp-location">{acceptedJob.location}</div>
+                  <div className="li-exp-date">{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} — Present</div>
+                  <div className="li-exp-salary">{acceptedJob.salary}</div>
+                </div>
+              ) : (
+                <div className="li-exp-item">
+                  <div className="li-exp-role">Software Engineer</div>
+                  <div className="li-exp-company">aOS Workspace · Full-time</div>
+                  <div className="li-exp-date">Jan 2023 — Present</div>
+                </div>
+              )}
             </div>
+            {acceptedJob && (
+              <div className="li-profile-section">
+                <div className="li-profile-section-title">Skills</div>
+                <div className="li-skills-list">
+                  {['Problem Solving','Communication','Collaboration','Leadership','Adaptability'].map((s) => (
+                    <span key={s} className="li-skill-tag">{s}</span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

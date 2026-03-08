@@ -2405,7 +2405,12 @@ kbd {
 .vsn-result-card {
   padding: 14px 0;
   border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.1s;
 }
+.vsn-result-card:hover { background: rgba(255,255,255,0.03); padding: 14px 8px; }
+.vsn-result-card.vsn-result-active { background: rgba(79,140,255,0.08); padding: 14px 8px; border-left: 2px solid #4f8cff; }
 .vsn-result-card:last-child { border-bottom: none; }
 .vsn-result-source-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
 .vsn-favicon {
@@ -2857,6 +2862,12 @@ kbd {
 /* Job list */
 .li-job-list {
   border-right: 1px solid rgba(255,255,255,0.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.li-job-scroll {
+  flex: 1;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -2972,3 +2983,503 @@ kbd {
 .li-exp-role { font-size: 13px; font-weight: 600; color: #c8d8f4; }
 .li-exp-company { font-size: 12px; color: #6a7ea8; }
 .li-exp-date { font-size: 11px; color: #3e5478; }
+.li-exp-location { font-size: 11px; color: #5e7399; }
+.li-exp-salary { font-size: 11px; color: #4a9eff; }
+.li-exp-current { border-left: 3px solid #0a66c2; padding-left: 10px; }
+.li-profile-connections { padding: 8px 18px 14px; border-top: 1px solid rgba(255,255,255,0.05); }
+.li-profile-conn-count { font-size: 14px; font-weight: 700; color: #4a9eff; }
+.li-profile-conn-label { font-size: 12px; color: #5e7399; }
+.li-skills-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.li-skill-tag { padding: 4px 10px; border: 1px solid rgba(10,102,194,0.35); border-radius: 999px; font-size: 11px; color: #8aabcc; background: rgba(10,102,194,0.1); }
+
+/* Pagination */
+.li-pagination {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 12px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  background: rgba(11,15,22,0.95);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.li-page-btn {
+  padding: 4px 8px;
+  border-radius: 5px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: none;
+  color: #8899bb;
+  font-size: 11px;
+  cursor: pointer;
+}
+.li-page-btn:hover:not(:disabled) { background: rgba(255,255,255,0.07); color: #c8d8f4; }
+.li-page-btn:disabled { opacity: 0.3; cursor: default; }
+.li-page-num.active { background: #0a66c2; border-color: #0a66c2; color: white; }
+
+/* About company meta */
+.li-company-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.li-company-tag { padding: 3px 8px; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; font-size: 10px; color: #6a7ea8; background: rgba(255,255,255,0.04); }
+
+/* Detail posted */
+.li-detail-posted { font-size: 11px; color: #3e5478; margin-bottom: 14px; }
+
+/* Network enhancements */
+.li-network-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
+.li-network-stats { display: flex; gap: 12px; }
+.li-network-stat { font-size: 11px; color: #4a9eff; }
+.li-person-mutual { font-size: 10px; color: #3e5478; }
+.li-person-actions { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; justify-content: center; }
+.li-connect-btn.li-connect-pending { border-color: rgba(52,211,153,0.4); color: #34d399; }
+.li-connect-btn.li-connect-done { border-color: #0a66c2; background: rgba(10,102,194,0.15); color: #4a9eff; }
+.li-follow-btn { padding: 5px 10px; border: 1px solid rgba(255,255,255,0.12); border-radius: 999px; color: #8899bb; background: none; font-size: 11px; cursor: pointer; }
+.li-follow-btn:hover { background: rgba(255,255,255,0.07); }
+.li-message-box { width: 100%; margin-top: 8px; }
+.li-message-input { width: 100%; background: rgba(20,26,38,0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #b0c4e4; padding: 6px 8px; font-size: 11px; resize: none; outline: none; font-family: inherit; }
+.li-message-actions { display: flex; gap: 6px; margin-top: 4px; }
+.li-msg-send-btn { padding: 4px 12px; border-radius: 999px; background: #0a66c2; color: white; border: none; font-size: 11px; cursor: pointer; }
+.li-msg-cancel-btn { padding: 4px 10px; border-radius: 999px; background: none; border: 1px solid rgba(255,255,255,0.1); color: #6a7ea8; font-size: 11px; cursor: pointer; }
+.li-sent-badge { font-size: 10px; color: #34d399; margin-top: 4px; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   WORKDAY  –  HR dashboard inside Safari
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.wd-shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #1a1a2e;
+  color: #d0d8e8;
+  font-family: inherit;
+  overflow: hidden;
+}
+
+/* Login */
+.wd-login {
+  align-items: center;
+  justify-content: center;
+}
+.wd-login-card {
+  background: rgba(20,24,36,0.95);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 36px 32px;
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.wd-workday-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.wd-login-brand { font-size: 22px; font-weight: 700; color: #f68220; }
+.wd-login-title { font-size: 16px; color: #c0cce0; margin-bottom: 4px; }
+.wd-input {
+  background: rgba(30,36,52,0.9);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  color: #c0cce0;
+  padding: 9px 12px;
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+}
+.wd-input:focus { border-color: #f68220; }
+.wd-login-btn {
+  padding: 10px;
+  background: #f68220;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 4px;
+}
+.wd-login-btn:hover { background: #e07218; }
+.wd-login-note { font-size: 11px; color: #5e7399; text-align: center; margin: 0; }
+
+/* Header */
+.wd-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 20px;
+  height: 52px;
+  background: rgba(16,20,30,0.98);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+.wd-logo { display: flex; align-items: center; gap: 8px; }
+.wd-brand { font-size: 18px; font-weight: 700; color: #f68220; }
+.wd-nav { display: flex; gap: 2px; flex: 1; }
+.wd-nav-btn {
+  padding: 7px 14px;
+  border-radius: 6px;
+  background: none;
+  border: none;
+  color: #7a8ea8;
+  font-size: 13px;
+  cursor: pointer;
+}
+.wd-nav-btn:hover { background: rgba(255,255,255,0.06); color: #c0cce0; }
+.wd-nav-btn.active { background: rgba(246,130,32,0.15); color: #f68220; }
+.wd-header-right { margin-left: auto; }
+.wd-user-pill {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: #f68220;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Body */
+.wd-body { flex: 1; overflow-y: auto; padding: 24px; }
+.wd-page-title { font-size: 20px; font-weight: 700; color: #dce8ff; margin-bottom: 20px; }
+
+/* Home */
+.wd-home { display: flex; flex-direction: column; gap: 20px; }
+.wd-welcome { padding: 20px; background: linear-gradient(135deg, rgba(246,130,32,0.12), rgba(246,130,32,0.04)); border: 1px solid rgba(246,130,32,0.2); border-radius: 10px; }
+.wd-welcome-name { font-size: 22px; font-weight: 700; color: #e8f0ff; }
+.wd-welcome-sub { font-size: 13px; color: #8899bb; margin-top: 4px; }
+.wd-home-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.wd-info-card { background: rgba(20,26,40,0.9); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 14px 16px; }
+.wd-info-label { font-size: 10px; color: #5e7399; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.wd-info-value { font-size: 14px; font-weight: 600; color: #c8d8f4; }
+.wd-action-items { background: rgba(20,26,40,0.9); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 16px; }
+.wd-action-title { font-size: 14px; font-weight: 600; color: #c8d8f4; margin-bottom: 12px; }
+.wd-action-list { display: flex; flex-direction: column; gap: 12px; }
+.wd-action-item { display: flex; align-items: flex-start; gap: 10px; }
+.wd-action-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.wd-action-name { font-size: 13px; color: #c0cce0; font-weight: 500; }
+.wd-action-due { font-size: 11px; color: #5e7399; margin-top: 2px; }
+
+/* Timesheet */
+.wd-time { max-width: 700px; }
+.wd-timesheet { background: rgba(20,26,40,0.9); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; overflow: hidden; }
+.wd-timesheet-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.wd-ts-week { font-size: 14px; font-weight: 600; color: #c8d8f4; }
+.wd-ts-total { font-size: 13px; color: #4a9eff; }
+.wd-ts-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.wd-ts-table th { padding: 10px 14px; text-align: left; color: #5e7399; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.wd-ts-table td { padding: 10px 14px; color: #96aac8; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.wd-ts-today td { background: rgba(246,130,32,0.06); }
+.wd-ts-day { font-weight: 600; color: #c0cce0 !important; }
+.wd-ts-date { color: #5e7399 !important; }
+.wd-ts-empty { color: #3e5478; }
+.wd-ts-btn { padding: 3px 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: none; color: #8899bb; font-size: 11px; cursor: pointer; margin-right: 4px; }
+.wd-ts-btn:hover:not(:disabled) { background: rgba(255,255,255,0.07); color: #c0cce0; }
+.wd-ts-btn:disabled { opacity: 0.3; cursor: default; }
+.wd-ts-note { padding: 12px 16px; font-size: 11px; color: #3e5478; }
+
+/* Pay */
+.wd-pay-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+.wd-pay-card { background: rgba(20,26,40,0.9); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 16px; }
+.wd-pay-next { border-color: rgba(246,130,32,0.25); background: rgba(246,130,32,0.06); }
+.wd-pay-card-label { font-size: 10px; color: #5e7399; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.wd-pay-amount { font-size: 22px; font-weight: 700; color: #e0eaff; }
+.wd-pay-date { font-size: 12px; color: #f68220; margin: 4px 0; }
+.wd-pay-sub { font-size: 11px; color: #5e7399; }
+.wd-pay-deductions { background: rgba(20,26,40,0.9); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 16px; }
+.wd-pd-title { font-size: 14px; font-weight: 600; color: #c8d8f4; margin-bottom: 12px; }
+.wd-pd-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 12px; color: #8899bb; }
+.wd-pd-net { border-top: 2px solid rgba(255,255,255,0.1); border-bottom: none; font-weight: 700; color: #34d399; font-size: 13px; margin-top: 4px; padding-top: 10px; }
+
+/* Benefits */
+.wd-benefits { display: flex; flex-direction: column; gap: 12px; }
+.wd-enroll-note { font-size: 12px; color: #5e7399; padding: 10px 14px; background: rgba(10,102,194,0.08); border: 1px solid rgba(10,102,194,0.2); border-radius: 6px; }
+.wd-benefit-card { background: rgba(20,26,40,0.9); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.wd-benefit-card.enrolled { border-color: rgba(52,211,153,0.3); background: rgba(52,211,153,0.05); }
+.wd-benefit-info { flex: 1; }
+.wd-benefit-name { font-size: 14px; font-weight: 600; color: #c8d8f4; margin-bottom: 3px; }
+.wd-benefit-plan { font-size: 12px; color: #6a7ea8; margin-bottom: 5px; }
+.wd-benefit-cost { font-size: 11px; color: #5e7399; }
+.wd-benefit-sep { margin: 0 6px; opacity: 0.4; }
+.wd-enroll-btn { padding: 7px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.15); background: none; color: #8899bb; font-size: 12px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+.wd-enroll-btn:hover:not(.enrolled) { background: rgba(255,255,255,0.07); color: #c0cce0; }
+.wd-enroll-btn.enrolled { background: rgba(52,211,153,0.15); border-color: rgba(52,211,153,0.35); color: #34d399; }
+
+/* Directory */
+.wd-dir-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.wd-dir-card { background: rgba(20,26,40,0.9); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.wd-dir-self { border-color: rgba(10,102,194,0.3); }
+.wd-dir-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: white; }
+.wd-dir-name { font-size: 13px; font-weight: 600; color: #c8d8f4; }
+.wd-dir-title { font-size: 11px; color: #6a7ea8; }
+.wd-dir-email { font-size: 10px; color: #3e5478; word-break: break-all; }
+.wd-dir-tag { font-size: 10px; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,0.07); color: #5e7399; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VISION  –  In-app reader panel
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.vsn-reader-panel {
+  width: 420px;
+  flex-shrink: 0;
+  border-left: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  flex-direction: column;
+  background: rgba(14,18,28,0.98);
+  overflow: hidden;
+}
+.vsn-reader-header {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.vsn-reader-title { font-size: 12px; font-weight: 600; color: #c8d8f4; }
+.vsn-reader-close {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+  border: none;
+  color: #8899bb;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.vsn-reader-close:hover { background: rgba(255,255,255,0.12); }
+.vsn-reader-url {
+  padding: 6px 14px;
+  font-size: 10px;
+  color: #3e5478;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  word-break: break-all;
+  flex-shrink: 0;
+}
+.vsn-reader-frame {
+  flex: 1;
+  border: none;
+  background: white;
+}
+.vsn-reader-blocked {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  gap: 12px;
+  text-align: center;
+}
+.vsn-reader-blocked-icon { font-size: 32px; opacity: 0.5; }
+.vsn-reader-blocked-msg { font-size: 13px; color: #8899bb; line-height: 1.5; }
+.vsn-reader-open-btn {
+  padding: 8px 20px;
+  background: #4f8cff;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.vsn-reader-open-btn:hover { background: #3a7aee; }
+.vsn-body { display: flex; gap: 0; flex: 1; overflow: hidden; }
+.vsn-main-col { flex: 1; overflow-y: auto; padding: 0 16px 16px; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   NEURAL  –  AI Training / Agent Studio
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.neural-shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #0d1018;
+  color: #d0d8e8;
+  overflow: hidden;
+}
+.neural-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  height: 48px;
+  background: rgba(10,12,20,0.98);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+.neural-logo-mark {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #8b5cf6, #4f8cff);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.neural-brand { font-size: 15px; font-weight: 700; color: #c8d8f4; }
+.neural-header-status { margin-left: auto; font-size: 10px; color: #5e7399; }
+
+.neural-body { display: flex; flex: 1; overflow: hidden; }
+
+/* Sidebar */
+.neural-sidebar {
+  width: 200px;
+  flex-shrink: 0;
+  border-right: 1px solid rgba(255,255,255,0.07);
+  display: flex;
+  flex-direction: column;
+  background: rgba(10,12,20,0.95);
+  overflow-y: auto;
+}
+.neural-sidebar-title { padding: 12px 14px 8px; font-size: 10px; color: #3e5478; text-transform: uppercase; letter-spacing: 0.08em; }
+.neural-agent-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+}
+.neural-agent-btn:hover { background: rgba(255,255,255,0.04); }
+.neural-agent-btn.active { background: rgba(79,140,255,0.1); border-left-color: #4f8cff; }
+.neural-agent-icon {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.neural-agent-info { flex: 1; overflow: hidden; }
+.neural-agent-name { font-size: 12px; font-weight: 600; color: #c8d8f4; }
+.neural-agent-type { font-size: 10px; color: #5e7399; }
+
+/* Chat area */
+.neural-chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.neural-chat-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+  background: rgba(12,15,24,0.98);
+}
+.neural-active-avatar {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.neural-active-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.neural-active-name { font-size: 14px; font-weight: 600; color: #e0eaff; }
+.neural-active-desc { font-size: 11px; color: #5e7399; }
+.neural-profile-hint { margin-left: auto; font-size: 10px; color: #3e5478; font-style: italic; }
+
+.neural-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.neural-msg {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.neural-msg.user { flex-direction: row-reverse; }
+.neural-msg-avatar {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.neural-msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.neural-msg-bubble {
+  max-width: 70%;
+  padding: 9px 13px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.neural-msg.agent .neural-msg-bubble { background: rgba(20,26,42,0.9); border: 1px solid rgba(255,255,255,0.07); color: #c0d0e8; }
+.neural-msg.user .neural-msg-bubble { background: rgba(79,140,255,0.2); border: 1px solid rgba(79,140,255,0.3); color: #d8e8ff; }
+
+.neural-input-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  background: rgba(10,12,20,0.98);
+  flex-shrink: 0;
+}
+.neural-input {
+  flex: 1;
+  background: rgba(20,26,40,0.9);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: #c0cce0;
+  padding: 8px 12px;
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+}
+.neural-input:focus { border-color: rgba(79,140,255,0.5); }
+.neural-send-btn {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  background: #4f8cff;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.neural-send-btn:hover { background: #3a7aee; }
+.neural-send-btn:disabled { background: rgba(79,140,255,0.3); cursor: default; }
+
+/* Training panel */
+.neural-training {
+  width: 200px;
+  flex-shrink: 0;
+  border-left: 1px solid rgba(255,255,255,0.07);
+  background: rgba(10,12,20,0.95);
+  padding: 14px 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.neural-train-title { font-size: 10px; color: #3e5478; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+.neural-train-stat { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 6px; }
+.neural-train-stat-label { color: #5e7399; }
+.neural-train-stat-value { color: #4f8cff; font-weight: 600; }
+.neural-train-bar { height: 5px; border-radius: 999px; background: rgba(255,255,255,0.07); margin-bottom: 12px; }
+.neural-train-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #8b5cf6, #4f8cff); }
+.neural-train-btn {
+  width: 100%;
+  padding: 7px;
+  border-radius: 6px;
+  border: 1px solid rgba(79,140,255,0.3);
+  background: rgba(79,140,255,0.1);
+  color: #4f8cff;
+  font-size: 11px;
+  cursor: pointer;
+}
+.neural-train-btn:hover { background: rgba(79,140,255,0.2); }
+.neural-profile-img-section { border-top: 1px solid rgba(255,255,255,0.07); padding-top: 12px; }
+.neural-profile-img-label { font-size: 10px; color: #3e5478; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+.neural-profile-img-preview { width: 48px; height: 48px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 6px; }
+.neural-profile-img-preview img { width: 100%; height: 100%; object-fit: cover; }
+.neural-profile-img-hint { font-size: 10px; color: #3e5478; line-height: 1.4; }

@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useState, useRef } from 'react';
 
 type SearchResult = {
   title: string;
@@ -106,6 +106,20 @@ function VideoResults({ query }: { query: string }) {
   );
 }
 
+// Domains that block iframe embedding
+const BLOCKED_DOMAINS = [
+  'youtube.com','youtu.be','chat.openai.com','chatgpt.com','openai.com',
+  'twitter.com','x.com','facebook.com','instagram.com','linkedin.com',
+  'reddit.com','netflix.com','amazon.com','google.com','wikipedia.org',
+];
+
+function isLikelyBlocked(url: string): boolean {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, '');
+    return BLOCKED_DOMAINS.some((d) => host === d || host.endsWith('.' + d));
+  } catch { return false; }
+}
+
 export function VisionApp() {
   const [query, setQuery] = useState('');
   const [activeQuery, setActiveQuery] = useState('');
@@ -114,6 +128,14 @@ export function VisionApp() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [tab, setTab] = useState<SearchTab>('all');
+  const [readerUrl, setReaderUrl] = useState<string | null>(null);
+  const [readerTitle, setReaderTitle] = useState<string>('');
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const openInReader = (url: string, title: string) => {
+    setReaderUrl(url);
+    setReaderTitle(title);
+  };
 
   const runSearch = async (q: string) => {
     const trimmed = q.trim();
@@ -198,9 +220,9 @@ export function VisionApp() {
                       return (
                         <div
                           key={i}
-                          className="vsn-result-card"
+                          className={`vsn-result-card${readerUrl === r.url ? ' vsn-result-active' : ''}`}
                           style={{ cursor: isClickable ? 'pointer' : 'default' }}
-                          onClick={() => isClickable && window.open(r.url, '_blank', 'noopener noreferrer')}
+                          onClick={() => isClickable && openInReader(r.url, r.title)}
                         >
                           <div className="vsn-result-source-row">
                             <span className="vsn-favicon" style={{ background: `hsl(${hue}deg 55% 38%)` }}>{faviconLetter(r.url)}</span>
@@ -226,9 +248,9 @@ export function VisionApp() {
                       return (
                         <div
                           key={i}
-                          className="vsn-result-card vsn-news-card"
+                          className={`vsn-result-card vsn-news-card${readerUrl === r.url ? ' vsn-result-active' : ''}`}
                           style={{ cursor: isClickable ? 'pointer' : 'default' }}
-                          onClick={() => isClickable && window.open(r.url, '_blank', 'noopener noreferrer')}
+                          onClick={() => isClickable && openInReader(r.url, r.title)}
                         >
                           <div className="vsn-news-meta">
                             <span className="vsn-favicon vsn-favicon-sm" style={{ background: `hsl(${hue}deg 55% 38%)` }}>{faviconLetter(r.url)}</span>
@@ -245,7 +267,45 @@ export function VisionApp() {
             )}
           </div>
 
-          {abstract && tab === 'all' && (
+          {/* In-app reader */}
+          {readerUrl && (
+            <div className="vsn-reader-panel">
+              <div className="vsn-reader-header">
+                <span className="vsn-reader-title">In-app reader</span>
+                <button type="button" className="vsn-reader-close" onClick={() => setReaderUrl(null)}>×</button>
+              </div>
+              <div className="vsn-reader-url">{readerUrl}</div>
+              {isLikelyBlocked(readerUrl) ? (
+                <div className="vsn-reader-blocked">
+                  <div className="vsn-reader-blocked-icon">🔒</div>
+                  <div className="vsn-reader-blocked-msg">
+                    <strong style={{color:'#c8d8f4'}}>{readerTitle || domainFrom(readerUrl)}</strong><br />
+                    This source does not expose a preview snippet. You can still continue browsing in-app.
+                  </div>
+                  <a
+                    href={readerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="vsn-reader-open-btn"
+                  >
+                    Open in new tab ↗
+                  </a>
+                </div>
+              ) : (
+                <iframe
+                  ref={iframeRef}
+                  key={readerUrl}
+                  src={readerUrl}
+                  className="vsn-reader-frame"
+                  title="In-app reader"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                  onError={() => {}}
+                />
+              )}
+            </div>
+          )}
+
+          {!readerUrl && abstract && tab === 'all' && (
             <aside className="vsn-knowledge">
               <div className="vsn-knowledge-heading">{abstract.heading}</div>
               {abstract.answer && <div className="vsn-knowledge-answer">{abstract.answer}</div>}
