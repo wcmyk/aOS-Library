@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
+from typing import Any
 
 import torch
 from fastapi import FastAPI, HTTPException
@@ -9,10 +11,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from tokenizers import Tokenizer
 
+from inference.finetuned_generate import generate_finetuned_text, load_finetuned_model
 from inference.generate import generate_text
 from model.transformer_lm import TinyCausalTransformer, TransformerConfig
+from training.utils import load_yaml
 
-logger = logging.getLogger("scratch-lm-api")
+logger = logging.getLogger("lm-api")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(name)s | %(message)s")
 
 
@@ -28,7 +32,7 @@ class ChatResponse(BaseModel):
     reply: str
 
 
-app = FastAPI(title="Scratch LM Chat API", version="0.1.0")
+app = FastAPI(title="Local LM Chat API", version="0.2.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
@@ -37,65 +41,110 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-MODEL: TinyCausalTransformer | None = None
-TOKENIZER: Tokenizer | None = None
-DEVICE: torch.device | None = None
+MODE: str = "scratch"
+SCRATCH_MODEL: TinyCausalTransformer | None = None
+SCRATCH_TOKENIZER: Tokenizer | None = None
+SCRATCH_DEVICE: torch.device | None = None
+
+FT_MODEL: Any | None = None
+FT_TOKENIZER: Any | None = None
 
 
 @app.on_event("startup")
 def startup_event() -> None:
-    global MODEL, TOKENIZER, DEVICE
+    global MODE, SCRATCH_MODEL, SCRATCH_TOKENIZER, SCRATCH_DEVICE, FT_MODEL, FT_TOKENIZER
 
-    tok_path = Path("outputs/tokenizer/tokenizer.json")
-    ckpt_path = Path("outputs/checkpoints/best.pt")
+    cfg = load_yaml("configs/inference.yaml")["inference"]
+    MODE = os.getenv("MODEL_BACKEND", str(cfg.get("mode", "scratch"))).strip().lower()
 
-    if not tok_path.exists() or not ckpt_path.exists():
-        logger.warning("Tokenizer/checkpoint missing. API started but /chat will return setup error.")
+    logger.info("Starting API in mode=%s", MODE)
+
+    if MODE == "finetuned":
+        base_model = os.getenv("FINETUNED_BASE_MODEL", str(cfg.get("finetuned_base_model", "")))
+        adapter_path = os.getenv("FINETUNED_ADAPTER_PATH", str(cfg.get("finetuned_adapter_path", "")))
+        merged_path = os.getenv("FINETUNED_MERGED_PATH", str(cfg.get("finetuned_merged_path", "")))
+        use_merged = bool(cfg.get("use_merged_if_available", True) and merged_path and Path(merged_path).exists())
+
+        try:
+            FT_MODEL, FT_TOKENIZER = load_finetuned_model(
+                base_model_name=base_model,
+                adapter_path=None if use_merged else adapter_path,
+                merged_path=merged_path if use_merged else None,
+                device_map="auto",
+            )
+            logger.info("Loaded finetuned model (%s)", "merged" if use_merged else "adapter")
+        except Exception as exc:
+            logger.warning("Fine-tuned model load failed: %s", exc)
         return
 
-    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    TOKENIZER = Tokenizer.from_file(str(tok_path))
+    tok_path = Path(os.getenv("SCRATCH_TOKENIZER_PATH", str(cfg.get("scratch_tokenizer", "outputs/tokenizer/tokenizer.json"))))
+    ckpt_path = Path(os.getenv("SCRATCH_CHECKPOINT_PATH", str(cfg.get("scratch_checkpoint", "outputs/checkpoints/best.pt"))))
 
-    state = torch.load(ckpt_path, map_location=DEVICE)
-    cfg = TransformerConfig(**state["model_cfg"])
-    MODEL = TinyCausalTransformer(cfg).to(DEVICE)
-    MODEL.load_state_dict(state["model_state"])
-    MODEL.eval()
+    if not tok_path.exists() or not ckpt_path.exists():
+        logger.warning("Scratch tokenizer/checkpoint missing. /chat will return setup error.")
+        return
 
-    logger.info("Loaded model from %s on %s", ckpt_path, DEVICE)
+    SCRATCH_DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    SCRATCH_TOKENIZER = Tokenizer.from_file(str(tok_path))
+
+    state = torch.load(ckpt_path, map_location=SCRATCH_DEVICE)
+    model = TinyCausalTransformer(TransformerConfig(**state["model_cfg"]))
+    model.load_state_dict(state["model_state"])
+    model.to(SCRATCH_DEVICE).eval()
+    SCRATCH_MODEL = model
+
+    logger.info("Loaded scratch model from %s on %s", ckpt_path, SCRATCH_DEVICE)
 
 
 @app.get("/health")
 def health() -> dict:
-    return {"ok": True, "model_loaded": MODEL is not None and TOKENIZER is not None}
+    loaded = (FT_MODEL is not None and FT_TOKENIZER is not None) if MODE == "finetuned" else (SCRATCH_MODEL is not None and SCRATCH_TOKENIZER is not None)
+    return {"ok": True, "mode": MODE, "model_loaded": loaded}
 
 
 @app.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest) -> ChatResponse:
-    if MODEL is None or TOKENIZER is None or DEVICE is None:
-        raise HTTPException(status_code=503, detail="Model not loaded. Train tokenizer/model first.")
-
     message = req.message.strip()
     if not message:
         raise HTTPException(status_code=400, detail="message must not be empty")
 
     prompt = f"### Instruction:\n{message}\n\n### Response:\n"
 
+    if MODE == "finetuned":
+        if FT_MODEL is None or FT_TOKENIZER is None:
+            raise HTTPException(status_code=503, detail="Fine-tuned model not loaded. Train adapter first.")
+        try:
+            generated = generate_finetuned_text(
+                FT_MODEL,
+                FT_TOKENIZER,
+                prompt=prompt,
+                max_new_tokens=req.max_new_tokens,
+                temperature=req.temperature,
+                top_k=req.top_k,
+                top_p=req.top_p,
+            )
+            reply = generated.split("### Response:\n", 1)[-1].strip() or generated.strip()
+            return ChatResponse(reply=reply)
+        except Exception as exc:
+            logger.exception("/chat finetuned generation failed")
+            raise HTTPException(status_code=500, detail=f"generation failed: {exc}") from exc
+
+    if SCRATCH_MODEL is None or SCRATCH_TOKENIZER is None or SCRATCH_DEVICE is None:
+        raise HTTPException(status_code=503, detail="Scratch model not loaded. Train tokenizer/model first.")
+
     try:
         generated = generate_text(
-            MODEL,
-            TOKENIZER,
+            SCRATCH_MODEL,
+            SCRATCH_TOKENIZER,
             prompt=prompt,
             max_new_tokens=req.max_new_tokens,
             temperature=req.temperature,
             top_k=req.top_k,
             top_p=req.top_p,
-            device=DEVICE,
+            device=SCRATCH_DEVICE,
         )
-        reply = generated.split("### Response:\n", 1)[-1].strip()
-        if not reply:
-            reply = generated.strip()
+        reply = generated.split("### Response:\n", 1)[-1].strip() or generated.strip()
         return ChatResponse(reply=reply)
     except Exception as exc:
-        logger.exception("/chat generation failed")
+        logger.exception("/chat scratch generation failed")
         raise HTTPException(status_code=500, detail=f"generation failed: {exc}") from exc

@@ -12,30 +12,8 @@ import logging
 import random
 from typing import Dict, List, Tuple
 
+from training.formatting import format_alpaca_sample
 from training.utils import load_yaml, setup_logging
-
-
-def format_sample(instruction: str, input_text: str, output_text: str) -> str:
-    instruction = instruction.strip()
-    input_text = input_text.strip()
-    output_text = output_text.strip()
-
-    if input_text:
-        return (
-            "### Instruction:\n"
-            f"{instruction}\n\n"
-            "### Input:\n"
-            f"{input_text}\n\n"
-            "### Response:\n"
-            f"{output_text}"
-        )
-
-    return (
-        "### Instruction:\n"
-        f"{instruction}\n\n"
-        "### Response:\n"
-        f"{output_text}"
-    )
 
 
 def validate_row(row: Dict[str, object]) -> Tuple[bool, str]:
@@ -100,14 +78,14 @@ def main() -> None:
 
         with jsonl_path.open("w", encoding="utf-8") as jf, txt_path.open("w", encoding="utf-8") as tf:
             for row in rows:
-                sample = format_sample(row["instruction"], row["input"], row["output"])
+                sample = format_alpaca_sample(row["instruction"], row["input"], row["output"])
                 jf.write(json.dumps({"text": sample}, ensure_ascii=False) + "\n")
                 tf.write(sample + "\n\n")
 
     write_split(train_rows, "train")
     write_split(val_rows, "val")
 
-    all_text = [format_sample(r["instruction"], r["input"], r["output"]) for r in clean]
+    all_text = [format_alpaca_sample(r["instruction"], r["input"], r["output"]) for r in clean]
     chars = sum(len(x) for x in all_text)
     tokens_approx = sum(len(x.split()) for x in all_text)
 

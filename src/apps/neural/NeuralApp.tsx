@@ -311,7 +311,7 @@ export function NeuralApp() {
           <input type="range" min="0.1" max="1" step="0.05" value={topP} onChange={(e) => setTopP(Number(e.target.value))} />
           <div className="neural-stat"><span>Max new tokens</span><strong>{maxTokens}</strong></div>
           <input type="range" min="16" max="256" step="8" value={maxTokens} onChange={(e) => setMaxTokens(Number(e.target.value))} />
-          <p className="neural-hint">Backend expected at <code>http://localhost:8000/chat</code>. Train the scratch model first with scripts in this repo.</p>
+          <p className="neural-hint">Backend expected at <code>http://localhost:8000/chat</code>. Use <code>MODEL_BACKEND=scratch</code> or <code>MODEL_BACKEND=finetuned</code> when starting the API.</p>
         </aside>
       </div>
     </div>
