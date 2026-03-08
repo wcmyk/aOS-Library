@@ -1,26 +1,35 @@
-export type VirtueCategory = {
+export type VirtueView = 'discover' | 'apps' | 'categories' | 'updates' | 'purchased' | 'search' | 'detail';
+
+export type VirtueInstallState = 'not_installed' | 'installing' | 'installed' | 'update_available';
+
+export type VirtueLayoutMode = 'grid' | 'list';
+
+export type VirtueSortMode = 'name-asc' | 'name-desc' | 'rating-desc' | 'updated-desc';
+
+export interface VirtueCategory {
   id: string;
   name: string;
   blurb?: string;
   artwork?: string;
-};
+}
 
-export type VirtueEditorialCard = {
+export interface VirtueEditorialCard {
   id: string;
   title: string;
   subtitle?: string;
   description?: string;
   image?: string;
   appId?: string;
-};
+}
 
-export type VirtueCollection = {
+export interface VirtueCollection {
   id: string;
   title: string;
+  subtitle?: string;
   appIds: string[];
-};
+}
 
-export type VirtueApp = {
+export interface VirtueApp {
   id: string;
   name: string;
   developer: string;
@@ -49,15 +58,18 @@ export type VirtueApp = {
   supportUrl?: string;
   updateAvailable?: boolean;
   owned?: boolean;
-};
+}
 
-export type VirtueCatalog = {
+export interface VirtueCatalog {
   apps: VirtueApp[];
   categories: VirtueCategory[];
   editorialCards: VirtueEditorialCard[];
   featuredCollections: VirtueCollection[];
-};
-
-export type VirtueInstallState = 'not_installed' | 'installing' | 'installed' | 'update_available';
-
-export type VirtueView = 'discover' | 'apps' | 'categories' | 'updates' | 'purchased' | 'search' | 'detail';
+  spotlight?: {
+    title: string;
+    subtitle?: string;
+    description?: string;
+    image?: string;
+    appId?: string;
+  };
+}

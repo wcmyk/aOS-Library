@@ -12,6 +12,22 @@ type Agent = {
 
 type Message = { role: 'user' | 'agent'; text: string };
 
+type LanguageModel = {
+  unigram: Record<string, number>;
+  bigram: Record<string, Record<string, number>>;
+  starts: string[];
+  tokenCount: number;
+  vocabSize: number;
+};
+
+type TrainingStats = {
+  epochs: number;
+  loss: number;
+  accuracy: number;
+  tokens: number;
+  vocab: number;
+};
+
 const AGENTS: Agent[] = [
   { id: 'math', name: 'Axiom', icon: '∑', color: '#8b5cf6', desc: 'Math reasoning and problem solving' },
   { id: 'automation', name: 'Nexus', icon: '⚙', color: '#f59e0b', desc: 'Automation design and workflow orchestration' },
@@ -86,7 +102,7 @@ function crossEntropy(lines: string[], model: LanguageModel): number {
         const prev = words[i - 1];
         const cur = words[i];
         const nexts = model.bigram[prev] ?? {};
-        const total = Object.values(nexts).reduce((a, b) => a + b, 0);
+        const total = Object.values(nexts).reduce<number>((acc, count) => acc + count, 0);
         const count = nexts[cur] ?? 0;
         const prob = (count + 1) / (total + vocab);
         nll += -Math.log(prob);
