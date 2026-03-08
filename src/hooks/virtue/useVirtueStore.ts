@@ -11,6 +11,7 @@ type VirtueState = {
   sortMode: VirtueSortMode;
   recentSearches: string[];
   installStates: Record<string, VirtueInstallState>;
+  downloadProgress: Record<string, number>; // 0-100 during install animation
   setView: (view: VirtueView) => void;
   setSelectedApp: (id: string | null) => void;
   setSearchQuery: (query: string) => void;
@@ -54,6 +55,29 @@ export const inferInstallState = (
   return 'not_installed';
 };
 
+// Simulate macOS-style download progress: 0→100 over ~2.5s
+function animateDownload(
+  appId: string,
+  setProgress: (id: string, p: number) => void,
+  onComplete: () => void,
+) {
+  let progress = 0;
+  const INTERVAL_MS = 50;
+
+  const timer = window.setInterval(() => {
+    // Eased increment: faster at start/end, slower in middle
+    const remaining = 100 - progress;
+    const increment = Math.max(1, remaining * 0.08 + Math.random() * 2);
+    progress = Math.min(100, progress + increment);
+    setProgress(appId, Math.round(progress));
+
+    if (progress >= 100) {
+      window.clearInterval(timer);
+      window.setTimeout(onComplete, 300);
+    }
+  }, INTERVAL_MS);
+}
+
 export const useVirtueStore = create<VirtueState>((set, get) => ({
   activeView: 'discover',
   selectedAppId: null,
@@ -63,6 +87,7 @@ export const useVirtueStore = create<VirtueState>((set, get) => ({
   sortMode: 'name-asc',
   recentSearches: safelyRead<string[]>(RECENT_STORAGE_KEY, []),
   installStates: safelyRead<Record<string, VirtueInstallState>>(INSTALL_STORAGE_KEY, {}),
+  downloadProgress: {},
   setView: (view) => set({ activeView: view }),
   setSelectedApp: (id) => set({ selectedAppId: id, activeView: id ? 'detail' : get().activeView }),
   setSearchQuery: (query) => set({ searchQuery: query }),
@@ -82,35 +107,58 @@ export const useVirtueStore = create<VirtueState>((set, get) => ({
   setLayoutMode: (mode) => set({ layoutMode: mode }),
   setSortMode: (mode) => set({ sortMode: mode }),
   installApp: (appId) => {
+    // Set installing state with progress at 0
     set((state) => {
       const next = { ...state.installStates, [appId]: 'installing' as const };
       safelyWrite(INSTALL_STORAGE_KEY, next);
-      return { installStates: next };
+      return { installStates: next, downloadProgress: { ...state.downloadProgress, [appId]: 0 } };
     });
 
-    window.setTimeout(() => {
-      set((state) => {
-        const next = { ...state.installStates, [appId]: 'installed' as const };
-        safelyWrite(INSTALL_STORAGE_KEY, next);
-        return { installStates: next };
-      });
-    }, 1200);
+    // Animate macOS-style pie chart download
+    animateDownload(
+      appId,
+      (id, progress) => {
+        set((state) => ({ downloadProgress: { ...state.downloadProgress, [id]: progress } }));
+      },
+      () => {
+        set((state) => {
+          const nextStates = { ...state.installStates, [appId]: 'installed' as const };
+          const nextProgress = { ...state.downloadProgress };
+          delete nextProgress[appId];
+          safelyWrite(INSTALL_STORAGE_KEY, nextStates);
+          return { installStates: nextStates, downloadProgress: nextProgress };
+        });
+      },
+    );
   },
-  openApp: () => undefined,
+  openApp: (appId) => {
+    // Use dynamic import to avoid circular dependency with shell store
+    import('../../state/useShellStore').then(({ useShellStore }) => {
+      useShellStore.getState().openWindow(appId);
+    }).catch(() => undefined);
+  },
   updateApp: (appId) => {
     set((state) => {
       const next = { ...state.installStates, [appId]: 'installing' as const };
       safelyWrite(INSTALL_STORAGE_KEY, next);
-      return { installStates: next };
+      return { installStates: next, downloadProgress: { ...state.downloadProgress, [appId]: 0 } };
     });
 
-    window.setTimeout(() => {
-      set((state) => {
-        const next = { ...state.installStates, [appId]: 'installed' as const };
-        safelyWrite(INSTALL_STORAGE_KEY, next);
-        return { installStates: next };
-      });
-    }, 900);
+    animateDownload(
+      appId,
+      (id, progress) => {
+        set((state) => ({ downloadProgress: { ...state.downloadProgress, [id]: progress } }));
+      },
+      () => {
+        set((state) => {
+          const nextStates = { ...state.installStates, [appId]: 'installed' as const };
+          const nextProgress = { ...state.downloadProgress };
+          delete nextProgress[appId];
+          safelyWrite(INSTALL_STORAGE_KEY, nextStates);
+          return { installStates: nextStates, downloadProgress: nextProgress };
+        });
+      },
+    );
   },
   updateAll: () => {
     const { installStates, updateApp } = get();

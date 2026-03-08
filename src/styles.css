@@ -3527,3 +3527,115 @@ kbd {
   .virtue-toolbar-controls { justify-content: space-between; }
   .virtue-detail-header { grid-template-columns: 1fr; }
 }
+
+/* ── LinkedIn layout fix: job list column (list + pagination stacked) ── */
+.li-job-list-column {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  overflow: hidden;
+  background: rgba(11,15,22,0.97);
+}
+
+/* Override old li-job-list border-right since column handles it */
+.li-job-list-column .li-job-list {
+  flex: 1;
+  overflow-y: auto;
+  border-right: none;
+}
+
+/* Pagination at bottom of list column */
+.li-job-list-column .li-pagination {
+  flex-shrink: 0;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  border-bottom: none;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+/* ── Virtue: macOS download animation ── */
+.virtue-app-icon-downloading {
+  position: relative;
+}
+
+.virtue-download-ring {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+}
+
+.virtue-download-stop {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  background: #4f8cff;
+  border-radius: 1.5px;
+}
+
+.virtue-install-button.installing {
+  cursor: progress;
+  background: rgba(30, 48, 80, 0.9);
+  border: 1px solid rgba(79, 140, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px;
+  padding: 4px 8px;
+}
+
+/* ── Banking app donut chart ── */
+.bank-donut-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.bank-donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.bank-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.bank-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bank-legend-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bank-legend-val {
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.bank-donut-wrap.dark .bank-legend-label,
+.bank-donut-wrap.dark .bank-legend-val {
+  color: #94a3b8;
+}
+
+.bank-donut-wrap.light .bank-legend-label,
+.bank-donut-wrap.light .bank-legend-val {
+  color: #475569;
+}

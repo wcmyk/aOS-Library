@@ -754,72 +754,75 @@ Talent Acquisition, ${job.company}<br>
               <div className="li-filter-count">{filteredJobs.length} results · {PAGE_SIZE} per page</div>
             </aside>
 
-            {/* Job list */}
-            <div className="li-job-list">
-              {pagedJobs.length === 0 ? (
-                <div className="li-empty">No jobs match your filters.</div>
-              ) : (
-                pagedJobs.map((job) => {
-                  const state = applyState[job.id] ?? 'idle';
+            {/* Job list column: list + pagination stacked vertically */}
+            <div className="li-job-list-column">
+              <div className="li-job-list">
+                {pagedJobs.length === 0 ? (
+                  <div className="li-empty">No jobs match your filters.</div>
+                ) : (
+                  pagedJobs.map((job) => {
+                    const state = applyState[job.id] ?? 'idle';
+                    return (
+                      <button
+                        key={job.id}
+                        type="button"
+                        className={`li-job-card${selectedJobId === job.id ? ' active' : ''}`}
+                        onClick={() => setSelectedJobId(job.id)}
+                      >
+                        <div className="li-job-card-top">
+                          <span className="li-job-role">{job.role}</span>
+                          {state === 'applied' && <span className="li-applied-badge">Applied</span>}
+                        </div>
+                        <div className="li-job-company">{job.company}</div>
+                        <div className="li-job-meta">
+                          <span>{job.location}</span>
+                          <span className="li-job-sep">·</span>
+                          <span>{job.type}</span>
+                        </div>
+                        <div className="li-job-salary">{job.salary}</div>
+                        <div className="li-job-posted">{formatPosted(job.postedDays)}</div>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Pagination at the bottom of the job list column */}
+              <div className="li-pagination">
+                <button type="button" disabled={currentPage === 1} onClick={() => { const p = Math.max(1, currentPage - 1); setCurrentPage(p); }}>
+                  Previous
+                </button>
+                {Array.from({ length: Math.min(totalPages, 8) }, (_, idx) => {
+                  const pageNum = idx + 1;
                   return (
                     <button
-                      key={job.id}
+                      key={pageNum}
                       type="button"
-                      className={`li-job-card${selectedJobId === job.id ? ' active' : ''}`}
-                      onClick={() => setSelectedJobId(job.id)}
+                      className={pageNum === currentPage ? 'active' : ''}
+                      onClick={() => {
+                        ensureJobsForPage(pageNum);
+                        setCurrentPage(pageNum);
+                      }}
                     >
-                      <div className="li-job-card-top">
-                        <span className="li-job-role">{job.role}</span>
-                        {state === 'applied' && <span className="li-applied-badge">Applied</span>}
-                      </div>
-                      <div className="li-job-company">{job.company}</div>
-                      <div className="li-job-meta">
-                        <span>{job.location}</span>
-                        <span className="li-job-sep">·</span>
-                        <span>{job.type}</span>
-                      </div>
-                      <div className="li-job-salary">{job.salary}</div>
-                      <div className="li-job-posted">{formatPosted(job.postedDays)}</div>
+                      {pageNum}
                     </button>
                   );
-                })
-              )}
+                })}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = currentPage + 1;
+                    ensureJobsForPage(next);
+                    setCurrentPage(next);
+                  }}
+                >
+                  Next
+                </button>
+                <span className="li-page-meta">Page {currentPage} / {totalPages}</span>
+              </div>
             </div>
 
-            <div className="li-pagination">
-              <button type="button" disabled={currentPage === 1} onClick={() => { const p = Math.max(1, currentPage - 1); setCurrentPage(p); }}>
-                Previous
-              </button>
-              {Array.from({ length: Math.min(totalPages, 8) }, (_, idx) => {
-                const pageNum = idx + 1;
-                return (
-                  <button
-                    key={pageNum}
-                    type="button"
-                    className={pageNum === currentPage ? 'active' : ''}
-                    onClick={() => {
-                      ensureJobsForPage(pageNum);
-                      setCurrentPage(pageNum);
-                    }}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-              <button
-                type="button"
-                onClick={() => {
-                  const next = currentPage + 1;
-                  ensureJobsForPage(next);
-                  setCurrentPage(next);
-                }}
-              >
-                Next
-              </button>
-              <span className="li-page-meta">Page {currentPage} / {totalPages}</span>
-            </div>
-
-            {/* Job detail */}
+            {/* Job detail panel: to the right of the job list column */}
             <div className="li-job-detail">
               {(() => {
                 const job = selectedJob;
