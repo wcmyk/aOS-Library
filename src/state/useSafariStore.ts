@@ -1,11 +1,13 @@
 import { create } from 'zustand';
 
 type SafariStore = {
-  currentUrl: string;
+  pendingUrl: string | null;
   navigate: (url: string) => void;
+  clearPending: () => void;
 };
 
 export const useSafariStore = create<SafariStore>((set) => ({
-  currentUrl: 'https://linkedin.com',
-  navigate: (url) => set({ currentUrl: url.startsWith('http') ? url : `https://${url}` }),
+  pendingUrl: null,
+  navigate: (url) => set({ pendingUrl: url }),
+  clearPending: () => set({ pendingUrl: null }),
 }));

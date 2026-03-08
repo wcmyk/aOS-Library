@@ -14,9 +14,7 @@ const SanctumApp = lazy(() => import('./apps/sanctum/SanctumApp').then((m) => ({
 const SafariApp = lazy(() => import('./apps/safari/SafariApp').then((m) => ({ default: m.SafariApp })));
 const SpotifyApp = lazy(() => import('./apps/spotify/SpotifyApp').then((m) => ({ default: m.SpotifyApp })));
 const VisionApp = lazy(() => import('./apps/vision/VisionApp').then((m) => ({ default: m.VisionApp })));
-const SettingsApp = lazy(() => import('./apps/settings/SettingsApp').then((m) => ({ default: m.SettingsApp })));
-const CoLabApp = lazy(() => import('./apps/colab/CoLabApp').then((m) => ({ default: m.CoLabApp })));
-const WorkHubApp = lazy(() => import('./apps/workhub/WorkHubApp').then((m) => ({ default: m.WorkHubApp })));
+const NeuralApp = lazy(() => import('./apps/neural/NeuralApp').then((m) => ({ default: m.NeuralApp })));
 
 const artifacts = [
   { title: 'Roadmap.md', kind: 'Report', updated: '2h ago', detail: 'Phase 1 delivery outline', accent: '#7c8cff' },
@@ -108,24 +106,7 @@ function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDoc
     );
   }
 
-  if (window.appId === 'agent-console') {
-    return (
-      <div className="window-grid">
-        <div className="card">
-          <div className="card-title">Recent Commands</div>
-          <div className="card-subtitle">Open Sanctum, Open Safari, Play Focus Flow</div>
-        </div>
-        <div className="card">
-          <div className="card-title">Agent Activity</div>
-          {agentLog.map((entry) => (
-            <div key={entry.time} className="card-subtitle" style={{ marginBottom: 6 }}>
-              <strong>{entry.time}</strong> — {entry.text}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  if (window.appId === 'neural') return <Suspense fallback={null}><NeuralApp /></Suspense>;
 
   if (window.appId === 'archive') return <Suspense fallback={null}><AccelApp /></Suspense>;
   if (window.appId === 'oracle') return <Suspense fallback={null}><OracleApp /></Suspense>;
