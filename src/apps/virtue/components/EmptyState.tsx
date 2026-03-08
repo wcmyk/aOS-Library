@@ -1,11 +1,15 @@
-type Props = { title: string; message: string };
+type EmptyStateProps = {
+  title: string;
+  message: string;
+  compact?: boolean;
+};
 
-export function EmptyState({ title, message }: Props) {
+export function EmptyState({ title, message, compact = false }: EmptyStateProps) {
   return (
-    <div className="virtue-empty">
-      <div className="virtue-empty-badge">Virtue</div>
+    <section className={`virtue-empty-state ${compact ? 'compact' : ''}`} aria-live="polite">
+      <span className="virtue-empty-pill">Virtue</span>
       <h3>{title}</h3>
       <p>{message}</p>
-    </div>
+    </section>
   );
 }
