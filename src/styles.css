@@ -2442,7 +2442,7 @@ kbd {
 
 /* Knowledge panel */
 .vsn-knowledge {
-  width: 300px;
+  width: min(48%, 560px);
   flex-shrink: 0;
   margin: 16px 16px 16px 0;
   padding: 16px;
@@ -3048,7 +3048,8 @@ kbd {
 .colab-empty { padding: 18px; }
 
 .vsn-link-btn { border: 0; background: transparent; color: #70a3ff; padding: 0; text-decoration: underline; cursor: pointer; }
-.vsn-inline-frame { width: 100%; min-height: 260px; border: 1px solid rgba(112,163,255,0.25); border-radius: 10px; margin-top: 10px; background: white; }
+.vsn-inline-frame { width: 100%; min-height: 460px; border: 1px solid rgba(112,163,255,0.25); border-radius: 10px; margin-top: 10px; background: white; }
+.vsn-knowledge-wide { align-self: stretch; }
 
 /* SentinelFlow enterprise work platform */
 .wh-shell { height: 100%; display: grid; grid-template-columns: 240px 1fr; background: #0b1018; color: #d9e1ee; }
@@ -3162,3 +3163,36 @@ kbd {
 .li-pagination button.active { background: rgba(10,102,194,0.26); border-color: rgba(10,102,194,0.6); color: #dce9ff; }
 .li-pagination button:disabled { opacity: 0.45; cursor: not-allowed; }
 .li-page-meta { margin-left: auto; font-size: 11px; color: #7f95b8; }
+
+/* Neural Studio */
+.neural-shell { height: 100%; display: flex; flex-direction: column; background: linear-gradient(160deg,#090d16,#0c1424); color: #dbe8ff; }
+.neural-header { display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.neural-logo-mark { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; background: rgba(139,92,246,0.2); }
+.neural-brand { font-weight: 700; }
+.neural-sub { font-size: 12px; color: #89a0c7; }
+.neural-layout { display: grid; grid-template-columns: 240px 1fr 220px; gap: 12px; padding: 12px; height: calc(100% - 56px); }
+.neural-agents,.neural-chat,.neural-train { background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; }
+.neural-agents { padding: 10px; overflow: auto; }
+.neural-agent { width: 100%; border: 1px solid transparent; background: transparent; color: inherit; display: flex; align-items: center; gap: 10px; text-align: left; padding: 8px; border-radius: 10px; cursor: pointer; }
+.neural-agent.active { border-color: rgba(79,140,255,0.5); background: rgba(79,140,255,0.08); }
+.neural-agent strong { display: block; font-size: 13px; }
+.neural-agent small { color: #8ea4ca; font-size: 11px; }
+.neural-agent-glyph { width: 34px; height: 34px; border-radius: 8px; display: grid; place-items: center; font-weight: 700; overflow: hidden; }
+.neural-agent-glyph img,.neural-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.neural-chat { display: flex; flex-direction: column; min-width: 0; }
+.neural-chat-head { display: flex; align-items: center; gap: 10px; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.neural-avatar { width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; font-weight: 700; overflow: hidden; }
+.neural-active-title { font-weight: 700; }
+.neural-active-desc { font-size: 12px; color: #8ea4ca; }
+.neural-log { flex: 1; overflow: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.neural-bubble { max-width: 85%; padding: 9px 12px; border-radius: 10px; font-size: 13px; line-height: 1.45; }
+.neural-bubble.user { margin-left: auto; background: rgba(79,140,255,0.24); }
+.neural-bubble.agent { background: rgba(255,255,255,0.08); }
+.neural-input-row { display: flex; gap: 8px; padding: 10px; border-top: 1px solid rgba(255,255,255,0.08); }
+.neural-input { flex: 1; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(12,18,30,0.9); color: #e8f0ff; padding: 9px 10px; }
+.neural-send,.neural-train-btn { border: 0; border-radius: 8px; background: linear-gradient(180deg,#4f8cff,#3d73d8); color: white; padding: 8px 12px; cursor: pointer; }
+.neural-train { padding: 12px; }
+.neural-train h4 { margin: 0 0 10px; }
+.neural-stat { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+.neural-hint { margin-top: 12px; font-size: 11px; color: #8ea4ca; line-height: 1.4; }
+
