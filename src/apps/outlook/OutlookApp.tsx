@@ -11,6 +11,14 @@ const FOLDER_LABELS: Record<EmailFolder, string> = {
   trash: 'Deleted Items',
 };
 
+const FOLDER_ICONS: Record<EmailFolder, string> = {
+  inbox: '📥',
+  starred: '⭐',
+  sent: '📤',
+  drafts: '📝',
+  trash: '🗑',
+};
+
 function percentCount(text: string) {
   const match = text.toUpperCase().match(/PROMOTION(%+)/);
   return match ? match[1].length : 0;
@@ -21,9 +29,24 @@ function extractName(from: string) {
   return (m?.[1] ?? from).trim();
 }
 
+function extractEmail(from: string) {
+  const m = from.match(/<([^>]+)>/);
+  return m?.[1] ?? from.trim();
+}
+
 function getInitials(name: string) {
   const tokens = name.split(/\s+/).filter(Boolean);
   return (tokens[0]?.[0] ?? 'U') + (tokens[1]?.[0] ?? tokens[0]?.[1] ?? 'S');
+}
+
+function formatDate(dateStr: string) {
+  const d = new Date(dateStr);
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  if (isToday) {
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
 }
 
 function ProfileAvatar({ fullName, email, onClick }: { fullName: string; email: string; onClick: () => void }) {
@@ -236,9 +259,23 @@ function OutlookHeader({
 
   return (
     <header className="outlook-header">
-      <div className="outlook-wordmark">Outlook</div>
-      <input className="outlook-search" placeholder="Search" aria-label="Search mail" />
-      <button className="out-new-mail" type="button" onClick={onCompose}>New mail</button>
+      <div className="outlook-wordmark">
+        <span className="outlook-wordmark-icon">✉</span>
+        Outlook
+      </div>
+      <div className="outlook-toolbar">
+        <button className="outlook-toolbar-btn" type="button" onClick={onCompose}>
+          <span>✏</span> New mail
+        </button>
+        <button className="outlook-toolbar-btn" type="button">Delete</button>
+        <button className="outlook-toolbar-btn" type="button">Archive</button>
+        <button className="outlook-toolbar-btn outlook-toolbar-btn-text" type="button">Sweep ▾</button>
+        <button className="outlook-toolbar-btn outlook-toolbar-btn-text" type="button">Move to ▾</button>
+        <span className="outlook-toolbar-sep" />
+        <button className="outlook-toolbar-btn" type="button">↩</button>
+        <button className="outlook-toolbar-btn" type="button">↪</button>
+      </div>
+      <input className="outlook-search" placeholder="🔍 Search" aria-label="Search mail" />
       <div className="out-header-actions" ref={menuRef}>
         <button className="out-gear-btn" type="button" onClick={onOpenSettings} aria-label="Open settings">⚙</button>
         <ProfileAvatar fullName={fullName} email={email} onClick={() => setOpen((v) => !v)} />
@@ -301,8 +338,12 @@ export function OutlookApp() {
   const [to, setTo] = useState('');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
+  const [messageTab, setMessageTab] = useState<'focused' | 'other'>('focused');
 
-  const accountEmails = ['user@workspace.aos', ...accounts.map((a) => a.companyEmail)];
+  const accountEmails = useMemo(
+    () => ['user@workspace.aos', ...accounts.map((a) => a.companyEmail)],
+    [accounts],
+  );
 
   if (!activeOutlookEmail) {
     return (
@@ -323,6 +364,28 @@ export function OutlookApp() {
   const scoped = emails.filter((e) => (e.to + e.from).toLowerCase().includes(activeOutlookEmail.toLowerCase()) || activeOutlookEmail === 'user@workspace.aos');
   const folderEmails = scoped.filter((e) => (folder === 'starred' ? e.starred : e.folder === folder)).sort((a, b) => +new Date(b.date) - +new Date(a.date));
   const selected = folderEmails.find((e) => e.id === selectedId) ?? folderEmails[0] ?? null;
+
+  const openCompose = (opts?: { to?: string; subject?: string; body?: string }) => {
+    setTo(opts?.to ?? '');
+    setSubject(opts?.subject ?? '');
+    setBody(opts?.body ?? '');
+    setComposeOpen(true);
+  };
+
+  const openReply = () => {
+    if (!selected) return;
+    const replyTo = extractEmail(selected.from);
+    const replySubject = selected.subject.startsWith('RE: ') ? selected.subject : `RE: ${selected.subject}`;
+    const quotedBody = `\n\n--- Original Message ---\nFrom: ${selected.from}\nDate: ${new Date(selected.date).toLocaleString()}\nSubject: ${selected.subject}\n\n`;
+    openCompose({ to: replyTo, subject: replySubject, body: quotedBody });
+  };
+
+  const openForward = () => {
+    if (!selected) return;
+    const fwdSubject = selected.subject.startsWith('FW: ') ? selected.subject : `FW: ${selected.subject}`;
+    const quotedBody = `\n\n--- Forwarded Message ---\nFrom: ${selected.from}\nDate: ${new Date(selected.date).toLocaleString()}\nSubject: ${selected.subject}\n\n`;
+    openCompose({ subject: fwdSubject, body: quotedBody });
+  };
 
   const send = () => {
     if (!to || !subject) return;
@@ -365,51 +428,176 @@ export function OutlookApp() {
     setBody('');
   };
 
+  const unreadCount = folderEmails.filter((e) => !e.read).length;
+
   return (
     <div className={`outlook-shell ${isDark ? 'theme-dark' : 'theme-light'}`}>
       <OutlookHeader
         fullName={fullName}
         email={activeOutlookEmail}
         accounts={accountEmails}
-        onCompose={() => setComposeOpen(true)}
+        onCompose={() => openCompose()}
         onSignOut={logoutOutlook}
         onOpenSettings={() => setSettingsOpen(true)}
         isDark={isDark}
         onToggleTheme={() => setIsDark((v) => !v)}
       />
       <div className="outlook-layout">
+        {/* Sidebar */}
         <aside className="outlook-sidebar">
-          {Object.entries(FOLDER_LABELS).map(([k, v]) => (
-            <button key={k} className={folder === k ? 'active' : ''} type="button" onClick={() => setFolder(k as EmailFolder)}>{v}</button>
-          ))}
+          <div className="outlook-sidebar-section">
+            <div className="outlook-sidebar-section-title">Favorites</div>
+            {(['inbox', 'sent', 'drafts'] as EmailFolder[]).map((k) => (
+              <button
+                key={`fav-${k}`}
+                className={`outlook-sidebar-item ${folder === k ? 'active' : ''}`}
+                type="button"
+                onClick={() => setFolder(k)}
+              >
+                <span className="outlook-sidebar-icon">{FOLDER_ICONS[k]}</span>
+                <span className="outlook-sidebar-label">{FOLDER_LABELS[k]}</span>
+                {k === 'inbox' && unreadCount > 0 && (
+                  <span className="outlook-sidebar-count">{unreadCount}</span>
+                )}
+              </button>
+            ))}
+          </div>
+          <div className="outlook-sidebar-section">
+            <div className="outlook-sidebar-section-title">{activeOutlookEmail}</div>
+            {(Object.entries(FOLDER_LABELS) as [EmailFolder, string][]).map(([k, v]) => (
+              <button
+                key={k}
+                className={`outlook-sidebar-item ${folder === k ? 'active' : ''}`}
+                type="button"
+                onClick={() => setFolder(k)}
+              >
+                <span className="outlook-sidebar-icon">{FOLDER_ICONS[k]}</span>
+                <span className="outlook-sidebar-label">{v}</span>
+                {k === 'inbox' && unreadCount > 0 && (
+                  <span className="outlook-sidebar-count">{unreadCount}</span>
+                )}
+              </button>
+            ))}
+          </div>
         </aside>
+
+        {/* Message list */}
         <section className="outlook-message-list">
-          {folderEmails.map((e) => (
-            <button key={e.id} type="button" className={selected?.id === e.id ? 'selected' : ''} onClick={() => { setSelectedId(e.id); markRead(e.id); }}>
-              <div><strong>{extractName(e.from)}</strong><span>{new Date(e.date).toLocaleDateString()}</span></div>
-              <div>{e.subject}</div>
-            </button>
-          ))}
+          {folder === 'inbox' && (
+            <div className="outlook-message-tabs">
+              <button
+                className={messageTab === 'focused' ? 'active' : ''}
+                type="button"
+                onClick={() => setMessageTab('focused')}
+              >
+                Focused
+              </button>
+              <button
+                className={messageTab === 'other' ? 'active' : ''}
+                type="button"
+                onClick={() => setMessageTab('other')}
+              >
+                Other
+              </button>
+            </div>
+          )}
+          {folder !== 'inbox' && (
+            <div className="outlook-message-list-header">
+              <span>{FOLDER_LABELS[folder]}</span>
+              {folderEmails.length > 0 && (
+                <span className="outlook-message-list-count">{folderEmails.length}</span>
+              )}
+            </div>
+          )}
+          <div className="outlook-message-list-items">
+            {folderEmails.length === 0 && (
+              <div className="outlook-message-empty">No messages</div>
+            )}
+            {folderEmails.map((e) => (
+              <button
+                key={e.id}
+                type="button"
+                className={`outlook-message-row ${selected?.id === e.id ? 'selected' : ''} ${!e.read ? 'unread' : ''}`}
+                onClick={() => { setSelectedId(e.id); markRead(e.id); }}
+              >
+                <div className="outlook-message-row-avatar">
+                  {getInitials(extractName(e.from)).toUpperCase()}
+                </div>
+                <div className="outlook-message-row-content">
+                  <div className="outlook-message-row-top">
+                    <span className="outlook-message-from">{extractName(e.from)}</span>
+                    <span className="outlook-message-date">{formatDate(e.date)}</span>
+                  </div>
+                  <div className="outlook-message-subject">{e.subject}</div>
+                  <div className="outlook-message-preview">{e.body.replace(/<[^>]+>/g, '').slice(0, 80)}</div>
+                </div>
+              </button>
+            ))}
+          </div>
         </section>
+
+        {/* Reading pane */}
         <main className="outlook-reading-pane">
           {selected ? (
             <>
-              <h3>{selected.subject}</h3>
-              <div className="out-meta">From {selected.from} to {selected.to}</div>
-              <article dangerouslySetInnerHTML={{ __html: selected.body }} />
+              <div className="outlook-reading-header">
+                <h2 className="outlook-reading-subject">{selected.subject}</h2>
+                <div className="outlook-reading-meta">
+                  <div className="outlook-reading-avatar">
+                    {getInitials(extractName(selected.from)).toUpperCase()}
+                  </div>
+                  <div className="outlook-reading-meta-text">
+                    <div className="outlook-reading-from">
+                      <strong>{extractName(selected.from)}</strong>
+                      <span className="outlook-reading-from-addr">&lt;{extractEmail(selected.from)}&gt;</span>
+                    </div>
+                    <div className="outlook-reading-to">To: {selected.to}</div>
+                    <div className="outlook-reading-date">{new Date(selected.date).toLocaleString()}</div>
+                  </div>
+                </div>
+                <div className="outlook-reading-actions">
+                  <button className="outlook-action-btn outlook-action-reply" type="button" onClick={openReply}>
+                    ↩ Reply
+                  </button>
+                  <button className="outlook-action-btn" type="button" onClick={() => openCompose({ to: selected.from.includes('<') ? `${selected.from}` : selected.from })}>
+                    ↩↩ Reply All
+                  </button>
+                  <button className="outlook-action-btn" type="button" onClick={openForward}>
+                    ↪ Forward
+                  </button>
+                  <button className="outlook-action-btn" type="button">🗑 Delete</button>
+                </div>
+              </div>
+              <article className="outlook-reading-body" dangerouslySetInnerHTML={{ __html: selected.body }} />
             </>
-          ) : <div className="out-empty-state">Select an email to read</div>}
+          ) : (
+            <div className="outlook-reading-empty">Select an email to read</div>
+          )}
         </main>
       </div>
 
       {composeOpen && (
-        <div className="out-compose-modal">
-          <input value={to} onChange={(e) => setTo(e.target.value)} placeholder="To" />
-          <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Subject" />
-          <textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Message" />
-          <div>
-            <button type="button" onClick={send}>Send</button>
-            <button type="button" onClick={() => setComposeOpen(false)}>Discard</button>
+        <div className="out-compose-overlay">
+          <div className="out-compose-modal">
+            <div className="out-compose-header">
+              <span>New Message</span>
+              <button className="out-compose-close" type="button" onClick={() => setComposeOpen(false)}>✕</button>
+            </div>
+            <div className="out-compose-fields">
+              <div className="out-compose-field">
+                <span className="out-compose-label">To</span>
+                <input className="out-compose-input" value={to} onChange={(e) => setTo(e.target.value)} placeholder="Recipients" />
+              </div>
+              <div className="out-compose-field">
+                <span className="out-compose-label">Subject</span>
+                <input className="out-compose-input" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Subject" />
+              </div>
+            </div>
+            <textarea className="out-compose-body" value={body} onChange={(e) => setBody(e.target.value)} placeholder="Write a message..." />
+            <div className="out-compose-footer">
+              <button className="out-send-btn" type="button" onClick={send}>Send</button>
+              <button className="out-discard-btn" type="button" onClick={() => setComposeOpen(false)}>Discard</button>
+            </div>
           </div>
         </div>
       )}
