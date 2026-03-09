@@ -23,6 +23,7 @@ const BankingApp = lazy(() => import('./apps/banking/BankingApp').then((m) => ({
 const RealtorApp = lazy(() => import('./apps/realtor/RealtorApp').then((m) => ({ default: m.RealtorApp })));
 const AppCenterApp = lazy(() => import('./apps/appcenter/AppCenterApp').then((m) => ({ default: m.AppCenterApp })));
 const RentCafeApp = lazy(() => import('./apps/rentcafe/RentCafeApp').then((m) => ({ default: m.RentCafeApp })));
+const PyCharmApp = lazy(() => import('./apps/pycharm/PyCharmApp').then((m) => ({ default: m.PyCharmApp })));
 
 const artifacts = [
   { title: 'Roadmap.md', kind: 'Report', updated: '2h ago', detail: 'Phase 1 delivery outline', accent: '#7c8cff' },
@@ -34,9 +35,9 @@ const artifacts = [
 ];
 
 const jobs = [
-  { title: 'Summarize latest artifact', status: 'Running', progress: 68 },
-  { title: 'Index workspace embeddings', status: 'Queued', progress: 0 },
-  { title: 'Compile prompt library', status: 'Done', progress: 100 },
+  { title: 'python scripts/sync.py', status: 'Running', progress: 68 },
+  { title: 'pnpm lint', status: 'Queued', progress: 0 },
+  { title: 'npm run build', status: 'Done', progress: 100 },
 ];
 
 const agentLog = [
@@ -79,13 +80,13 @@ function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDoc
     );
   }
 
-  if (window.appId === 'job-monitor') {
+  if (window.appId === 'terminal') {
     return (
       <div className="window-grid">
         {jobs.map((job) => (
           <div key={job.title} className="card">
             <div className="card-title">{job.title}</div>
-            <div className="card-subtitle">Status: {job.status}</div>
+            <div className="card-subtitle">Process status: {job.status}</div>
             <div style={{ marginTop: 8, height: 6, borderRadius: 999, background: 'rgba(255,255,255,0.08)' }}>
               <div
                 style={{
@@ -120,6 +121,7 @@ function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDoc
   if (window.appId === 'realtor') return <Suspense fallback={null}><RealtorApp /></Suspense>;
   if (window.appId === 'appcenter') return <Suspense fallback={null}><AppCenterApp /></Suspense>;
   if (window.appId === 'rentcafe') return <Suspense fallback={null}><RentCafeApp /></Suspense>;
+  if (window.appId === 'pycharm') return <Suspense fallback={null}><PyCharmApp /></Suspense>;
 
   if (window.appId === 'archive') return <Suspense fallback={null}><AccelApp /></Suspense>;
   if (window.appId === 'oracle') return <Suspense fallback={null}><OracleApp /></Suspense>;
