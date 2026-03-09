@@ -1,9 +1,15 @@
-import { useMemo, useState, type CSSProperties } from 'react';
-import { useMailStore, type Email, type EmailFolder } from '../../state/useMailStore';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMailStore, type EmailFolder } from '../../state/useMailStore';
 import { useCompanyStore } from '../../state/useCompanyStore';
 import { useProfileStore } from '../../state/useProfileStore';
 
-const FOLDER_LABELS: Record<EmailFolder, string> = { inbox: 'Inbox', starred: 'Starred', sent: 'Sent', drafts: 'Drafts', trash: 'Trash' };
+const FOLDER_LABELS: Record<EmailFolder, string> = {
+  inbox: 'Inbox',
+  starred: 'Starred',
+  sent: 'Sent Items',
+  drafts: 'Drafts',
+  trash: 'Deleted Items',
+};
 
 function percentCount(text: string) {
   const match = text.toUpperCase().match(/PROMOTION(%+)/);
@@ -13,6 +19,265 @@ function percentCount(text: string) {
 function extractName(from: string) {
   const m = from.match(/^([^<]+)/);
   return (m?.[1] ?? from).trim();
+}
+
+function getInitials(name: string) {
+  const tokens = name.split(/\s+/).filter(Boolean);
+  return (tokens[0]?.[0] ?? 'U') + (tokens[1]?.[0] ?? tokens[0]?.[1] ?? 'S');
+}
+
+function ProfileAvatar({ fullName, email, onClick }: { fullName: string; email: string; onClick: () => void }) {
+  return (
+    <button className="out-profile-avatar" onClick={onClick} aria-label={`Open account menu for ${email}`}>
+      {getInitials(fullName).toUpperCase()}
+    </button>
+  );
+}
+
+function SignatureEditor({
+  signatureName,
+  setSignatureName,
+  includeOnNew,
+  setIncludeOnNew,
+  includeOnReply,
+  setIncludeOnReply,
+}: {
+  signatureName: string;
+  setSignatureName: (v: string) => void;
+  includeOnNew: boolean;
+  setIncludeOnNew: (v: boolean) => void;
+  includeOnReply: boolean;
+  setIncludeOnReply: (v: boolean) => void;
+}) {
+  const editorRef = useRef<HTMLDivElement | null>(null);
+
+  const run = (command: 'bold' | 'italic' | 'createLink' | 'insertImage') => {
+    if (command === 'createLink') {
+      const url = window.prompt('Enter link URL');
+      if (url) document.execCommand('createLink', false, url);
+      return;
+    }
+    if (command === 'insertImage') {
+      const src = window.prompt('Enter image URL');
+      if (src) document.execCommand('insertImage', false, src);
+      return;
+    }
+    document.execCommand(command);
+    editorRef.current?.focus();
+  };
+
+  return (
+    <div className="out-signature-editor">
+      <label className="out-settings-label">
+        Signature name
+        <input
+          className="out-settings-input"
+          value={signatureName}
+          onChange={(e) => setSignatureName(e.target.value)}
+          placeholder="My signature"
+        />
+      </label>
+      <div className="out-editor-toolbar" role="toolbar" aria-label="Formatting tools">
+        <button type="button" onClick={() => run('bold')}><strong>B</strong></button>
+        <button type="button" onClick={() => run('italic')}><em>I</em></button>
+        <button type="button" onClick={() => run('createLink')}>Link</button>
+        <button type="button" onClick={() => run('insertImage')}>Image</button>
+      </div>
+      <div
+        ref={editorRef}
+        className="out-rich-editor"
+        contentEditable
+        suppressContentEditableWarning
+        aria-label="Email signature rich text editor"
+      >
+        Best regards,<br />{signatureName || 'Your Name'}
+      </div>
+      <label className="out-checkbox"><input type="checkbox" checked={includeOnNew} onChange={(e) => setIncludeOnNew(e.target.checked)} /> Automatically include on new emails</label>
+      <label className="out-checkbox"><input type="checkbox" checked={includeOnReply} onChange={(e) => setIncludeOnReply(e.target.checked)} /> Automatically include on replies and forwards</label>
+    </div>
+  );
+}
+
+function SettingsPanel({
+  open,
+  onClose,
+  isDark,
+  onToggleTheme,
+}: {
+  open: boolean;
+  onClose: () => void;
+  isDark: boolean;
+  onToggleTheme: () => void;
+}) {
+  const [signatureName, setSignatureName] = useState('Primary Signature');
+  const [includeOnNew, setIncludeOnNew] = useState(true);
+  const [includeOnReply, setIncludeOnReply] = useState(true);
+
+  if (!open) return null;
+
+  return (
+    <aside className="out-settings-panel" role="dialog" aria-label="Outlook settings">
+      <header>
+        <h3>Mail settings</h3>
+        <button type="button" onClick={onClose}>✕</button>
+      </header>
+      <section>
+        <h4>Email signature</h4>
+        <SignatureEditor
+          signatureName={signatureName}
+          setSignatureName={setSignatureName}
+          includeOnNew={includeOnNew}
+          setIncludeOnNew={setIncludeOnNew}
+          includeOnReply={includeOnReply}
+          setIncludeOnReply={setIncludeOnReply}
+        />
+      </section>
+      <section>
+        <h4>Rules & automation</h4>
+        <ul>
+          <li>Inbox rules</li>
+          <li>Automatic replies</li>
+          <li>Mail layout preferences</li>
+          <li>Notification preferences</li>
+        </ul>
+      </section>
+      <section>
+        <h4>Appearance</h4>
+        <button className="out-appearance-toggle" type="button" onClick={onToggleTheme}>{isDark ? 'Switch to light mode' : 'Switch to dark mode'}</button>
+      </section>
+    </aside>
+  );
+}
+
+function AccountDropdown({
+  email,
+  fullName,
+  accounts,
+  onSignOut,
+  onToggleTheme,
+  isDark,
+}: {
+  email: string;
+  fullName: string;
+  accounts: string[];
+  onSignOut: () => void;
+  onToggleTheme: () => void;
+  isDark: boolean;
+}) {
+  const secondary = accounts.filter((a) => a !== email);
+  return (
+    <div className="out-account-dropdown" role="menu" aria-label="Account menu">
+      <div className="out-account-top">
+        <div className="out-account-avatar-large">{getInitials(fullName).toUpperCase()}</div>
+        <div className="out-account-name">{fullName}</div>
+        <div className="out-account-email">{email}</div>
+        <button type="button">My Microsoft Account</button>
+        <button type="button">My Profile</button>
+      </div>
+      <hr />
+      <div className="out-account-list">
+        {secondary.map((acc) => (
+          <button key={acc} type="button" className="out-account-item">
+            <span>{extractName(fullName)}</span>
+            <small>{acc}</small>
+          </button>
+        ))}
+      </div>
+      <hr />
+      <button type="button" className="out-account-item">Sign in with a different account</button>
+      <hr />
+      <div className="out-account-settings">
+        <button type="button">⚙ Email settings</button>
+        <button type="button">✎ Email signature</button>
+        <button type="button" onClick={onToggleTheme}>◐ Appearance: {isDark ? 'Dark' : 'Light'}</button>
+      </div>
+      <hr />
+      <button className="out-signout-btn" type="button" onClick={onSignOut}>Sign out</button>
+    </div>
+  );
+}
+
+function OutlookHeader({
+  fullName,
+  email,
+  accounts,
+  onCompose,
+  onSignOut,
+  onOpenSettings,
+  isDark,
+  onToggleTheme,
+}: {
+  fullName: string;
+  email: string;
+  accounts: string[];
+  onCompose: () => void;
+  onSignOut: () => void;
+  onOpenSettings: () => void;
+  isDark: boolean;
+  onToggleTheme: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const onClick = (ev: MouseEvent) => {
+      if (!menuRef.current?.contains(ev.target as Node)) setOpen(false);
+    };
+    const onEsc = (ev: KeyboardEvent) => {
+      if (ev.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onEsc);
+    return () => {
+      document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('keydown', onEsc);
+    };
+  }, []);
+
+  return (
+    <header className="outlook-header">
+      <div className="outlook-wordmark">Outlook</div>
+      <input className="outlook-search" placeholder="Search" aria-label="Search mail" />
+      <button className="out-new-mail" type="button" onClick={onCompose}>New mail</button>
+      <div className="out-header-actions" ref={menuRef}>
+        <button className="out-gear-btn" type="button" onClick={onOpenSettings} aria-label="Open settings">⚙</button>
+        <ProfileAvatar fullName={fullName} email={email} onClick={() => setOpen((v) => !v)} />
+        {open && <AccountDropdown email={email} fullName={fullName} accounts={accounts} onSignOut={onSignOut} onToggleTheme={onToggleTheme} isDark={isDark} />}
+      </div>
+    </header>
+  );
+}
+
+function OutlookLoginScreen({
+  emailInput,
+  setEmailInput,
+  password,
+  setPassword,
+  authError,
+  onSignIn,
+}: {
+  emailInput: string;
+  setEmailInput: (v: string) => void;
+  password: string;
+  setPassword: (v: string) => void;
+  authError: string;
+  onSignIn: () => void;
+}) {
+  return (
+    <div className="outlook-login-screen">
+      <div className="outlook-login-card">
+        <div className="ms-logo" aria-hidden="true"><span />Microsoft</div>
+        <h2>Sign in</h2>
+        <p>to continue to Outlook</p>
+        <input value={emailInput} onChange={(e) => setEmailInput(e.target.value)} placeholder="Email, phone, or Skype" />
+        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
+        <div className="out-login-links"><a href="#">No account? Create one!</a><a href="#">Can&apos;t access your account?</a></div>
+        <div className="out-login-actions"><button type="button" onClick={onSignIn}>Next</button></div>
+        {authError && <div className="out-auth-error">{authError}</div>}
+      </div>
+      <button className="out-signin-options" type="button">Sign-in options</button>
+    </div>
+  );
 }
 
 export function OutlookApp() {
@@ -31,6 +296,8 @@ export function OutlookApp() {
   const [folder, setFolder] = useState<EmailFolder>('inbox');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [composeOpen, setComposeOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [isDark, setIsDark] = useState(true);
   const [to, setTo] = useState('');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
@@ -39,22 +306,22 @@ export function OutlookApp() {
 
   if (!activeOutlookEmail) {
     return (
-      <div style={{ height: '100%', display: 'grid', placeItems: 'center', background: '#f1f5f9' }}>
-        <div style={{ width: 520, background: 'white', border: '1px solid #dbe3ee', borderRadius: 12, padding: 20 }}>
-          <h2 style={{ marginTop: 0 }}>Outlook account sign in</h2>
-          <p style={{ fontSize: 13, color: '#64748b' }}>Choose one mailbox identity. Passwords are account-specific in this simulation.</p>
-          <select value={emailInput} onChange={(e) => setEmailInput(e.target.value)} style={input}>{accountEmails.map((e) => <option key={e} value={e}>{e}</option>)}</select>
-          <input value={password} onChange={(e) => setPassword(e.target.value)} style={{ ...input, marginTop: 10 }} placeholder="Password" />
-          <button type="button" onClick={() => { const ok = loginOutlook(emailInput, password); setAuthError(ok ? '' : 'Invalid credentials.'); }} style={{ ...btn, marginTop: 12 }}>Sign in</button>
-          {authError && <div style={{ color: '#b91c1c', fontSize: 12, marginTop: 8 }}>{authError}</div>}
-          <div style={{ marginTop: 10, fontSize: 12, color: '#64748b' }}>Workspace account password: <strong>workspace</strong>. Company accounts default to <strong>Welcome@123</strong>.</div>
-        </div>
-      </div>
+      <OutlookLoginScreen
+        emailInput={emailInput}
+        setEmailInput={setEmailInput}
+        password={password}
+        setPassword={setPassword}
+        authError={authError}
+        onSignIn={() => {
+          const ok = loginOutlook(emailInput, password);
+          setAuthError(ok ? '' : 'That Microsoft account does not exist.');
+        }}
+      />
     );
   }
 
   const scoped = emails.filter((e) => (e.to + e.from).toLowerCase().includes(activeOutlookEmail.toLowerCase()) || activeOutlookEmail === 'user@workspace.aos');
-  const folderEmails = scoped.filter((e) => folder === 'starred' ? e.starred : e.folder === folder).sort((a, b) => +new Date(b.date) - +new Date(a.date));
+  const folderEmails = scoped.filter((e) => (folder === 'starred' ? e.starred : e.folder === folder)).sort((a, b) => +new Date(b.date) - +new Date(a.date));
   const selected = folderEmails.find((e) => e.id === selectedId) ?? folderEmails[0] ?? null;
 
   const send = () => {
@@ -93,54 +360,61 @@ export function OutlookApp() {
       }
     }
     setComposeOpen(false);
-    setTo(''); setSubject(''); setBody('');
+    setTo('');
+    setSubject('');
+    setBody('');
   };
 
   return (
-    <div style={{ height: '100%', display: 'grid', gridTemplateColumns: '220px 320px 1fr', background: '#f8fafc' }}>
-      <aside style={{ borderRight: '1px solid #dbe3ee', background: '#f1f5f9', padding: 12 }}>
-        <div style={{ fontWeight: 800, color: '#0b65a5' }}>Outlook</div>
-        <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>{activeOutlookEmail}</div>
-        <button type="button" onClick={logoutOutlook} style={{ ...btnGhost, marginTop: 8 }}>Sign out</button>
-        <button type="button" onClick={() => setComposeOpen(true)} style={{ ...btn, marginTop: 8 }}>New Message</button>
-        <div style={{ marginTop: 14 }}>
-          {Object.entries(FOLDER_LABELS).map(([k, v]) => <button key={k} type="button" onClick={() => setFolder(k as EmailFolder)} style={{ ...navBtn, background: folder === k ? '#dbeafe' : 'transparent' }}>{v}</button>)}
-        </div>
-      </aside>
-      <section style={{ borderRight: '1px solid #dbe3ee', overflow: 'auto' }}>
-        {folderEmails.map((e) => (
-          <button key={e.id} type="button" onClick={() => { setSelectedId(e.id); markRead(e.id); }} style={{ width: '100%', textAlign: 'left', padding: 10, borderBottom: '1px solid #eef2f7', background: selected?.id === e.id ? '#eff6ff' : 'white' }}>
-            <div style={{ fontWeight: 600 }}>{extractName(e.from)}</div>
-            <div style={{ fontSize: 13 }}>{e.subject}</div>
-          </button>
-        ))}
-      </section>
-      <main style={{ padding: 12, overflow: 'auto' }}>
-        {selected ? (
-          <>
-            <h3 style={{ marginTop: 0 }}>{selected.subject}</h3>
-            <div style={{ fontSize: 12, color: '#64748b' }}>From {selected.from} to {selected.to}</div>
-            <div style={{ marginTop: 12, background: 'white', border: '1px solid #e2e8f0', borderRadius: 10, padding: 12 }} dangerouslySetInnerHTML={{ __html: selected.body }} />
-          </>
-        ) : <div>No email selected.</div>}
-      </main>
+    <div className={`outlook-shell ${isDark ? 'theme-dark' : 'theme-light'}`}>
+      <OutlookHeader
+        fullName={fullName}
+        email={activeOutlookEmail}
+        accounts={accountEmails}
+        onCompose={() => setComposeOpen(true)}
+        onSignOut={logoutOutlook}
+        onOpenSettings={() => setSettingsOpen(true)}
+        isDark={isDark}
+        onToggleTheme={() => setIsDark((v) => !v)}
+      />
+      <div className="outlook-layout">
+        <aside className="outlook-sidebar">
+          {Object.entries(FOLDER_LABELS).map(([k, v]) => (
+            <button key={k} className={folder === k ? 'active' : ''} type="button" onClick={() => setFolder(k as EmailFolder)}>{v}</button>
+          ))}
+        </aside>
+        <section className="outlook-message-list">
+          {folderEmails.map((e) => (
+            <button key={e.id} type="button" className={selected?.id === e.id ? 'selected' : ''} onClick={() => { setSelectedId(e.id); markRead(e.id); }}>
+              <div><strong>{extractName(e.from)}</strong><span>{new Date(e.date).toLocaleDateString()}</span></div>
+              <div>{e.subject}</div>
+            </button>
+          ))}
+        </section>
+        <main className="outlook-reading-pane">
+          {selected ? (
+            <>
+              <h3>{selected.subject}</h3>
+              <div className="out-meta">From {selected.from} to {selected.to}</div>
+              <article dangerouslySetInnerHTML={{ __html: selected.body }} />
+            </>
+          ) : <div className="out-empty-state">Select an email to read</div>}
+        </main>
+      </div>
 
       {composeOpen && (
-        <div style={{ position: 'absolute', right: 20, bottom: 20, width: 460, background: 'white', border: '1px solid #cbd5e1', borderRadius: 10, padding: 12, boxShadow: '0 10px 32px rgba(0,0,0,0.2)' }}>
-          <input value={to} onChange={(e) => setTo(e.target.value)} placeholder="To" style={input} />
-          <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Subject" style={{ ...input, marginTop: 8 }} />
-          <textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Message" style={{ ...input, marginTop: 8, minHeight: 120 }} />
-          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            <button type="button" onClick={send} style={btn}>Send</button>
-            <button type="button" onClick={() => setComposeOpen(false)} style={btnGhost}>Cancel</button>
+        <div className="out-compose-modal">
+          <input value={to} onChange={(e) => setTo(e.target.value)} placeholder="To" />
+          <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Subject" />
+          <textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Message" />
+          <div>
+            <button type="button" onClick={send}>Send</button>
+            <button type="button" onClick={() => setComposeOpen(false)}>Discard</button>
           </div>
         </div>
       )}
+
+      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} isDark={isDark} onToggleTheme={() => setIsDark((v) => !v)} />
     </div>
   );
 }
-
-const input: CSSProperties = { width: '100%', padding: '9px 10px', borderRadius: 8, border: '1px solid #cbd5e1' };
-const btn: CSSProperties = { padding: '8px 12px', borderRadius: 8, border: '1px solid #0b65a5', background: '#0b65a5', color: 'white', fontWeight: 700 };
-const btnGhost: CSSProperties = { padding: '8px 12px', borderRadius: 8, border: '1px solid #cbd5e1', background: 'white' };
-const navBtn: CSSProperties = { width: '100%', textAlign: 'left', borderRadius: 8, padding: '7px 8px', marginBottom: 4 };
