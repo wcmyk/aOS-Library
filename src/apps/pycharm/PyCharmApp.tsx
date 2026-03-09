@@ -1136,6 +1136,8 @@ export function PyCharmApp() {
   ]);
   const [termInput, setTermInput] = useState('');
   const [cwd, setCwd] = useState('myproject');
+  const [isRunning, setIsRunning] = useState(false);
+  const execIframeRef = useRef<HTMLIFrameElement | null>(null);
 
   const dirs = useMemo(() => getDirs(fs), [fs]);
   const allPaths = useMemo(() => Object.keys(fs).sort(), [fs]);
@@ -1267,6 +1269,103 @@ export function PyCharmApp() {
     if (result.output) setTermLines((l) => [...l, { type: result.type, text: result.output }]);
   }, [termInput, fs, cwd]);
 
+  // Real code execution via sandboxed iframe
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      const data = e.data as { type: string; text?: string };
+      if (!data || typeof data !== 'object') return;
+      if (data.type === 'output') {
+        setTermLines((l) => [...l, { type: 'output', text: data.text ?? '' }]);
+      } else if (data.type === 'error') {
+        setTermLines((l) => [...l, { type: 'error', text: data.text ?? 'Error' }]);
+        setIsRunning(false);
+      } else if (data.type === 'done') {
+        setTermLines((l) => [...l, { type: 'system', text: '\nProcess finished with exit code 0' }]);
+        setIsRunning(false);
+      } else if (data.type === 'ready') {
+        // Iframe ready — send code to run
+        execIframeRef.current?.contentWindow?.postMessage({ type: 'run', code: execIframeRef.current.dataset.code }, '*');
+      }
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, []);
+
+  const handleRun = useCallback(() => {
+    if (!activeTab || isRunning) return;
+    const ext = getExt(activeTab);
+    const code = fs[activeTab] ?? '';
+    const filename = activeTab.split('/').pop() ?? activeTab;
+
+    if (ext === 'html') {
+      setShowPreview(true);
+      return;
+    }
+
+    setBottomPane('terminal');
+    setIsRunning(true);
+    setTermLines((l) => [
+      ...l,
+      { type: 'system', text: `\n▶ Running ${filename}...` },
+    ]);
+
+    if (ext === 'py') {
+      const srcdoc = `<!DOCTYPE html><html><head>
+<script src="https://skulpt.org/js/skulpt.min.js"><\/script>
+<script src="https://skulpt.org/js/skulpt-stdlib.js"><\/script>
+<\/head><body><script>
+window.addEventListener('message', function(e) {
+  if (!e.data || e.data.type !== 'run') return;
+  var code = e.data.code;
+  Sk.configure({
+    output: function(t) { parent.postMessage({ type: 'output', text: t }, '*'); },
+    read: function(x) {
+      if (Sk.builtinFiles===undefined || Sk.builtinFiles['files'][x]===undefined)
+        throw 'File not found: '+x;
+      return Sk.builtinFiles['files'][x];
+    }
+  });
+  Sk.misceval.asyncToPromise(function() {
+    return Sk.importMainWithBody('<stdin>', false, code, true);
+  }).then(function() {
+    parent.postMessage({ type: 'done' }, '*');
+  }, function(err) {
+    parent.postMessage({ type: 'error', text: err.toString() }, '*');
+  });
+});
+parent.postMessage({ type: 'ready' }, '*');
+<\/script></body></html>`;
+      const iframe = execIframeRef.current!;
+      iframe.dataset.code = code;
+      iframe.srcdoc = srcdoc;
+    } else if (ext === 'js' || ext === 'ts') {
+      const srcdoc = `<!DOCTYPE html><html><body><script>
+window.console = {
+  log: function() { parent.postMessage({ type: 'output', text: Array.from(arguments).map(String).join(' ')+'\\n' }, '*'); },
+  error: function() { parent.postMessage({ type: 'error', text: Array.from(arguments).map(String).join(' ')+'\\n' }, '*'); },
+  warn: function() { parent.postMessage({ type: 'output', text: '[warn] '+Array.from(arguments).map(String).join(' ')+'\\n' }, '*'); },
+  info: function() { parent.postMessage({ type: 'output', text: Array.from(arguments).map(String).join(' ')+'\\n' }, '*'); }
+};
+window.addEventListener('message', function(e) {
+  if (!e.data || e.data.type !== 'run') return;
+  try {
+    (new Function(e.data.code))();
+    parent.postMessage({ type: 'done' }, '*');
+  } catch(err) {
+    parent.postMessage({ type: 'error', text: err.toString() }, '*');
+  }
+});
+parent.postMessage({ type: 'ready' }, '*');
+<\/script></body></html>`;
+      const iframe = execIframeRef.current!;
+      iframe.dataset.code = code;
+      iframe.srcdoc = srcdoc;
+    } else {
+      setTermLines((l) => [...l, { type: 'error', text: `Cannot run .${ext} files directly. Supported: .py .js .ts .html` }]);
+      setIsRunning(false);
+    }
+  }, [activeTab, isRunning, fs]);
+
   const toggleDir = useCallback((path: string) => {
     setExpanded((e) => {
       const n = new Set(e);
@@ -1304,22 +1403,23 @@ export function PyCharmApp() {
           >{m}</button>
         ))}
         <div style={{ flex: 1 }} />
+        {isHtmlFile && (
+          <button
+            type="button"
+            onClick={() => setShowPreview((v) => !v)}
+            style={{ padding: '4px 10px', background: showPreview ? '#365880' : '#4c4f52', border: 'none', color: '#ffffff', borderRadius: 4, fontSize: 11, cursor: 'pointer', marginRight: 4 }}
+          >
+            ⬛ {showPreview ? 'Preview On' : 'Preview'}
+          </button>
+        )}
         <button
           type="button"
-          onClick={() => { if (isHtmlFile) setShowPreview((v) => !v); }}
-          title={isHtmlFile ? 'Toggle HTML preview' : 'Open an HTML file to preview'}
-          style={{ padding: '4px 10px', background: showPreview ? '#365880' : '#4c4f52', border: 'none', color: '#ffffff', borderRadius: 4, fontSize: 11, cursor: 'pointer', marginRight: 4 }}
+          onClick={handleRun}
+          disabled={isRunning || !activeTab}
+          title={`Run ${activeTab ? activeTab.split('/').pop() : ''}`}
+          style={{ padding: '4px 12px', background: isRunning ? '#2d6a2d' : '#30a030', border: 'none', color: '#ffffff', borderRadius: 4, fontSize: 11, cursor: isRunning ? 'default' : 'pointer', fontWeight: 600, opacity: !activeTab ? 0.5 : 1 }}
         >
-          ▶ {showPreview ? 'Preview On' : 'Preview'}
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setTermLines((l) => [...l, { type: 'input', text: 'pytest -q' }, { type: 'output', text: 'collected 3 items\ntests/test_main.py ...    [100%]\n3 passed in 0.14s' }]);
-          }}
-          style={{ padding: '4px 10px', background: '#4c4f52', border: 'none', color: '#a9b7c6', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}
-        >
-          ⚙ Run Tests
+          {isRunning ? '⏳ Running…' : '▶ Run'}
         </button>
       </header>
 
@@ -1452,6 +1552,14 @@ export function PyCharmApp() {
           </span>
         </div>
       </footer>
+
+      {/* ── Hidden Execution Iframe ── */}
+      <iframe
+        ref={execIframeRef}
+        title="code-runner"
+        sandbox="allow-scripts"
+        style={{ display: 'none', width: 0, height: 0, border: 'none' }}
+      />
 
       {/* ── Context Menu ── */}
       <ContextMenu state={contextMenu} onAction={handleContextAction} onClose={() => setContextMenu(null)} />

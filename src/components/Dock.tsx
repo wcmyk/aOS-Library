@@ -30,9 +30,10 @@ export function Dock({ apps, windows, onLaunch }: DockProps) {
   }, [order]);
 
   const orderedApps = useMemo(() => {
-    if (!order.length) return apps;
-    const map = new Map(apps.map((a) => [a.id, a]));
-    return order.map((id) => map.get(id)).filter(Boolean) as ShellApp[];
+    const visible = apps.filter((a) => !a.dockHidden);
+    if (!order.length) return visible;
+    const map = new Map(visible.map((a) => [a.id, a]));
+    return order.filter((id) => map.has(id)).map((id) => map.get(id)).filter(Boolean) as ShellApp[];
   }, [apps, order]);
 
   const handleDrop = (targetId: string) => {
