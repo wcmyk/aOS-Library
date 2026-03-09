@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useMailStore, type EmailFolder } from '../../state/useMailStore';
+import { useMailStore, type Email, type EmailFolder, type JobMeta } from '../../state/useMailStore';
 import { useCompanyStore } from '../../state/useCompanyStore';
 import { useProfileStore } from '../../state/useProfileStore';
+import { meetingToolLabel } from '../safari/sites/LinkedInSite';
 
 const FOLDER_LABELS: Record<EmailFolder, string> = {
   inbox: 'Inbox',
@@ -48,6 +49,164 @@ function formatDate(dateStr: string) {
   }
   return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
 }
+
+// ── ATS Pipeline ──────────────────────────────────────────────────────────────
+
+function strHashNum(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h >>> 0;
+}
+function generateEIN(company: string): string {
+  const h = strHashNum(company);
+  return `${String(h % 100).padStart(2, '0')}-${String((h >> 7) % 10000000).padStart(7, '0')}`;
+}
+function getNextMonday(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + ((1 + 7 - d.getDay()) % 7 || 7));
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+}
+function getStartDate(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 14);
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+}
+function getManagerEmail(name: string, domain: string): string {
+  const parts = name.toLowerCase().split(' ');
+  return `${parts[0]}.${parts[parts.length - 1]}@${domain}`;
+}
+function getCompanyArchetype(company: string): string {
+  const type = company.split(' ').pop() ?? '';
+  if (['Capital','Partners','Advisory','Advisors'].includes(type)) return 'finance';
+  if (['Technologies','Systems','Solutions','Analytics'].includes(type)) return 'tech';
+  if (['Consulting'].includes(type)) return 'consulting';
+  return 'startup';
+}
+
+function buildPhoneScreenEmail(meta: JobMeta): Omit<Email, 'id' | 'read' | 'starred'> {
+  const tool = meetingToolLabel(meta.meetingTool);
+  const monday = getNextMonday();
+  return {
+    from: `${meta.recruiter} — Talent Acquisition at ${meta.company} <careers@${meta.domain}>`,
+    to: 'user@workspace.aos',
+    subject: `Interview Invitation — Phone Screen — ${meta.role} at ${meta.company}`,
+    date: new Date().toISOString(),
+    folder: 'inbox',
+    body: `<p>Dear Applicant,</p><p>Thank you for your patience. After reviewing your application, we are pleased to invite you to a <strong>phone screening interview</strong> for the <strong>${meta.role}</strong> role at <strong>${meta.company}</strong>.</p><p>Please join us on <strong>${monday} at 2:00 PM</strong> for a 30-minute introductory conversation.</p><p><strong>Join via ${tool}:</strong><br><a href="${meta.meetingLink}" style="color:#0078d4">${meta.meetingLink}</a></p><p>There is no technical assessment at this stage — this is a conversation.</p><br><p>Best regards,<br><strong>${meta.recruiter}</strong><br>Talent Acquisition, ${meta.company}</p>`,
+    jobMeta: { ...meta, stage: 'phone-screen' },
+  };
+}
+
+function buildDirectorEmail(meta: JobMeta): Omit<Email, 'id' | 'read' | 'starred'> {
+  const tool = meetingToolLabel(meta.meetingTool);
+  const monday = getNextMonday();
+  const mgEmail = getManagerEmail(meta.managerName, meta.domain);
+  return {
+    from: `${meta.managerName} — Engineering at ${meta.company} <${mgEmail}>`,
+    to: 'user@workspace.aos',
+    subject: `Next Step: Meeting with Engineering Director — ${meta.role} at ${meta.company}`,
+    date: new Date().toISOString(),
+    folder: 'inbox',
+    body: `<p>Hi,</p><p>I'm ${meta.managerName}, Director of Engineering at ${meta.company}. I'd like to personally schedule a follow-up conversation.</p><p><strong>Join via ${tool} on ${monday} at 3:00 PM:</strong><br><a href="${meta.meetingLink}" style="color:#0078d4">${meta.meetingLink}</a></p><p>We'll cover the team's roadmap, your experience, and what this opportunity looks like day-to-day.</p><br><p>Looking forward to it,<br><strong>${meta.managerName}</strong><br>Director of Engineering, ${meta.company}</p>`,
+    jobMeta: { ...meta, stage: 'director' },
+  };
+}
+
+function buildPanelEmail(meta: JobMeta): Omit<Email, 'id' | 'read' | 'starred'> {
+  const tool = meetingToolLabel(meta.meetingTool);
+  const monday = getNextMonday();
+  return {
+    from: `${meta.recruiter} — Talent Acquisition at ${meta.company} <careers@${meta.domain}>`,
+    to: 'user@workspace.aos',
+    subject: `Panel Interview Confirmation — ${meta.role} at ${meta.company}`,
+    date: new Date().toISOString(),
+    folder: 'inbox',
+    body: `<p>Dear Applicant,</p><p>Congratulations on advancing for the <strong>${meta.role}</strong> position at <strong>${meta.company}</strong>. We are inviting you to a <strong>Panel Interview</strong> on <strong>${monday}</strong>.</p><p><a href="${meta.meetingLink}" style="color:#0078d4">${meta.meetingLink}</a></p><table style="border-collapse:collapse;width:100%;font-size:13px"><tr style="background:#f1f5f9"><td style="padding:8px"><strong>10:00–10:45 AM</strong></td><td style="padding:8px">Technical Interview</td></tr><tr><td style="padding:8px"><strong>11:00–11:45 AM</strong></td><td style="padding:8px">System Design</td></tr><tr style="background:#f1f5f9"><td style="padding:8px"><strong>1:00–1:45 PM</strong></td><td style="padding:8px">Behavioral Interview</td></tr><tr><td style="padding:8px"><strong>2:00–2:45 PM</strong></td><td style="padding:8px">Team Fit &amp; Culture (${tool})</td></tr></table><p>Feedback will follow within three business days.</p><br><p>Best regards,<br><strong>${meta.recruiter}</strong><br>Talent Acquisition, ${meta.company}</p>`,
+    jobMeta: { ...meta, stage: 'panel' },
+  };
+}
+
+function buildOfferEmail(meta: JobMeta): Omit<Email, 'id' | 'read' | 'starred'> {
+  const arch = getCompanyArchetype(meta.company);
+  const bonus = Math.round((meta.compensation * (arch === 'finance' ? 0.3 : 0.15)) / 1000) * 1000;
+  const mgEmail = getManagerEmail(meta.managerName, meta.domain);
+  return {
+    from: `${meta.managerName} — Engineering at ${meta.company} <${mgEmail}>`,
+    to: 'user@workspace.aos',
+    subject: `Offer of Employment — ${meta.role} at ${meta.company}`,
+    date: new Date().toISOString(),
+    folder: 'inbox',
+    body: `<p>Dear Applicant,</p><p>On behalf of <strong>${meta.company}</strong>, it is my pleasure to extend this formal offer for the position of <strong>${meta.role}</strong>, based in <strong>${meta.location}</strong>.</p><p><strong>Compensation Package:</strong></p><ul><li><strong>Base Salary:</strong> $${meta.compensation.toLocaleString()} per year, paid bi-weekly</li><li><strong>Annual Target Bonus:</strong> $${bonus.toLocaleString()}</li><li><strong>Benefits:</strong> Full medical, dental, vision; 401(k) with employer match; flexible PTO</li></ul><p>To accept this offer, please reply with the words <strong>"I Accept"</strong> and we will send your onboarding packet within one business day.</p><br><p>Sincerely,<br><strong>${meta.managerName}</strong><br>Director of Engineering, ${meta.company}</p>`,
+    jobMeta: { ...meta, stage: 'offer' },
+  };
+}
+
+function buildOnboardingEmail(meta: JobMeta): Omit<Email, 'id' | 'read' | 'starred'> {
+  const startDate = getStartDate();
+  const ein = generateEIN(meta.company);
+  const mgEmail = getManagerEmail(meta.managerName, meta.domain);
+  const city = meta.location.split(',')[0] ?? meta.location;
+  const addr = `1 ${meta.company.split(' ')[0]} Plaza, Suite 100, ${city}`;
+  return {
+    from: `${meta.recruiter} — People Operations at ${meta.company} <hr@${meta.domain}>`,
+    to: 'user@workspace.aos',
+    subject: `Welcome to ${meta.company} — Onboarding Information`,
+    date: new Date().toISOString(),
+    folder: 'inbox',
+    body: `<p>Dear New Team Member,</p><p>Congratulations and welcome to <strong>${meta.company}</strong>! You are joining as a <strong>${meta.role}</strong>.</p><p><strong>Start Date:</strong> ${startDate}<br><strong>Manager:</strong> ${meta.managerName} · <a href="mailto:${mgEmail}" style="color:#0078d4">${mgEmail}</a></p><hr style="border:none;border-top:1px solid #e2e8f0;margin:12px 0"><p><strong>Compensation:</strong> Base salary of <strong>$${meta.compensation.toLocaleString()}/year</strong>, paid bi-weekly. Direct deposit enrollment instructions are in your onboarding portal.</p><hr style="border:none;border-top:1px solid #e2e8f0;margin:12px 0"><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:14px;margin:10px 0"><p style="margin:0 0 6px;font-weight:600">IRS Form W-4 — Employee's Withholding Certificate</p><p style="margin:0;font-size:13px"><strong>Employer:</strong> ${meta.company} · <strong>EIN:</strong> ${ein}<br><strong>Address:</strong> ${addr}</p></div><p>Please reply to this email confirming receipt. If you have any questions, contact <a href="mailto:${mgEmail}" style="color:#0078d4">${mgEmail}</a>.</p><p><em>Tip: reply with <strong>PROMOTION%</strong> to trigger a promotion review after settling in.</em></p><br><p>Best regards,<br><strong>${meta.recruiter}</strong><br>People Operations, ${meta.company}</p>`,
+    jobMeta: { ...meta, stage: 'onboarding' },
+  };
+}
+
+const MORTGAGE_BANKS = ['CHASE', 'WELLS FARGO', 'TD AMERITRADE', 'PNC', '5/3', 'BANK OF AMERICA', 'CITIBANK', 'CAPITAL ONE'];
+
+function processHousingAutomation(
+  original: Email,
+  replyBody: string,
+  sendEmail: (e: Omit<Email, 'id' | 'read' | 'starred'> & { jobMeta?: JobMeta }) => void,
+) {
+  const upper = replyBody.toUpperCase();
+  const subjectRoot = original.subject.replace(/^RE:\s*/i, '');
+  if (upper.includes('APPLY%%%')) {
+    sendEmail({ from: 'Prime Residential <leasing@prime-residential.com>', to: 'user@workspace.aos', subject: `Re: ${subjectRoot}`, date: new Date().toISOString(), folder: 'inbox', body: '<p>Your application has been received. Reply with <strong>LEASEPLEASE</strong> to request your lease packet.</p>' });
+  }
+  if (upper.includes('LEASEPLEASE')) {
+    sendEmail({ from: 'Prime Residential <leasing@prime-residential.com>', to: 'user@workspace.aos', subject: `Re: ${subjectRoot}`, date: new Date().toISOString(), folder: 'inbox', body: '<p>Your lease packet is prepared. Reply with <strong>LEASEDONE%</strong> when signed to activate housing and RentCafe tracking.</p>' });
+  }
+  if (upper.includes('LEASEDONE%')) {
+    sendEmail({ from: 'RentCafe <noreply@rentcafe.aos>', to: 'user@workspace.aos', subject: 'RentCafe account activated', date: new Date().toISOString(), folder: 'inbox', body: '<p>Your residence has been confirmed and rent tracking is now active in RentCafe.</p>' });
+  }
+  if (upper.includes('MORTPLEASE')) {
+    sendEmail({ from: 'Mortgage Desk <mortgage@banking.aos>', to: 'user@workspace.aos', subject: 'Mortgage intake received', date: new Date().toISOString(), folder: 'inbox', body: '<p>We have received your mortgage request. Please respond with the bank you want to originate the mortgage with (e.g., CHASE, WELLS FARGO, BANK OF AMERICA).</p>' });
+  }
+  const bank = MORTGAGE_BANKS.find((b) => upper.includes(b));
+  if (bank) {
+    sendEmail({ from: `${bank} Mortgage Team <home-loans@${bank.toLowerCase().replace(/\s+/g, '')}.aos>`, to: 'user@workspace.aos', subject: `${bank} mortgage confirmation`, date: new Date().toISOString(), folder: 'inbox', body: `<p>Your mortgage has been initiated with ${bank} and reflected in your banking profile.</p>` });
+  }
+}
+
+function processAtsReply(
+  original: Email,
+  replyBody: string,
+  sendEmail: (e: Omit<Email, 'id' | 'read' | 'starred'> & { jobMeta?: JobMeta }) => void,
+) {
+  const { jobMeta } = original;
+  if (!jobMeta) return;
+  const upper = replyBody.toUpperCase();
+  if (jobMeta.stage === 'confirmation' && upper.includes('ATS100')) {
+    sendEmail(buildPhoneScreenEmail(jobMeta));
+  } else if (jobMeta.stage === 'phone-screen' && upper.includes('MANAGER100')) {
+    sendEmail(buildDirectorEmail(jobMeta));
+  } else if (jobMeta.stage === 'director' && upper.includes('PANELS100')) {
+    sendEmail(buildPanelEmail(jobMeta));
+  } else if (jobMeta.stage === 'panel' && upper.includes('THANK YOU')) {
+    sendEmail(buildOfferEmail(jobMeta));
+  } else if (jobMeta.stage === 'offer' && upper.includes('I ACCEPT')) {
+    sendEmail(buildOnboardingEmail(jobMeta));
+  }
+}
+
+// ── UI helpers ─────────────────────────────────────────────────────────────────
 
 function ProfileAvatar({ fullName, email, onClick }: { fullName: string; email: string; onClick: () => void }) {
   return (
@@ -392,14 +551,40 @@ export function OutlookApp() {
     sendEmail({ from: activeOutlookEmail, to, subject, body: `<p>${body.replace(/\n/g, '<br>')}</p>`, date: new Date().toISOString(), folder: 'sent' });
     if (selected) {
       const upper = body.toUpperCase();
+
+      // ── ATS stage advance codes ──────────────────────────────────────────────
+      processAtsReply(selected, body, (e) => sendEmail({ ...e, folder: 'inbox' }));
+
+      // ── Housing automation codes ─────────────────────────────────────────────
+      processHousingAutomation(selected, body, (e) => sendEmail({ ...e, folder: 'inbox' }));
+
+      // ── PROMOTION% — find the matching employer account by email domain ──────
       const pCount = percentCount(upper);
       if (pCount > 0) {
-        const promo = applyPromotionCommand(activeOutlookEmail, pCount, `email:${selected.subject}`);
+        // Try activeOutlookEmail first; fall back to finding account by email domain from the selected email
+        const senderDomain = selected.from.match(/@([\w.-]+)>?$/)?.[1];
+        const matchedAcc = accounts.find((a) =>
+          a.companyEmail.toLowerCase() === activeOutlookEmail.toLowerCase() ||
+          (senderDomain && a.domain === senderDomain),
+        );
+        const emailForPromo = matchedAcc?.companyEmail ?? activeOutlookEmail;
+        const promo = applyPromotionCommand(emailForPromo, pCount, `email:${selected.subject}`);
         if (promo) {
-          sendEmail({ from: `${selected.to} <hr@${selected.to.split('@')[1] || 'company.com'}>`, to: activeOutlookEmail, subject: `Promotion confirmed: ${promo.toTitle}`, body: `<p>Your title has been updated from ${promo.fromTitle} to ${promo.toTitle}. Compensation updated to $${promo.toComp.toLocaleString()}.</p>`, date: new Date().toISOString(), folder: 'inbox' });
+          sendEmail({
+            from: `People Operations <hr@${matchedAcc?.domain ?? selected.from.split('@')[1]?.replace('>', '') ?? 'company.com'}>`,
+            to: activeOutlookEmail,
+            subject: `Promotion confirmed — ${promo.toTitle}`,
+            body: `<p>Congratulations! Your title has been updated from <strong>${promo.fromTitle}</strong> to <strong>${promo.toTitle}</strong>.</p><p>Your new base salary is <strong>$${promo.toComp.toLocaleString()}</strong>/year, effective immediately. This change is reflected in Workday and your next payroll cycle.</p><p>Best regards,<br><strong>People Operations</strong></p>`,
+            date: new Date().toISOString(),
+            folder: 'inbox',
+          });
         }
       }
-      if (upper.includes('I ACCEPT') && selected.jobMeta) {
+
+      // ── I ACCEPT on offer email ─────────────────────────────────────────────
+      // (also handled by processAtsReply → buildOnboardingEmail above for the jobMeta flow)
+      // This branch handles provisioning the employer account when accepting the offer
+      if (upper.includes('I ACCEPT') && selected.jobMeta?.stage === 'offer') {
         const account = ensureEmployerFromOffer({
           companyName: selected.jobMeta.company,
           role: selected.jobMeta.role,
@@ -413,11 +598,13 @@ export function OutlookApp() {
           from: `People Operations <hr@${account.domain}>`,
           to: activeOutlookEmail,
           subject: `Welcome to ${account.companyName} — account provisioning complete`,
-          body: `<p>Your offer has been accepted for ${account.title}.</p><p>Company email: <strong>${account.companyEmail}</strong><br>Workday URL: <strong>workday.${account.domain}</strong><br>Outlook account is now available in account switching.</p>`,
+          body: `<p>Your offer has been accepted for <strong>${account.title}</strong>.</p><p>Company email: <strong>${account.companyEmail}</strong><br>Workday URL: <strong>workday.${account.domain}</strong><br>Outlook password: <strong>${account.outlookPassword}</strong><br>Your company Outlook account is now available via account switching.</p>`,
           date: new Date().toISOString(),
           folder: 'inbox',
         });
       }
+
+      // ── EXEC routing ────────────────────────────────────────────────────────
       if (upper.includes('EXEC')) {
         sendEmail({ from: `Executive Office <execoffice@${activeOutlookEmail.split('@')[1] || 'company.com'}>`, to: activeOutlookEmail, subject: 'Executive role process', body: '<p>Executive and board role requests require separate review. Your request has been logged for executive office screening.</p>', date: new Date().toISOString(), folder: 'inbox' });
       }
