@@ -5,6 +5,7 @@ export type ShellApp = {
   description: string;
   accent: string;
   defaultSize: { width: number; height: number };
+  dockHidden?: boolean;
 };
 
 const BASE_URL = import.meta.env.BASE_URL;
@@ -171,6 +172,15 @@ export const apps: ShellApp[] = [
     description: 'Property, lease, rent, and maintenance management portal',
     accent: '#0a9396',
     defaultSize: { width: 1100, height: 700 },
+  },
+  {
+    id: 'calculator',
+    name: 'Calculator',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='cg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23232323'/%3E%3Cstop offset='1' stop-color='%23111'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23cg)'/%3E%3Crect x='10' y='10' width='18' height='10' rx='3' fill='%23636363'/%3E%3Crect x='10' y='24' width='10' height='10' rx='3' fill='%233a3a3a'/%3E%3Crect x='24' y='24' width='10' height='10' rx='3' fill='%233a3a3a'/%3E%3Crect x='38' y='24' width='16' height='10' rx='3' fill='%23ff9f0a'/%3E%3Crect x='10' y='38' width='10' height='10' rx='3' fill='%233a3a3a'/%3E%3Crect x='24' y='38' width='10' height='10' rx='3' fill='%233a3a3a'/%3E%3Crect x='38' y='38' width='10' height='10' rx='3' fill='%23ff9f0a'/%3E%3Crect x='10' y='48' width='24' height='6' rx='3' fill='%233a3a3a'/%3E%3Crect x='38' y='48' width='10' height='6' rx='3' fill='%23ff9f0a'/%3E%3C/svg%3E`,
+    description: 'Multi-mode calculator: Basic, Scientific, Financial, Programmer, Statistics, Conversion, Currency',
+    accent: '#ff9f0a',
+    defaultSize: { width: 380, height: 580 },
+    dockHidden: true,
   },
   {
     id: 'appcenter',
