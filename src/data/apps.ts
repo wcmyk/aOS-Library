@@ -151,9 +151,9 @@ export const apps: ShellApp[] = [
   {
     id: 'realtor',
     name: 'HomeFind',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='rg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231a3c5e'/%3E%3Cstop offset='1' stop-color='%232a6496'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23rg)'/%3E%3Cpath d='M32 12L14 28h8v24h20V28h8z' fill='white' opacity='0.95'/%3E%3Crect x='26' y='36' width='12' height='16' rx='2' fill='%231a3c5e'/%3E%3C/svg%3E`,
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='hfg' x1='0' y1='0' x2='0.6' y2='1'%3E%3Cstop offset='0' stop-color='%23e63946'/%3E%3Cstop offset='1' stop-color='%23b0151b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23hfg)'/%3E%3Cpolygon points='32,8 8,30 56,30' fill='white' opacity='0.97'/%3E%3Crect x='12' y='29' width='40' height='24' rx='2' fill='white' opacity='0.97'/%3E%3Crect x='25' y='38' width='14' height='15' rx='5' fill='%23e63946'/%3E%3Crect x='14' y='33' width='9' height='8' rx='2' fill='%23e63946' opacity='0.85'/%3E%3Crect x='41' y='33' width='9' height='8' rx='2' fill='%23e63946' opacity='0.85'/%3E%3C/svg%3E`,
     description: 'Real estate marketplace with 150+ properties across 250 US locations',
-    accent: '#1a3c5e',
+    accent: '#e63946',
     defaultSize: { width: 1200, height: 760 },
   },
   {
@@ -167,9 +167,9 @@ export const apps: ShellApp[] = [
   {
     id: 'rentcafe',
     name: 'RentCafe',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='rg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230b4ea2'/%3E%3Cstop offset='1' stop-color='%231e3a8a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23rg)'/%3E%3Cpath d='M32 13L14 28h6v22h24V28h6z' fill='white' opacity='0.94'/%3E%3Crect x='27' y='35' width='10' height='15' rx='2' fill='%230b4ea2'/%3E%3Crect x='23' y='26' width='6' height='6' rx='1.5' fill='%230b4ea2'/%3E%3Crect x='35' y='26' width='6' height='6' rx='1.5' fill='%230b4ea2'/%3E%3C/svg%3E`,
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='rcg' x1='0' y1='0' x2='0.5' y2='1'%3E%3Cstop offset='0' stop-color='%230a9396'/%3E%3Cstop offset='1' stop-color='%23005f73'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23rcg)'/%3E%3Crect x='18' y='11' width='28' height='8' rx='2' fill='white' opacity='0.5'/%3E%3Crect x='10' y='17' width='44' height='35' rx='3' fill='white' opacity='0.96'/%3E%3Crect x='14' y='22' width='10' height='8' rx='1.5' fill='%23005f73' opacity='0.85'/%3E%3Crect x='27' y='22' width='10' height='8' rx='1.5' fill='%23005f73' opacity='0.85'/%3E%3Crect x='40' y='22' width='10' height='8' rx='1.5' fill='%23005f73' opacity='0.85'/%3E%3Crect x='14' y='34' width='10' height='8' rx='1.5' fill='%23005f73' opacity='0.85'/%3E%3Crect x='27' y='34' width='10' height='8' rx='1.5' fill='%23005f73' opacity='0.85'/%3E%3Crect x='40' y='34' width='10' height='8' rx='1.5' fill='%23005f73' opacity='0.85'/%3E%3Crect x='27' y='44' width='10' height='8' rx='2' fill='%230a9396'/%3E%3C/svg%3E`,
     description: 'Property, lease, rent, and maintenance management portal',
-    accent: '#0b4ea2',
+    accent: '#0a9396',
     defaultSize: { width: 1100, height: 700 },
   },
   {
