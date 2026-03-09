@@ -571,7 +571,7 @@ function FileIcon({ path, isDir, isOpen }: { path: string; isDir?: boolean; isOp
   const labels: Record<string, string> = { py: 'py', js: 'js', ts: 'ts', html: 'ht', css: 'cs', json: '{}', md: 'md', sh: 'sh', toml: 'tm', txt: 'tx' };
   return (
     <span style={{ fontSize: 9, fontWeight: 700, color: c, background: `${c}22`, padding: '1px 3px', borderRadius: 3, marginRight: 5, flexShrink: 0 }}>
-      {labels[ext] ?? ext.slice(0, 2).toUpperCase() || '??'}
+      {labels[ext] ?? (ext.slice(0, 2).toUpperCase() || '??')}
     </span>
   );
 }
