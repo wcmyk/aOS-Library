@@ -226,12 +226,6 @@ export default function App() {
       />
 
       <div className="desktop">
-        <div className="desktop-icons">
-          <DesktopIcon label="Workspace" icon={`${import.meta.env.BASE_URL}assets/desktop/workspace.png`} />
-          <DesktopIcon label="Latest Job" icon={`${import.meta.env.BASE_URL}assets/desktop/latest-job.png`} />
-          <DesktopIcon label="Artifacts" icon={`${import.meta.env.BASE_URL}assets/desktop/artifacts.png`} />
-        </div>
-
         {visibleWindows.map((window) => (
           <WindowFrame
             key={window.id}
