@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from 'react';
 import { LinkedInSite } from './sites/LinkedInSite';
 import { WorkdaySite } from './sites/WorkdaySite';
 import { ProjectHubSite } from './sites/ProjectHubSite';
@@ -9,293 +9,101 @@ import { ProjectSailSite } from './sites/ProjectSailSite';
 import { CoLabSite } from './sites/CoLabSite';
 import { SamsungPortalSite } from './sites/SamsungPortalSite';
 import { useSafariStore } from '../../state/useSafariStore';
+import { useCompanyStore } from '../../state/useCompanyStore';
 
-type SiteId = 'linkedin' | 'workday' | 'adobe-workfront' | 'workfront' | 'radar' | 'buganizer' | 'project-sail' | 'project-hub' | 'colab' | 'sanctum-web' | 'samsung-portal';
+type SiteId = 'linkedin' | 'workday' | 'workfront' | 'radar' | 'buganizer' | 'project-sail' | 'project-hub' | 'colab' | 'samsung-portal' | 'company-site';
 
-type SiteEntry =
-  | { id: SiteId; title: string; domain: string; kind: 'component'; component: React.ComponentType }
-  | { id: SiteId; title: string; domain: string; kind: 'html'; html: string };
+type SiteEntry = { id: SiteId; title: string; domain: string; component: ComponentType };
 
-const SITES: SiteEntry[] = [
-  { id: 'linkedin',        title: 'LinkedIn',          domain: 'linkedin.com',          kind: 'component', component: LinkedInSite },
-  { id: 'workday',         title: 'Workday',           domain: 'workday.company.io',    kind: 'component', component: WorkdaySite },
-  { id: 'workfront',       title: 'Adobe Workfront',   domain: 'app.workfront.com',     kind: 'component', component: WorkfrontSite },
-  { id: 'radar',           title: 'Radar',             domain: 'radar.apple.com',       kind: 'component', component: RadarSite },
-  { id: 'buganizer',       title: 'Buganizer',         domain: 'b.corp.google.com',     kind: 'component', component: BuganizerSite },
-  { id: 'project-sail',    title: 'Project SAIL',      domain: 'projectsail.jpmorgan.com', kind: 'component', component: ProjectSailSite },
-  { id: 'samsung-portal',  title: 'Samsung PLCM Portal', domain: 'portal.samsung-dev.net', kind: 'component', component: SamsungPortalSite },
-  {
-    id: 'workday',
-    title: 'Workday',
-    domain: 'workday.aos',
-    kind: 'component',
-    component: WorkdaySite,
-  },
+function CompanySite() {
+  const currentUrl = useSafariStore((s) => s.currentUrl);
+  const companies = useCompanyStore((s) => s.companies);
+  const host = currentUrl.replace(/^https?:\/\//, '').split('/')[0].toLowerCase();
+  const company = companies.find((c) => host.includes(c.domain.toLowerCase()) || host.includes(c.name.toLowerCase().replace(/\s+/g, '')));
 
-  {
-    id: 'adobe-workfront',
-    title: 'Adobe Workfront',
-    domain: 'workfront.aos',
-    kind: 'component',
-    component: ProjectHubSite,
-  },
-  {
-    id: 'project-hub',
-    title: 'Project Hub',
-    domain: 'projects.aos',
-    kind: 'component',
-    component: ProjectHubSite,
-  },
-  {
-    id: 'colab',
-    title: 'CoLab',
-    domain: 'colab.aos',
-    kind: 'component',
-    component: CoLabSite,
-  },
-  {
-    id: 'workday',
-    title: 'Workday',
-    domain: 'workday.aos',
-    kind: 'component',
-    component: WorkdaySite,
-  },
+  if (!company) return <div style={{ padding: 24 }}>Company website not found.</div>;
 
-  {
-    id: 'adobe-workfront',
-    title: 'Adobe Workfront',
-    domain: 'workfront.aos',
-    kind: 'component',
-    component: ProjectHubSite,
-  },
-  {
-    id: 'project-hub',
-    title: 'Project Hub',
-    domain: 'projects.aos',
-    kind: 'component',
-    component: ProjectHubSite,
-  },
-  {
-    id: 'colab',
-    title: 'CoLab',
-    domain: 'colab.aos',
-    kind: 'component',
-    component: CoLabSite,
-  },
-  {
-    id: 'workday',
-    title: 'Workday',
-    domain: 'workday.aos',
-    kind: 'component',
-    component: WorkdaySite,
-  },
-
-  {
-    id: 'adobe-workfront',
-    title: 'Adobe Workfront',
-    domain: 'workfront.aos',
-    kind: 'component',
-    component: WorkfrontSite,
-  },
-  {
-    id: 'project-hub',
-    title: 'Project Hub',
-    domain: 'projects.aos',
-    kind: 'component',
-    component: WorkfrontSite,
-  },
-  {
-    id: 'colab',
-    title: 'CoLab',
-    domain: 'colab.aos',
-    kind: 'component',
-    component: CoLabSite,
-  },
-  {
-    id: 'workday',
-    title: 'Workday',
-    domain: 'workday.aos',
-    kind: 'component',
-    component: WorkdaySite,
-  },
-
-  {
-    id: 'adobe-workfront',
-    title: 'Adobe Workfront',
-    domain: 'workfront.aos',
-    kind: 'component',
-    component: WorkfrontSite,
-  },
-
-  {
-    id: 'workfront',
-    title: 'Workfront',
-    domain: 'workfront.internal',
-    kind: 'component',
-    component: WorkfrontSite,
-  },
-  {
-    id: 'radar',
-    title: 'Radar',
-    domain: 'radar.aos',
-    kind: 'component',
-    component: RadarSite,
-  },
-  {
-    id: 'project-hub',
-    title: 'Project Hub',
-    domain: 'projects.aos',
-    kind: 'component',
-    component: WorkfrontSite,
-  },
-  {
-    id: 'colab',
-    title: 'CoLab',
-    domain: 'colab.aos',
-    kind: 'component',
-    component: CoLabSite,
-  },
-  {
-    id: 'workday',
-    title: 'Workday',
-    domain: 'workday.aos',
-    kind: 'component',
-    component: WorkdaySite,
-  },
-
-  {
-    id: 'adobe-workfront',
-    title: 'Adobe Workfront',
-    domain: 'workfront.aos',
-    kind: 'component',
-    component: WorkfrontSite,
-  },
-
-  {
-    id: 'workfront',
-    title: 'Workfront',
-    domain: 'workfront.internal',
-    kind: 'component',
-    component: WorkfrontSite,
-  },
-  {
-    id: 'radar',
-    title: 'Radar',
-    domain: 'radar.aos',
-    kind: 'component',
-    component: RadarSite,
-  },
-
-  {
-    id: 'buganizer',
-    title: 'Buganizer',
-    domain: 'buganizer.aos',
-    kind: 'component',
-    component: BuganizerSite,
-  },
-  {
-    id: 'project-sail',
-    title: 'Project SAIL',
-    domain: 'projectsail.aos',
-    kind: 'component',
-    component: ProjectSailSite,
-  },
-  {
-    id: 'project-hub',
-    title: 'Project Hub',
-    domain: 'projects.aos',
-    kind: 'component',
-    component: WorkfrontSite,
-  },
-  {
-    id: 'colab',
-    title: 'CoLab',
-    domain: 'colab.aos',
-    kind: 'component',
-    component: CoLabSite,
-  },
-  {
-    id: 'sanctum-web',
-    title: 'Sanctum Web',
-    domain: 'drive.aos',
-    kind: 'html',
-    html: `<main style="font-family:Inter,sans-serif;padding:24px;background:#ecf2ff;color:#0f172a;min-height:100vh">
-      <h1 style="margin:0 0 8px">Sanctum Web</h1>
-      <p style="color:#475569">Review synced documents, permissions, and storage lanes.</p>
-    </main>`,
-  },
-];
-
-// URL pattern → site ID resolution
-const URL_RULES: { pattern: RegExp; siteId: SiteId }[] = [
-  { pattern: /linkedin\.com/i,              siteId: 'linkedin' },
-  { pattern: /workday\./i,                  siteId: 'workday' },
-  { pattern: /handbook\.|it\.|hr\./i,       siteId: 'workday' },   // company internal links → workday dashboard
-  { pattern: /workfront\./i,                siteId: 'workfront' },
-  { pattern: /radar\.apple\./i,             siteId: 'radar' },
-  { pattern: /buganizer\.|b\.corp\.google/i, siteId: 'buganizer' },
-  { pattern: /projectsail\.|senatus\./i,    siteId: 'project-sail' },
-  { pattern: /samsung.*portal|cognitivv/i,  siteId: 'samsung-portal' },
-  { pattern: /drive\.aos/i,                 siteId: 'sanctum-web' },
-  // Meeting tool links → open in new tab (handled separately)
-  { pattern: /zoom\.us|teams\.microsoft|meet\.google|join\.skype/i, siteId: 'workday' }, // fallback
-];
-
-function resolveUrl(url: string): SiteId | null {
-  for (const rule of URL_RULES) {
-    if (rule.pattern.test(url)) return rule.siteId;
-  }
-  return null;
+  return (
+    <div style={{ minHeight: '100%', background: '#f8fafc', color: '#0f172a' }}>
+      <header style={{ background: company.color, color: 'white', padding: '14px 20px' }}>
+        <div style={{ fontSize: 22, fontWeight: 800 }}>{company.name}</div>
+        <div style={{ fontSize: 13, opacity: 0.9 }}>{company.industry}</div>
+      </header>
+      <main style={{ padding: 18, display: 'grid', gap: 12 }}>
+        <Section title="About">{company.name} operates in {company.industry} with a company culture focused on delivery and quality.</Section>
+        <Section title="Careers">{company.careersSummary} Current departments include Engineering, Product, Finance, and Operations.</Section>
+        <Section title="Products / Services">This organization delivers enterprise-grade products and services aligned to its sector.</Section>
+        <Section title="Contact">Support: support@{company.domain} · Executive office: execoffice@{company.domain}</Section>
+      </main>
+    </div>
+  );
 }
 
-const BOOKMARKS: { label: string; url: string; siteId: SiteId }[] = [
-  { label: 'LinkedIn',        url: 'https://linkedin.com',                siteId: 'linkedin' },
-  { label: 'Workday',         url: 'https://workday.company.io',          siteId: 'workday' },
-  { label: 'Workfront',       url: 'https://app.workfront.com',           siteId: 'workfront' },
-  { label: 'Radar',           url: 'https://radar.apple.com',             siteId: 'radar' },
-  { label: 'Buganizer',       url: 'https://b.corp.google.com',           siteId: 'buganizer' },
-  { label: 'Project SAIL',    url: 'https://projectsail.jpmorgan.com',    siteId: 'project-sail' },
-  { label: 'Samsung Portal',  url: 'https://portal.samsung-dev.net',      siteId: 'samsung-portal' },
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return <section style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 10, padding: 12 }}><h3 style={{ marginTop: 0 }}>{title}</h3><p style={{ marginBottom: 0 }}>{children}</p></section>;
+}
+
+const CORE_SITES: SiteEntry[] = [
+  { id: 'linkedin', title: 'LinkedIn', domain: 'linkedin.com', component: LinkedInSite },
+  { id: 'workday', title: 'Workday', domain: 'workday.company.io', component: WorkdaySite },
+  { id: 'workfront', title: 'Adobe Workfront', domain: 'app.workfront.com', component: WorkfrontSite },
+  { id: 'radar', title: 'Radar', domain: 'radar.apple.com', component: RadarSite },
+  { id: 'buganizer', title: 'Buganizer', domain: 'b.corp.google.com', component: BuganizerSite },
+  { id: 'project-sail', title: 'Project SAIL', domain: 'projectsail.jpmorgan.com', component: ProjectSailSite },
+  { id: 'project-hub', title: 'Project Hub', domain: 'projects.aos', component: ProjectHubSite },
+  { id: 'colab', title: 'CoLab', domain: 'colab.aos', component: CoLabSite },
+  { id: 'samsung-portal', title: 'Samsung PLCM Portal', domain: 'portal.samsung-dev.net', component: SamsungPortalSite },
+  { id: 'company-site', title: 'Company Site', domain: '.com', component: CompanySite },
 ];
 
 export function SafariApp() {
-  const [activeSiteId, setActiveSiteId] = useState<SiteId>(SITES[0].id);
+  const [activeSiteId, setActiveSiteId] = useState<SiteId>('linkedin');
   const currentUrl = useSafariStore((s) => s.currentUrl);
   const navigate = useSafariStore((s) => s.navigate);
-  const site = useMemo(() => SITES.find((s) => s.id === activeSiteId) ?? SITES[0], [activeSiteId]);
+  const companies = useCompanyStore((s) => s.companies);
+
+  const companyButtons = companies.slice(0, 10);
+
+  const site = useMemo(() => CORE_SITES.find((s) => s.id === activeSiteId) ?? CORE_SITES[0], [activeSiteId]);
 
   useEffect(() => {
     const target = currentUrl.replace(/^https?:\/\//, '').toLowerCase();
-    const matched = SITES.find((s) => target.includes(s.domain));
-    if (matched && matched.id !== activeSiteId) setActiveSiteId(matched.id);
-  }, [activeSiteId, currentUrl]);
+    const matched = CORE_SITES.find((s) => target.includes(s.domain));
+    if (matched) setActiveSiteId(matched.id);
+    else if (companies.some((c) => target.includes(c.domain.toLowerCase()) || target.includes(c.name.toLowerCase()))) setActiveSiteId('company-site');
+  }, [companies, currentUrl]);
 
   return (
     <div className="safari-shell">
-      {/* Toolbar */}
       <div className="safari-toolbar">
         <div className="safari-dots"><span /><span /><span /></div>
-        <input value={currentUrl} onChange={(e) => navigate(e.target.value)} className="safari-address" />
+        <input
+          value={currentUrl}
+          onChange={(e) => {
+            const raw = e.target.value;
+            const companyByName = companies.find((c) => c.name.toLowerCase() === raw.toLowerCase().trim());
+            if (companyByName) navigate(`https://${companyByName.domain}`);
+            else navigate(raw);
+          }}
+          className="safari-address"
+        />
       </div>
       <div className="safari-layout">
         <aside className="safari-sidebar">
-          {SITES.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              className={s.id === activeSiteId ? 'active' : ''}
-              onClick={() => { setActiveSiteId(s.id); navigate(`https://${s.domain}`); }}
-            >
-              <strong>{s.title}</strong>
-              <span>{s.domain}</span>
+          {CORE_SITES.filter((s) => s.id !== 'company-site').map((s) => (
+            <button key={s.id} type="button" className={s.id === activeSiteId ? 'active' : ''} onClick={() => { setActiveSiteId(s.id); navigate(`https://${s.domain}`); }}>
+              <strong>{s.title}</strong><span>{s.domain}</span>
+            </button>
+          ))}
+          <div style={{ padding: 8, fontSize: 11, color: '#64748b', textTransform: 'uppercase' }}>Companies</div>
+          {companyButtons.map((c) => (
+            <button key={c.id} type="button" className={activeSiteId === 'company-site' && currentUrl.includes(c.domain) ? 'active' : ''} onClick={() => { setActiveSiteId('company-site'); navigate(`https://${c.domain}`); }}>
+              <strong>{c.name}</strong><span>{c.domain}</span>
             </button>
           ))}
         </aside>
         <section className="safari-view safari-view-react">
-          {site.kind === 'component'
-            ? <site.component />
-            : <iframe title={site.title} srcDoc={site.html} sandbox="allow-same-origin" />
-          }
+          <site.component />
         </section>
       </div>
     </div>

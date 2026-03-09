@@ -1,84 +1,59 @@
 import { FormEvent, useMemo, useState } from 'react';
-import { useMailStore } from '../../state/useMailStore';
-import { useProfileStore } from '../../state/useProfileStore';
+import { useCompanyStore } from '../../state/useCompanyStore';
 
 type ChatMessage = { from: 'me' | 'manager'; text: string; time: string };
-
-function t() {
-  return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
-
-function reply(company: string, role: string, input: string): string {
-  const q = input.toLowerCase();
-  if (/weed|drug|high|smoke/.test(q)) {
-    return `No — that is not permitted. ${company} requires professional conduct and being fit for duty. If you need support, I can connect you with HR resources.`;
-  }
-  if (/not work|skip work|avoid work/.test(q)) {
-    return `I can’t support that. Let’s clarify today’s priorities so you can deliver with less stress and clear expectations.`;
-  }
-  if (q.includes('culture')) return `${company} culture is execution-focused: clear ownership, respectful communication, and strong documentation.`;
-  if (q.includes('management') || q.includes('manager')) return `I run weekly 1:1s, unblock quickly, and expect early risk visibility. You’ll have autonomy with accountability.`;
-  if (q.includes('company') || q.includes('about')) return `${company} expects high-quality delivery in ${role}, cross-team collaboration, and reliable updates in CoLab + project tooling.`;
-  return `Thanks for raising this. Post your current task and blocker thread, then I’ll help reprioritize against this sprint’s commitments.`;
-}
+const t = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
 export function CoLabApp() {
-  const emails = useMailStore((s) => s.emails);
-  const { preferredEmail } = useProfileStore();
-  const onboarding = useMemo(() => emails.find((e) => e.jobMeta?.stage === 'onboarding')?.jobMeta, [emails]);
-  const [channel] = useState('Direct Message');
+  const accounts = useCompanyStore((s) => s.employerAccounts);
+  const activeId = useCompanyStore((s) => s.sessions.activeColabAccountId);
+  const login = useCompanyStore((s) => s.loginColab);
+  const logout = useCompanyStore((s) => s.logoutColab);
+  const [selectedId, setSelectedId] = useState(accounts[0]?.id ?? '');
+  const [password, setPassword] = useState('');
   const [input, setInput] = useState('');
-  const [typing, setTyping] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const active = useMemo(() => accounts.find((a) => a.id === activeId) ?? null, [accounts, activeId]);
 
-  if (!onboarding) {
-    return <div className="colab-shell"><div className="colab-empty">Accept an offer first to activate your company CoLab tenant.</div></div>;
+  if (accounts.length === 0) return <div className="colab-shell"><div className="colab-empty">No company accounts provisioned yet. Accept an offer to create one.</div></div>;
+
+  if (!active) {
+    return (
+      <div className="colab-shell" style={{ display: 'grid', placeItems: 'center' }}>
+        <div style={{ width: 520, background: '#fff', border: '1px solid #dbe3ee', borderRadius: 12, padding: 16 }}>
+          <h3 style={{ marginTop: 0 }}>Choose CoLab account</h3>
+          <div style={{ display: 'grid', gap: 8 }}>{accounts.map((a) => <label key={a.id} style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: 8, display: 'flex', gap: 8 }}><input type="radio" checked={selectedId === a.id} onChange={() => setSelectedId(a.id)} /><span>{a.companyName} · {a.companyEmail}</span></label>)}</div>
+          <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Company password" style={{ marginTop: 10, width: '100%', padding: 8, border: '1px solid #cbd5e1', borderRadius: 8 }} />
+          <button type="button" onClick={() => login(selectedId, password)} style={{ marginTop: 10, padding: '8px 12px', borderRadius: 8, background: '#334155', color: 'white' }}>Sign in</button>
+        </div>
+      </div>
+    );
   }
 
   const onSend = (e: FormEvent) => {
     e.preventDefault();
-    const trimmed = input.trim();
-    if (!trimmed) return;
-    setMessages((m) => [...m, { from: 'me', text: trimmed, time: t() }]);
+    const text = input.trim();
+    if (!text) return;
+    setMessages((m) => [...m, { from: 'me', text, time: t() }]);
     setInput('');
-    setTyping(true);
     setTimeout(() => {
-      setTyping(false);
-      setMessages((m) => [...m, { from: 'manager', text: reply(onboarding.company, onboarding.role, trimmed), time: t() }]);
-    }, 5000);
+      setMessages((m) => [...m, { from: 'manager', text: `Thanks — noted for ${active.companyName}. I will review this in our team queue.`, time: t() }]);
+    }, 800);
   };
 
   return (
     <div className="colab-shell">
       <aside className="colab-left">
         <div className="colab-brand">CoLab</div>
-        <button className="colab-nav active" type="button">Chat</button>
-        <button className="colab-nav" type="button">Teams</button>
-        <button className="colab-nav" type="button">Calendar</button>
-        <button className="colab-nav" type="button">Files</button>
+        <div className="colab-nav active">{active.companyName}</div>
+        <button className="colab-nav" type="button" onClick={logout}>Sign out</button>
       </aside>
       <section className="colab-main">
-        <header className="colab-header">
-          <div>
-            <div className="colab-title">{onboarding.managerName}</div>
-            <div className="colab-subtitle">{channel} · {onboarding.company}</div>
-          </div>
-          <div className="colab-pill">{preferredEmail}</div>
-        </header>
+        <header className="colab-header"><div><div className="colab-title">{active.managerName}</div><div className="colab-subtitle">Direct Message · {active.companyEmail}</div></div></header>
         <div className="colab-messages">
-          {messages.length === 0 && <p className="colab-placeholder">Say hello or ask about company policy, culture, or project priorities.</p>}
-          {messages.map((m, i) => (
-            <div key={i} className={`colab-msg ${m.from === 'me' ? 'me' : 'manager'}`}>
-              <div className="colab-msg-author">{m.from === 'me' ? 'You' : onboarding.managerName} <span>{m.time}</span></div>
-              <div>{m.text}</div>
-            </div>
-          ))}
-          {typing && <div className="colab-typing">{onboarding.managerName} is typing…</div>}
+          {messages.map((m, i) => <div key={i} className={`colab-msg ${m.from === 'me' ? 'me' : 'manager'}`}><div className="colab-msg-author">{m.from === 'me' ? 'You' : active.managerName} <span>{m.time}</span></div><div>{m.text}</div></div>)}
         </div>
-        <form className="colab-inputbar" onSubmit={onSend}>
-          <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type a message" />
-          <button type="submit">Send</button>
-        </form>
+        <form className="colab-inputbar" onSubmit={onSend}><input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type a message" /><button type="submit">Send</button></form>
       </section>
     </div>
   );

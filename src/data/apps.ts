@@ -61,11 +61,11 @@ export const apps: ShellApp[] = [
     defaultSize: { width: 820, height: 520 },
   },
   {
-    id: 'job-monitor',
-    name: 'Job Monitor',
-    icon: `${BASE_URL}assets/apps/job-monitor.png`,
-    description: 'Queued and running jobs with live logs',
-    accent: '#4ade80',
+    id: 'terminal',
+    name: 'Terminal',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='tg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23111827'/%3E%3Cstop offset='1' stop-color='%230f766e'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23tg)'/%3E%3Cpath d='M14 21l12 11-12 11' stroke='%23a7f3d0' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='31' y='40' width='20' height='4' rx='2' fill='%23a7f3d0'/%3E%3C/svg%3E`,
+    description: 'Developer terminal with job status and logs',
+    accent: '#14b8a6',
     defaultSize: { width: 720, height: 460 },
   },
   {
@@ -87,7 +87,7 @@ export const apps: ShellApp[] = [
   {
     id: 'settings',
     name: 'Settings',
-    icon: `${BASE_URL}assets/apps/settings.png`,
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='sg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23334155'/%3E%3Cstop offset='1' stop-color='%230f172a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23sg)'/%3E%3Ccircle cx='32' cy='32' r='16' fill='none' stroke='%23cbd5e1' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='6' fill='%23e2e8f0'/%3E%3Cpath d='M32 9v8M32 47v8M9 32h8M47 32h8M16 16l6 6M42 42l6 6M48 16l-6 6M22 42l-6 6' stroke='%2394a3b8' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E`,
     description: 'Workspace, wallpaper, and keyboard shortcuts',
     accent: '#60a5fa',
     defaultSize: { width: 520, height: 420 },
@@ -155,6 +155,22 @@ export const apps: ShellApp[] = [
     description: 'Real estate marketplace with 150+ properties across 250 US locations',
     accent: '#1a3c5e',
     defaultSize: { width: 1200, height: 760 },
+  },
+  {
+    id: 'pycharm',
+    name: 'PyCharm',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='pg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2300c389'/%3E%3Cstop offset='1' stop-color='%232a5bd7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23pg)'/%3E%3Crect x='13' y='13' width='38' height='38' rx='6' fill='%230f172a'/%3E%3Ctext x='32' y='37' font-size='16' font-family='Arial' font-weight='700' fill='white' text-anchor='middle'%3EPy%3C/text%3E%3C/svg%3E`,
+    description: 'Professional Python IDE with project explorer and integrated terminal',
+    accent: '#00c389',
+    defaultSize: { width: 1220, height: 760 },
+  },
+  {
+    id: 'rentcafe',
+    name: 'RentCafe',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='rg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230b4ea2'/%3E%3Cstop offset='1' stop-color='%231e3a8a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23rg)'/%3E%3Cpath d='M32 13L14 28h6v22h24V28h6z' fill='white' opacity='0.94'/%3E%3Crect x='27' y='35' width='10' height='15' rx='2' fill='%230b4ea2'/%3E%3Crect x='23' y='26' width='6' height='6' rx='1.5' fill='%230b4ea2'/%3E%3Crect x='35' y='26' width='6' height='6' rx='1.5' fill='%230b4ea2'/%3E%3C/svg%3E`,
+    description: 'Property, lease, rent, and maintenance management portal',
+    accent: '#0b4ea2',
+    defaultSize: { width: 1100, height: 700 },
   },
   {
     id: 'appcenter',
