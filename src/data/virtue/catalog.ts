@@ -1,5 +1,7 @@
 import type { VirtueCatalog } from '../../types/virtue';
 
+const BASE_URL = import.meta.env.BASE_URL;
+
 /**
  * Virtue catalog source of truth.
  *
@@ -16,7 +18,7 @@ export const virtueCatalog: VirtueCatalog = {
       description: 'Full-featured Python IDE with debugger, terminal, inspections, and project tooling.',
       longDescription: 'PyCharm Professional on aOS delivers an IDE-grade environment for Python-heavy workflows. Navigate large projects, manage multi-file editing sessions, use an integrated terminal panel, and review diagnostics in-context. Includes dark-mode UI fidelity inspired by desktop IDE workflows and supports common development patterns for Python, TypeScript, JSON, and shell scripts.',
       category: 'productivity',
-      icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='vsc1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2300BCF2'/%3E%3Cstop offset='100%25' stop-color='%231A73E8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23vsc1)'/%3E%3Cpath d='M72 14L50 38 28 20 14 30l26 20-26 20 14 10 22-18 22 24 14-10V24z' fill='white' opacity='0.97'/%3E%3Cpath d='M72 14L50 38 72 56V14z' fill='white' opacity='0.15'/%3E%3C/svg%3E`,
+      icon: `${BASE_URL}assets/apps/vscode.png`,
       screenshots: [],
       version: '2026.1',
       size: '610 MB',
@@ -40,7 +42,7 @@ export const virtueCatalog: VirtueCatalog = {
       description: 'Full-featured banking application with Chase-style UI, real-time transactions, investment tracking, mortgage dashboard, and Workday pay integration.',
       longDescription: 'Experience banking at its finest with this Chase-inspired application. Track your checking, savings, and credit accounts in one unified view. View transaction history with intelligent categorization, spending breakdowns with interactive donut charts, and seamless integration with your Workday payroll data — so your direct deposits appear automatically. Manage transfers between accounts, monitor your investment portfolio, check your mortgage details, and access the security center. Full light and dark mode support included.',
       category: 'productivity',
-      icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23003087'/%3E%3Cpath d='M20 8L44 8L56 20L56 44L44 56L20 56L8 44L8 20Z' fill='none' stroke='white' stroke-width='3'/%3E%3Cline x1='8' y1='32' x2='56' y2='32' stroke='white' stroke-width='3'/%3E%3Cline x1='32' y1='8' x2='32' y2='56' stroke='white' stroke-width='3'/%3E%3C/svg%3E`,
+      icon: `${BASE_URL}assets/apps/Chase.png`,
       screenshots: [],
       version: '4.2.1',
       size: '48 MB',
@@ -63,7 +65,7 @@ export const virtueCatalog: VirtueCatalog = {
       description: 'A powerful multi-mode calculator featuring Basic, Scientific, Financial (PV/FV/PMT/NPV/IRR/Amortization), Programmer (HEX/DEC/OCT/BIN), Statistics, Unit Conversion, and Currency exchange.',
       longDescription: 'Calculator brings macOS-level computing power to aOS. Switch between 7 distinct modes: Basic arithmetic with memory functions, Scientific with trig/log/hyperbolic functions in DEG/RAD/GRAD, Financial with loan/investment analysis (PMT, PV, FV, NPV, IRR, amortization schedules), Programmer with bitwise operations and multi-base display, Statistics with descriptive stats (mean, median, mode, std dev, IQR, quartiles), Unit Conversion across 8 categories, and Currency with real-world exchange rates.',
       category: 'utilities',
-      icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='cg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23232323'/%3E%3Cstop offset='1' stop-color='%23111'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23cg)'/%3E%3Crect x='10' y='10' width='18' height='10' rx='3' fill='%23636363'/%3E%3Crect x='10' y='24' width='10' height='10' rx='3' fill='%233a3a3a'/%3E%3Crect x='24' y='24' width='10' height='10' rx='3' fill='%233a3a3a'/%3E%3Crect x='38' y='24' width='16' height='10' rx='3' fill='%23ff9f0a'/%3E%3Crect x='10' y='38' width='10' height='10' rx='3' fill='%233a3a3a'/%3E%3Crect x='24' y='38' width='10' height='10' rx='3' fill='%233a3a3a'/%3E%3Crect x='38' y='38' width='10' height='10' rx='3' fill='%23ff9f0a'/%3E%3Crect x='10' y='48' width='24' height='6' rx='3' fill='%233a3a3a'/%3E%3Crect x='38' y='48' width='10' height='6' rx='3' fill='%23ff9f0a'/%3E%3C/svg%3E`,
+      icon: `${BASE_URL}assets/apps/calculator.png`,
       screenshots: [],
       version: '1.0.0',
       size: '2.1 MB',
@@ -86,7 +88,7 @@ export const virtueCatalog: VirtueCatalog = {
       description: 'Professional real estate marketplace featuring 150 properties across 250+ US locations with advanced search, mile-radius filtering, and tour scheduling.',
       longDescription: 'HomeFind brings the best of real estate search to your workspace. Browse 150 curated properties spanning houses, apartments, condos, and townhouses across 250+ US cities. Use our powerful search tools to filter by property type, price range, number of bedrooms, and geographic radius. View detailed property cards with photos, square footage, year built, and estimated mortgage payments. Schedule in-person or virtual tours directly from the app. Save your favorite listings and compare properties side by side.',
       category: 'utilities',
-      icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='hfg' x1='0' y1='0' x2='0.4' y2='1'%3E%3Cstop offset='0' stop-color='%2340C057'/%3E%3Cstop offset='1' stop-color='%232F9E44'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23hfg)'/%3E%3Cpath d='M32 10L8 32H16V54H28V40H36V54H48V32H56Z' fill='white' opacity='0.97'/%3E%3Ccircle cx='44' cy='18' r='9' fill='white' opacity='0.95'/%3E%3Ccircle cx='44' cy='18' r='5' fill='%232F9E44'/%3E%3Cpath d='M44 28L38 40' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E`,
+      icon: `${BASE_URL}assets/apps/realtor.png`,
       screenshots: [],
       version: '2.8.0',
       size: '62 MB',
