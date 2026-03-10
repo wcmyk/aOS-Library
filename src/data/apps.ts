@@ -80,7 +80,7 @@ export const apps: ShellApp[] = [
   {
     id: 'virtue',
     name: 'Virtue',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%232f7bff'/%3E%3Cstop offset='1' stop-color='%2366b1ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Cpath d='M18 44l9-15m10 0l9 15M22 37h20M26 22l6 10m6-10l-6 10' stroke='white' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E`,
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='asg' x1='0' y1='0' x2='0.5' y2='1'%3E%3Cstop offset='0' stop-color='%231BAEFF'/%3E%3Cstop offset='1' stop-color='%230066CC'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23asg)'/%3E%3Cpath d='M32 12L20 44M32 12L44 44' stroke='white' stroke-width='5.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Cline x1='23' y1='33' x2='41' y2='33' stroke='white' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E`,
     description: 'App marketplace for discovering and installing workspace apps',
     accent: '#2f7bff',
     defaultSize: { width: 1180, height: 760 },
@@ -88,7 +88,7 @@ export const apps: ShellApp[] = [
   {
     id: 'settings',
     name: 'Settings',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='sg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23334155'/%3E%3Cstop offset='1' stop-color='%230f172a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23sg)'/%3E%3Ccircle cx='32' cy='32' r='16' fill='none' stroke='%23cbd5e1' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='6' fill='%23e2e8f0'/%3E%3Cpath d='M32 9v8M32 47v8M9 32h8M47 32h8M16 16l6 6M42 42l6 6M48 16l-6 6M22 42l-6 6' stroke='%2394a3b8' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E`,
+    icon: `${BASE_URL}assets/apps/settings.png`,
     description: 'Workspace, wallpaper, and keyboard shortcuts',
     accent: '#60a5fa',
     defaultSize: { width: 520, height: 420 },
@@ -144,7 +144,7 @@ export const apps: ShellApp[] = [
   {
     id: 'banking',
     name: 'Chase Bank',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='cg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231a6abf'/%3E%3Cstop offset='1' stop-color='%230a4f99'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23cg)'/%3E%3Cpath d='M20 14h6v36h-6zM38 14h6v36h-6zM14 28h36v8H14z' fill='white' opacity='0.95'/%3E%3C/svg%3E`,
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23003087'/%3E%3Cpath d='M20 8L44 8L56 20L56 44L44 56L20 56L8 44L8 20Z' fill='none' stroke='white' stroke-width='3'/%3E%3Cline x1='8' y1='32' x2='56' y2='32' stroke='white' stroke-width='3'/%3E%3Cline x1='32' y1='8' x2='32' y2='56' stroke='white' stroke-width='3'/%3E%3C/svg%3E`,
     description: 'Full-featured banking app with Chase-like UI, transactions, investments and mortgage',
     accent: '#1a6abf',
     defaultSize: { width: 1100, height: 700 },
@@ -152,7 +152,7 @@ export const apps: ShellApp[] = [
   {
     id: 'realtor',
     name: 'HomeFind',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='hfg' x1='0' y1='0' x2='0.6' y2='1'%3E%3Cstop offset='0' stop-color='%23e63946'/%3E%3Cstop offset='1' stop-color='%23b0151b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23hfg)'/%3E%3Cpolygon points='32,8 8,30 56,30' fill='white' opacity='0.97'/%3E%3Crect x='12' y='29' width='40' height='24' rx='2' fill='white' opacity='0.97'/%3E%3Crect x='25' y='38' width='14' height='15' rx='5' fill='%23e63946'/%3E%3Crect x='14' y='33' width='9' height='8' rx='2' fill='%23e63946' opacity='0.85'/%3E%3Crect x='41' y='33' width='9' height='8' rx='2' fill='%23e63946' opacity='0.85'/%3E%3C/svg%3E`,
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='hfg' x1='0' y1='0' x2='0.4' y2='1'%3E%3Cstop offset='0' stop-color='%2340C057'/%3E%3Cstop offset='1' stop-color='%232F9E44'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23hfg)'/%3E%3Cpath d='M32 10L8 32H16V54H28V40H36V54H48V32H56Z' fill='white' opacity='0.97'/%3E%3Ccircle cx='44' cy='18' r='9' fill='white' opacity='0.95'/%3E%3Ccircle cx='44' cy='18' r='5' fill='%232F9E44'/%3E%3Cpath d='M44 28L38 40' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E`,
     description: 'Real estate marketplace with 150+ properties across 250 US locations',
     accent: '#e63946',
     defaultSize: { width: 1200, height: 760 },
@@ -160,7 +160,7 @@ export const apps: ShellApp[] = [
   {
     id: 'pycharm',
     name: 'PyCharm',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='vsc1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2300BCF2'/%3E%3Cstop offset='100%25' stop-color='%231A73E8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23vsc1)'/%3E%3Cpath d='M72 14L50 38 28 20 14 30l26 20-26 20 14 10 22-18 22 24 14-10V24z' fill='white' opacity='0.97'/%3E%3Cpath d='M72 14L50 38 72 56V14z' fill='white' opacity='0.15'/%3E%3C/svg%3E`,
+    icon: `${BASE_URL}assets/apps/vscode.png`,
     description: 'Professional Python IDE with project explorer and integrated terminal',
     accent: '#00c389',
     defaultSize: { width: 1220, height: 760 },
@@ -168,7 +168,7 @@ export const apps: ShellApp[] = [
   {
     id: 'rentcafe',
     name: 'RentCafe',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='rcg' x1='0' y1='0' x2='0.5' y2='1'%3E%3Cstop offset='0' stop-color='%230a9396'/%3E%3Cstop offset='1' stop-color='%23005f73'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23rcg)'/%3E%3Crect x='18' y='11' width='28' height='8' rx='2' fill='white' opacity='0.5'/%3E%3Crect x='10' y='17' width='44' height='35' rx='3' fill='white' opacity='0.96'/%3E%3Crect x='14' y='22' width='10' height='8' rx='1.5' fill='%23005f73' opacity='0.85'/%3E%3Crect x='27' y='22' width='10' height='8' rx='1.5' fill='%23005f73' opacity='0.85'/%3E%3Crect x='40' y='22' width='10' height='8' rx='1.5' fill='%23005f73' opacity='0.85'/%3E%3Crect x='14' y='34' width='10' height='8' rx='1.5' fill='%23005f73' opacity='0.85'/%3E%3Crect x='27' y='34' width='10' height='8' rx='1.5' fill='%23005f73' opacity='0.85'/%3E%3Crect x='40' y='34' width='10' height='8' rx='1.5' fill='%23005f73' opacity='0.85'/%3E%3Crect x='27' y='44' width='10' height='8' rx='2' fill='%230a9396'/%3E%3C/svg%3E`,
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='rcg' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23FF7B00'/%3E%3Cstop offset='1' stop-color='%23E85500'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23rcg)'/%3E%3Crect x='8' y='28' width='48' height='28' rx='2' fill='white' opacity='0.97'/%3E%3Crect x='16' y='16' width='32' height='16' rx='2' fill='white' opacity='0.92'/%3E%3Crect x='22' y='8' width='20' height='12' rx='2' fill='white' opacity='0.82'/%3E%3Crect x='12' y='32' width='8' height='6' rx='1' fill='%23E85500'/%3E%3Crect x='28' y='32' width='8' height='6' rx='1' fill='%23E85500'/%3E%3Crect x='44' y='32' width='8' height='6' rx='1' fill='%23E85500'/%3E%3Crect x='12' y='42' width='8' height='6' rx='1' fill='%23E85500'/%3E%3Crect x='44' y='42' width='8' height='6' rx='1' fill='%23E85500'/%3E%3Crect x='27' y='42' width='10' height='14' rx='2' fill='%23E85500'/%3E%3Crect x='20' y='20' width='6' height='6' rx='1' fill='%23E85500'/%3E%3Crect x='38' y='20' width='6' height='6' rx='1' fill='%23E85500'/%3E%3C/svg%3E`,
     description: 'Property, lease, rent, and maintenance management portal',
     accent: '#0a9396',
     defaultSize: { width: 1100, height: 700 },
@@ -185,7 +185,7 @@ export const apps: ShellApp[] = [
   {
     id: 'appcenter',
     name: 'App Center',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='ag' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23667eea'/%3E%3Cstop offset='1' stop-color='%23764ba2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23ag)'/%3E%3Crect x='12' y='12' width='18' height='18' rx='5' fill='white' opacity='0.9'/%3E%3Crect x='34' y='12' width='18' height='18' rx='5' fill='white' opacity='0.9'/%3E%3Crect x='12' y='34' width='18' height='18' rx='5' fill='white' opacity='0.9'/%3E%3Crect x='34' y='34' width='18' height='18' rx='5' fill='white' opacity='0.9'/%3E%3C/svg%3E`,
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='lpg' x1='0' y1='0' x2='0.5' y2='1'%3E%3Cstop offset='0' stop-color='%23FF7A00'/%3E%3Cstop offset='1' stop-color='%23CC2200'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23lpg)'/%3E%3Cpath d='M32 9C32 9 43 19 43 33L32 38 21 33C21 19 32 9 32 9Z' fill='white' opacity='0.97'/%3E%3Ccircle cx='32' cy='27' r='5' fill='%23CC2200'/%3E%3Cpath d='M21 33L15 41 21 39Z' fill='white' opacity='0.85'/%3E%3Cpath d='M43 33L49 41 43 39Z' fill='white' opacity='0.85'/%3E%3Cellipse cx='32' cy='43' rx='5' ry='3' fill='%23FFAA00' opacity='0.9'/%3E%3C/svg%3E`,
     description: 'Organize and launch all your apps. Drag to reorder with persistent layout.',
     accent: '#667eea',
     defaultSize: { width: 960, height: 640 },
