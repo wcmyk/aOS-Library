@@ -16,7 +16,7 @@ export const virtueCatalog: VirtueCatalog = {
       description: 'Full-featured Python IDE with debugger, terminal, inspections, and project tooling.',
       longDescription: 'PyCharm Professional on aOS delivers an IDE-grade environment for Python-heavy workflows. Navigate large projects, manage multi-file editing sessions, use an integrated terminal panel, and review diagnostics in-context. Includes dark-mode UI fidelity inspired by desktop IDE workflows and supports common development patterns for Python, TypeScript, JSON, and shell scripts.',
       category: 'productivity',
-      icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='pg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2300c389'/%3E%3Cstop offset='1' stop-color='%232a5bd7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23pg)'/%3E%3Crect x='13' y='13' width='38' height='38' rx='6' fill='%230f172a'/%3E%3Ctext x='32' y='37' font-size='16' font-family='Arial' font-weight='700' fill='white' text-anchor='middle'%3EPy%3C/text%3E%3C/svg%3E`,
+      icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='vsc1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2300BCF2'/%3E%3Cstop offset='100%25' stop-color='%231A73E8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23vsc1)'/%3E%3Cpath d='M72 14L50 38 28 20 14 30l26 20-26 20 14 10 22-18 22 24 14-10V24z' fill='white' opacity='0.97'/%3E%3Cpath d='M72 14L50 38 72 56V14z' fill='white' opacity='0.15'/%3E%3C/svg%3E`,
       screenshots: [],
       version: '2026.1',
       size: '610 MB',
