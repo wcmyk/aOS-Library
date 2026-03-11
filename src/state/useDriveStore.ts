@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export type DriveDocumentType = 'document' | 'spreadsheet';
 
@@ -62,7 +63,9 @@ const generateId = () =>
     ? crypto.randomUUID()
     : `doc-${Math.random().toString(36).slice(2, 8)}`;
 
-export const useDriveStore = create<DriveStore>((set) => ({
+export const useDriveStore = create<DriveStore>()(
+  persist(
+    (set) => ({
   documents: seedDocuments,
   activeDocumentId: null,
   createDocument: (title = 'Untitled document') => {
@@ -120,4 +123,14 @@ export const useDriveStore = create<DriveStore>((set) => ({
     }));
   },
   setActiveDocument: (id) => set({ activeDocumentId: id }),
-}));
+    }),
+    {
+      name: 'aos-drive-store',
+      merge: (persisted, current) => {
+        const p = persisted as Partial<DriveStore> | null;
+        if (!p?.documents || p.documents.length === 0) return current;
+        return { ...current, ...p, activeDocumentId: null };
+      },
+    },
+  ),
+);
