@@ -1,206 +1,92 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useDriveStore } from '../../state/useDriveStore';
+import {
+  cellKey,
+  cellRef,
+  clampPoint,
+  createSheet,
+  DEFAULT_COLS,
+  DEFAULT_COL_WIDTH,
+  DEFAULT_ROWS,
+  evaluateFormula,
+  formatDisplayValue,
+  isInSelection,
+  parseWorkbook,
+  serializeWorkbook,
+  toColumnLabel,
+  type Point,
+  type SheetModel,
+  type WorkbookModel,
+  type CellFormat,
+} from './spreadsheetEngine';
 
 type ViewMode = 'home' | 'workbook';
 
-type CellFormat = {
-  bold?: boolean;
-  italic?: boolean;
-  align?: 'left' | 'center' | 'right';
-  numberFormat?: 'general' | 'number' | 'currency' | 'percent';
-};
+type MenuState = {
+  x: number;
+  y: number;
+  row: number;
+  col: number;
+} | null;
 
-type SheetModel = {
-  id: string;
-  name: string;
-  rowCount: number;
-  colCount: number;
-  grid: string[][];
-  formats: Record<string, CellFormat>;
-  columnWidths: number[];
-};
-
-type WorkbookModel = {
-  version: 1;
-  activeSheetId: string;
-  sheets: SheetModel[];
-};
-
-type Point = { row: number; col: number };
-
-const DEFAULT_ROWS = 200;
-const DEFAULT_COLS = 26;
-const DEFAULT_COL_WIDTH = 120;
-const MIN_COL_WIDTH = 76;
-const ROW_HEIGHT = 30;
-const OVERSCAN = 8;
-
-const toColumnLabel = (index: number) => {
-  let label = '';
-  let i = index;
-  while (i >= 0) {
-    label = String.fromCharCode((i % 26) + 65) + label;
-    i = Math.floor(i / 26) - 1;
-  }
-  return label;
-};
-
-const cellKey = (row: number, col: number) => `${row},${col}`;
-const cellRef = (row: number, col: number) => `${toColumnLabel(col)}${row + 1}`;
-
-const createEmptyGrid = (rowCount: number, colCount: number) =>
-  Array.from({ length: rowCount }, () => Array.from({ length: colCount }, () => ''));
-
-const parseLegacySheet = (content: string): WorkbookModel => {
-  const rows = content.split('\n').map((line) => line.split('\t'));
-  const rowCount = Math.max(DEFAULT_ROWS, rows.length + 20);
-  const colCount = Math.max(DEFAULT_COLS, Math.max(...rows.map((r) => r.length), DEFAULT_COLS));
-  const grid = createEmptyGrid(rowCount, colCount);
-  rows.forEach((row, rIdx) => row.forEach((value, cIdx) => {
-    if (rIdx < rowCount && cIdx < colCount) {
-      grid[rIdx][cIdx] = value;
-    }
-  }));
-  const firstSheet: SheetModel = {
-    id: 'sheet-1',
-    name: 'Sheet 1',
-    rowCount,
-    colCount,
-    grid,
-    formats: {},
-    columnWidths: Array.from({ length: colCount }, () => DEFAULT_COL_WIDTH),
-  };
-  return { version: 1, activeSheetId: firstSheet.id, sheets: [firstSheet] };
-};
-
-const parseWorkbook = (content: string): WorkbookModel => {
-  try {
-    const parsed = JSON.parse(content) as WorkbookModel;
-    if (parsed?.version === 1 && Array.isArray(parsed.sheets) && parsed.sheets.length > 0) {
-      return parsed;
-    }
-  } catch {
-    // legacy spreadsheet payload
-  }
-  return parseLegacySheet(content);
-};
-
-const serializeWorkbook = (workbook: WorkbookModel) => JSON.stringify(workbook);
-
-const parseCellReference = (token: string): Point | null => {
-  const match = token.match(/^([A-Z]+)(\d+)$/);
-  if (!match) return null;
-  const [, letters, digits] = match;
-  let col = 0;
-  for (let i = 0; i < letters.length; i++) {
-    col = col * 26 + (letters.charCodeAt(i) - 64);
-  }
-  return { row: Number(digits) - 1, col: col - 1 };
-};
-
-const getNumericCellValue = (sheet: SheetModel, row: number, col: number, visited = new Set<string>()): number => {
-  if (row < 0 || row >= sheet.rowCount || col < 0 || col >= sheet.colCount) return 0;
-  const key = `${row}:${col}`;
-  if (visited.has(key)) return 0;
-  const raw = sheet.grid[row]?.[col] ?? '';
-  if (!raw.startsWith('=')) {
-    const v = Number(raw);
-    return Number.isFinite(v) ? v : 0;
-  }
-  visited.add(key);
-  const computed = evaluateFormula(raw, sheet, visited);
-  const numeric = Number(computed);
-  return Number.isFinite(numeric) ? numeric : 0;
-};
-
-const evaluateFormula = (raw: string, sheet: SheetModel, visited = new Set<string>()): string => {
-  if (!raw.startsWith('=')) return raw;
-  const source = raw.slice(1).trim().toUpperCase();
-
-  const rangeMatch = source.match(/^(SUM|AVG|AVERAGE|MIN|MAX|COUNT)\(([A-Z]+\d+):([A-Z]+\d+)\)$/);
-  if (rangeMatch) {
-    const [, fnName, startToken, endToken] = rangeMatch;
-    const start = parseCellReference(startToken);
-    const end = parseCellReference(endToken);
-    if (!start || !end) return '#ERR';
-
-    const rStart = Math.min(start.row, end.row);
-    const rEnd = Math.max(start.row, end.row);
-    const cStart = Math.min(start.col, end.col);
-    const cEnd = Math.max(start.col, end.col);
-
-    const values: number[] = [];
-    for (let r = rStart; r <= rEnd; r++) {
-      for (let c = cStart; c <= cEnd; c++) {
-        values.push(getNumericCellValue(sheet, r, c, new Set(visited)));
-      }
-    }
-
-    if (fnName === 'COUNT') return String(values.filter((v) => Number.isFinite(v)).length);
-    if (values.length === 0) return '0';
-    if (fnName === 'SUM') return String(values.reduce((acc, v) => acc + v, 0));
-    if (fnName === 'AVG' || fnName === 'AVERAGE') return String(values.reduce((acc, v) => acc + v, 0) / values.length);
-    if (fnName === 'MIN') return String(Math.min(...values));
-    if (fnName === 'MAX') return String(Math.max(...values));
-  }
-
-  const expr = source.replace(/([A-Z]+\d+)/g, (token) => {
-    const ref = parseCellReference(token);
-    if (!ref) return '0';
-    return String(getNumericCellValue(sheet, ref.row, ref.col, new Set(visited)));
-  });
-
-  if (!/^[\d+\-*/().\s]+$/.test(expr)) return '#ERR';
-
-  try {
-    const result = Function(`"use strict"; return (${expr});`)();
-    return Number.isFinite(result) ? String(result) : '#ERR';
-  } catch {
-    return '#ERR';
-  }
-};
-
-const formatDisplayValue = (raw: string, sheet: SheetModel, format: CellFormat | undefined): string => {
-  const resolved = raw.startsWith('=') ? evaluateFormula(raw, sheet) : raw;
-  const num = Number(resolved);
-  if (!Number.isFinite(num) || !format?.numberFormat || format.numberFormat === 'general') return resolved;
-  if (format.numberFormat === 'number') return num.toLocaleString();
-  if (format.numberFormat === 'currency') return num.toLocaleString(undefined, { style: 'currency', currency: 'USD' });
-  if (format.numberFormat === 'percent') return `${(num * 100).toFixed(2)}%`;
-  return resolved;
-};
+const ROW_OVERSCAN = 8;
+const COL_OVERSCAN = 4;
+const MIN_COL_WIDTH = 84;
+const MIN_ROW_HEIGHT = 24;
 
 function WorkbookSurface({ docId, onClose }: { docId: string; onClose: () => void }) {
   const { documents, updateDocument } = useDriveStore();
   const doc = documents.find((item) => item.id === docId && item.type === 'spreadsheet') ?? null;
+
   const [workbook, setWorkbook] = useState<WorkbookModel>(() => parseWorkbook(doc?.content ?? ''));
-  const [activeCell, setActiveCell] = useState<Point>({ row: 0, col: 0 });
+  const [history, setHistory] = useState<WorkbookModel[]>([]);
+  const [future, setFuture] = useState<WorkbookModel[]>([]);
+  const [activeCell, setActiveCell] = useState<Point>({ row: 1, col: 1 });
   const [selectionStart, setSelectionStart] = useState<Point | null>(null);
   const [selectionEnd, setSelectionEnd] = useState<Point | null>(null);
   const [editingCell, setEditingCell] = useState<Point | null>(null);
-  const [scrollTop, setScrollTop] = useState(0);
+  const [menu, setMenu] = useState<MenuState>(null);
+  const [scroll, setScroll] = useState({ top: 0, left: 0 });
+  const [panelOpen, setPanelOpen] = useState(true);
+  const [internalClipboard, setInternalClipboard] = useState('');
   const gridWrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!doc) return;
-    setWorkbook(parseWorkbook(doc.content));
+    const parsed = parseWorkbook(doc.content);
+    setWorkbook(parsed);
+    setHistory([]);
+    setFuture([]);
   }, [doc?.id]);
+
+  useEffect(() => {
+    const onGlobalClick = () => setMenu(null);
+    window.addEventListener('click', onGlobalClick);
+    return () => window.removeEventListener('click', onGlobalClick);
+  }, []);
 
   const activeSheet = useMemo(
     () => workbook.sheets.find((sheet) => sheet.id === workbook.activeSheetId) ?? workbook.sheets[0],
     [workbook],
   );
 
-  const saveWorkbook = useCallback((next: WorkbookModel) => {
+  const commitWorkbook = (next: WorkbookModel, withHistory = true) => {
     if (!doc) return;
+    if (withHistory) {
+      setHistory((prev) => [...prev.slice(-49), workbook]);
+      setFuture([]);
+    }
     setWorkbook(next);
     updateDocument(doc.id, { content: serializeWorkbook(next) });
-  }, [doc, updateDocument]);
+  };
 
-  const updateActiveSheet = useCallback((mutator: (sheet: SheetModel) => SheetModel) => {
+  const updateActiveSheet = (mutator: (sheet: SheetModel) => SheetModel, withHistory = true) => {
     const nextSheets = workbook.sheets.map((sheet) => (sheet.id === activeSheet.id ? mutator(sheet) : sheet));
-    saveWorkbook({ ...workbook, sheets: nextSheets });
-  }, [activeSheet.id, saveWorkbook, workbook]);
+    commitWorkbook({ ...workbook, sheets: nextSheets }, withHistory);
+  };
+
+  const currentRaw = activeSheet.grid[activeCell.row]?.[activeCell.col] ?? '';
+  const currentFormat = activeSheet.formats[cellKey(activeCell.row, activeCell.col)] ?? {};
 
   const applyFormat = (update: Partial<CellFormat>) => {
     const anchor = selectionStart ?? activeCell;
@@ -211,56 +97,274 @@ function WorkbookSurface({ docId, onClose }: { docId: string; onClose: () => voi
     const c2 = Math.max(anchor.col, focus.col);
 
     updateActiveSheet((sheet) => {
-      const nextFormats = { ...sheet.formats };
+      const formats = { ...sheet.formats };
       for (let r = r1; r <= r2; r++) {
         for (let c = c1; c <= c2; c++) {
           const key = cellKey(r, c);
-          nextFormats[key] = { ...nextFormats[key], ...update };
+          formats[key] = { ...formats[key], ...update };
         }
       }
-      return { ...sheet, formats: nextFormats };
+      return { ...sheet, formats };
     });
   };
 
-  const updateCell = (row: number, col: number, value: string) => {
+  const writeCell = (row: number, col: number, value: string, withHistory = true) => {
     updateActiveSheet((sheet) => {
-      const nextGrid = sheet.grid.map((line) => [...line]);
-      nextGrid[row][col] = value;
-      return { ...sheet, grid: nextGrid };
+      const grid = sheet.grid.map((line) => [...line]);
+      grid[row][col] = value;
+      return { ...sheet, grid };
+    }, withHistory);
+  };
+
+  const writeSelection = (value: string) => {
+    const anchor = selectionStart ?? activeCell;
+    const focus = selectionEnd ?? activeCell;
+    const r1 = Math.min(anchor.row, focus.row);
+    const r2 = Math.max(anchor.row, focus.row);
+    const c1 = Math.min(anchor.col, focus.col);
+    const c2 = Math.max(anchor.col, focus.col);
+    updateActiveSheet((sheet) => {
+      const grid = sheet.grid.map((line) => [...line]);
+      for (let r = r1; r <= r2; r++) {
+        for (let c = c1; c <= c2; c++) grid[r][c] = value;
+      }
+      return { ...sheet, grid };
     });
   };
+
+  const copySelection = async (cut = false) => {
+    const anchor = selectionStart ?? activeCell;
+    const focus = selectionEnd ?? activeCell;
+    const r1 = Math.min(anchor.row, focus.row);
+    const r2 = Math.max(anchor.row, focus.row);
+    const c1 = Math.min(anchor.col, focus.col);
+    const c2 = Math.max(anchor.col, focus.col);
+
+    const text = Array.from({ length: r2 - r1 + 1 }, (_, rOff) =>
+      Array.from({ length: c2 - c1 + 1 }, (_, cOff) => activeSheet.grid[r1 + rOff][c1 + cOff] ?? '').join('\t'),
+    ).join('\n');
+
+    setInternalClipboard(text);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // fallback to in-memory clipboard
+    }
+
+    if (cut) writeSelection('');
+  };
+
+  const pasteSelection = async () => {
+    let text = internalClipboard;
+    try {
+      text = await navigator.clipboard.readText();
+    } catch {
+      // keep internal clipboard
+    }
+    if (!text) return;
+
+    const rows = text.split('\n').map((line) => line.split('\t'));
+    updateActiveSheet((sheet) => {
+      const grid = sheet.grid.map((line) => [...line]);
+      rows.forEach((row, rOff) => row.forEach((value, cOff) => {
+        const r = activeCell.row + rOff;
+        const c = activeCell.col + cOff;
+        if (r < sheet.rowCount && c < sheet.colCount) grid[r][c] = value;
+      }));
+      return { ...sheet, grid };
+    });
+  };
+
+  const sortSelectedColumn = (descending = false) => {
+    const col = activeCell.col;
+    updateActiveSheet((sheet) => {
+      const grid = sheet.grid.map((line) => [...line]);
+      const headRows = grid.slice(0, sheet.frozenRows);
+      const bodyRows = grid.slice(sheet.frozenRows);
+      bodyRows.sort((a, b) => (descending ? b[col].localeCompare(a[col]) : a[col].localeCompare(b[col])));
+      return { ...sheet, grid: [...headRows, ...bodyRows] };
+    });
+  };
+
+  const undo = () => {
+    const previous = history[history.length - 1];
+    if (!previous || !doc) return;
+    setHistory((prev) => prev.slice(0, -1));
+    setFuture((prev) => [workbook, ...prev.slice(0, 49)]);
+    setWorkbook(previous);
+    updateDocument(doc.id, { content: serializeWorkbook(previous) });
+  };
+
+  const redo = () => {
+    const next = future[0];
+    if (!next || !doc) return;
+    setFuture((prev) => prev.slice(1));
+    setHistory((prev) => [...prev.slice(-49), workbook]);
+    setWorkbook(next);
+    updateDocument(doc.id, { content: serializeWorkbook(next) });
+  };
+
+  const onGridKeyDown = (event: KeyboardEvent) => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z') {
+      event.preventDefault();
+      if (event.shiftKey) redo(); else undo();
+      return;
+    }
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'c') {
+      event.preventDefault();
+      copySelection(false);
+      return;
+    }
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'x') {
+      event.preventDefault();
+      copySelection(true);
+      return;
+    }
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'v') {
+      event.preventDefault();
+      pasteSelection();
+      return;
+    }
+
+    if (editingCell) return;
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      setEditingCell(activeCell);
+      return;
+    }
+
+    if (event.key === 'Tab' || event.key.startsWith('Arrow')) {
+      event.preventDefault();
+      const next = { ...activeCell };
+      if (event.key === 'Tab') next.col += event.shiftKey ? -1 : 1;
+      if (event.key === 'ArrowUp') next.row -= 1;
+      if (event.key === 'ArrowDown') next.row += 1;
+      if (event.key === 'ArrowLeft') next.col -= 1;
+      if (event.key === 'ArrowRight') next.col += 1;
+      const clamped = clampPoint(next, activeSheet);
+      setActiveCell(clamped);
+      if (event.shiftKey) {
+        if (!selectionStart) setSelectionStart(activeCell);
+        setSelectionEnd(clamped);
+      } else {
+        setSelectionStart(clamped);
+        setSelectionEnd(clamped);
+      }
+      return;
+    }
+
+    if (event.key === 'Backspace' || event.key === 'Delete') {
+      event.preventDefault();
+      writeSelection('');
+      return;
+    }
+
+    if (event.key.length === 1 && !event.altKey && !event.metaKey && !event.ctrlKey) {
+      event.preventDefault();
+      writeCell(activeCell.row, activeCell.col, event.key);
+      setEditingCell(activeCell);
+    }
+  };
+
+  const viewportHeight = gridWrapRef.current?.clientHeight ?? 480;
+  const viewportWidth = gridWrapRef.current?.clientWidth ?? 1100;
+
+  const rowPrefix = useMemo(() => {
+    const prefix = [0];
+    for (let i = 0; i < activeSheet.rowCount; i++) prefix.push(prefix[i] + (activeSheet.rowHeights[i] ?? 30));
+    return prefix;
+  }, [activeSheet.rowHeights, activeSheet.rowCount]);
+
+  const colPrefix = useMemo(() => {
+    const prefix = [0];
+    for (let i = 0; i < activeSheet.colCount; i++) prefix.push(prefix[i] + (activeSheet.columnWidths[i] ?? DEFAULT_COL_WIDTH));
+    return prefix;
+  }, [activeSheet.columnWidths, activeSheet.colCount]);
+
+  const findIndexByOffset = (prefix: number[], offset: number) => {
+    let low = 0;
+    let high = prefix.length - 1;
+    while (low < high) {
+      const mid = Math.floor((low + high) / 2);
+      if (prefix[mid] <= offset) low = mid + 1;
+      else high = mid;
+    }
+    return Math.max(0, low - 1);
+  };
+
+  const startRow = Math.max(activeSheet.frozenRows, findIndexByOffset(rowPrefix, scroll.top) - ROW_OVERSCAN);
+  const endRow = Math.min(activeSheet.rowCount - 1, findIndexByOffset(rowPrefix, scroll.top + viewportHeight) + ROW_OVERSCAN);
+  const startCol = Math.max(activeSheet.frozenCols, findIndexByOffset(colPrefix, scroll.left) - COL_OVERSCAN);
+  const endCol = Math.min(activeSheet.colCount - 1, findIndexByOffset(colPrefix, scroll.left + viewportWidth) + COL_OVERSCAN);
+
+  const visibleRows = Array.from({ length: Math.max(0, endRow - startRow + 1) }, (_, idx) => idx + startRow);
+  const visibleCols = Array.from({ length: Math.max(0, endCol - startCol + 1) }, (_, idx) => idx + startCol);
+  const frozenRows = Array.from({ length: activeSheet.frozenRows }, (_, i) => i);
+  const frozenCols = Array.from({ length: activeSheet.frozenCols }, (_, i) => i);
+
+  const allCols = [...frozenCols, ...visibleCols.filter((c) => c >= activeSheet.frozenCols)];
+  const allRows = [...frozenRows, ...visibleRows.filter((r) => r >= activeSheet.frozenRows)];
 
   if (!doc || !activeSheet) return null;
 
-  const selectedFormat = activeSheet.formats[cellKey(activeCell.row, activeCell.col)] ?? {};
-  const viewportHeight = gridWrapRef.current?.clientHeight ?? 520;
-  const startRow = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN);
-  const endRow = Math.min(activeSheet.rowCount - 1, Math.ceil((scrollTop + viewportHeight) / ROW_HEIGHT) + OVERSCAN);
-
   return (
-    <div className="axl-premium-shell">
-      <header className="axl-premium-titlebar">
-        <button className="axl-icon-btn" type="button" onClick={onClose}>Back</button>
-        <input
-          className="axl-title-input"
-          value={doc.title}
-          onChange={(event) => updateDocument(doc.id, { title: event.target.value })}
-        />
-        <div className="axl-title-meta">Enterprise Workspace · Synced</div>
+    <div className="axl-shell-lux" onKeyDown={onGridKeyDown} tabIndex={0}>
+      <header className="axl-title-lux panel-glass">
+        <div className="axl-title-actions">
+          <button type="button" className="axl-btn" onClick={onClose}>Workspace</button>
+          <input
+            className="axl-input-title"
+            value={doc.title}
+            onChange={(event) => updateDocument(doc.id, { title: event.target.value })}
+          />
+        </div>
+        <div className="axl-title-right">
+          <button type="button" className="axl-btn" onClick={() => setPanelOpen((prev) => !prev)}>{panelOpen ? 'Hide Panel' : 'Show Panel'}</button>
+          <span>Enterprise Compute Surface</span>
+        </div>
       </header>
 
-      <section className="axl-command-ribbon">
-        <div className="axl-ribbon-group">
-          <button type="button" className={`axl-ribbon-btn${selectedFormat.bold ? ' is-active' : ''}`} onClick={() => applyFormat({ bold: !selectedFormat.bold })}>Bold</button>
-          <button type="button" className={`axl-ribbon-btn${selectedFormat.italic ? ' is-active' : ''}`} onClick={() => applyFormat({ italic: !selectedFormat.italic })}>Italic</button>
-          <button type="button" className={`axl-ribbon-btn${selectedFormat.align === 'left' ? ' is-active' : ''}`} onClick={() => applyFormat({ align: 'left' })}>Left</button>
-          <button type="button" className={`axl-ribbon-btn${selectedFormat.align === 'center' ? ' is-active' : ''}`} onClick={() => applyFormat({ align: 'center' })}>Center</button>
-          <button type="button" className={`axl-ribbon-btn${selectedFormat.align === 'right' ? ' is-active' : ''}`} onClick={() => applyFormat({ align: 'right' })}>Right</button>
+      <section className="axl-toolbar-lux panel-glass">
+        <div className="axl-toolbar-group">
+          <button type="button" className={`axl-btn${currentFormat.bold ? ' active' : ''}`} onClick={() => applyFormat({ bold: !currentFormat.bold })}>Bold</button>
+          <button type="button" className={`axl-btn${currentFormat.italic ? ' active' : ''}`} onClick={() => applyFormat({ italic: !currentFormat.italic })}>Italic</button>
+          <button type="button" className={`axl-btn${currentFormat.underline ? ' active' : ''}`} onClick={() => applyFormat({ underline: !currentFormat.underline })}>Underline</button>
         </div>
-        <div className="axl-ribbon-group">
+        <div className="axl-toolbar-group">
+          <button type="button" className="axl-btn" onClick={undo} disabled={!history.length}>Undo</button>
+          <button type="button" className="axl-btn" onClick={redo} disabled={!future.length}>Redo</button>
+          <button type="button" className="axl-btn" onClick={() => sortSelectedColumn(false)}>Sort Asc</button>
+          <button type="button" className="axl-btn" onClick={() => sortSelectedColumn(true)}>Sort Desc</button>
+        </div>
+        <div className="axl-toolbar-group">
+          <label className="axl-range">Frozen rows
+            <input
+              type="number"
+              min={0}
+              max={Math.min(10, activeSheet.rowCount - 1)}
+              value={activeSheet.frozenRows}
+              onChange={(event) => {
+                const v = Math.max(0, Math.min(activeSheet.rowCount - 1, Number(event.target.value) || 0));
+                updateActiveSheet((sheet) => ({ ...sheet, frozenRows: v }));
+              }}
+            />
+          </label>
+          <label className="axl-range">Frozen cols
+            <input
+              type="number"
+              min={0}
+              max={Math.min(8, activeSheet.colCount - 1)}
+              value={activeSheet.frozenCols}
+              onChange={(event) => {
+                const v = Math.max(0, Math.min(activeSheet.colCount - 1, Number(event.target.value) || 0));
+                updateActiveSheet((sheet) => ({ ...sheet, frozenCols: v }));
+              }}
+            />
+          </label>
           <select
             className="axl-select"
-            value={selectedFormat.numberFormat ?? 'general'}
+            value={currentFormat.numberFormat ?? 'general'}
             onChange={(event) => applyFormat({ numberFormat: event.target.value as CellFormat['numberFormat'] })}
           >
             <option value="general">General</option>
@@ -271,202 +375,255 @@ function WorkbookSurface({ docId, onClose }: { docId: string; onClose: () => voi
         </div>
       </section>
 
-      <section className="axl-formula-region">
+      <section className="axl-formula-lux panel-glass">
         <div className="axl-name-box">{cellRef(activeCell.row, activeCell.col)}</div>
-        <div className="axl-fx-pill">fx</div>
+        <div className="axl-fx">fx</div>
         <input
-          className="axl-formula-input-premium"
-          value={activeSheet.grid[activeCell.row]?.[activeCell.col] ?? ''}
-          onChange={(event) => updateCell(activeCell.row, activeCell.col, event.target.value)}
+          className="axl-formula-input"
+          value={currentRaw}
+          onChange={(event) => writeCell(activeCell.row, activeCell.col, event.target.value, false)}
+          onBlur={() => commitWorkbook(workbook, true)}
         />
+        <div className="axl-eval">{currentRaw.startsWith('=') ? evaluateFormula(currentRaw, activeSheet) : ''}</div>
       </section>
 
-      <div className="axl-grid-container" ref={gridWrapRef} onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}>
-        <table className="axl-grid-premium">
-          <thead>
-            <tr>
-              <th className="axl-corner" />
-              {Array.from({ length: activeSheet.colCount }, (_, col) => (
-                <th key={col} className="axl-col-head" style={{ minWidth: activeSheet.columnWidths[col] }}>
-                  {toColumnLabel(col)}
-                  <div
-                    className="axl-col-resizer"
-                    onMouseDown={(event) => {
-                      const startX = event.clientX;
-                      const startW = activeSheet.columnWidths[col];
-                      const onMove = (moveEvent: MouseEvent) => {
-                        updateActiveSheet((sheet) => {
-                          const nextWidths = [...sheet.columnWidths];
-                          nextWidths[col] = Math.max(MIN_COL_WIDTH, startW + moveEvent.clientX - startX);
-                          return { ...sheet, columnWidths: nextWidths };
-                        });
-                      };
-                      const onUp = () => {
-                        window.removeEventListener('mousemove', onMove);
-                        window.removeEventListener('mouseup', onUp);
-                      };
-                      window.addEventListener('mousemove', onMove);
-                      window.addEventListener('mouseup', onUp);
-                    }}
-                  />
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {Array.from({ length: startRow }, (_, i) => (
-              <tr key={`spacer-${i}`} style={{ display: 'none' }} />
-            ))}
-            {activeSheet.grid.slice(startRow, endRow + 1).map((row, relativeRow) => {
-              const rowIndex = startRow + relativeRow;
-              return (
-                <tr key={rowIndex} style={{ height: ROW_HEIGHT }}>
-                  <th className="axl-row-head">{rowIndex + 1}</th>
-                  {row.map((rawValue, colIndex) => {
-                    const selected = activeCell.row === rowIndex && activeCell.col === colIndex;
-                    const fmt = activeSheet.formats[cellKey(rowIndex, colIndex)];
+      <div className="axl-body-lux">
+        <div
+          className="axl-grid-lux panel-glass"
+          ref={gridWrapRef}
+          onScroll={(event) => setScroll({ top: event.currentTarget.scrollTop, left: event.currentTarget.scrollLeft })}
+        >
+          <table className="axl-grid-table">
+            <thead>
+              <tr>
+                <th className="axl-corner" />
+                {allCols.map((col) => (
+                  <th
+                    key={col}
+                    className={`axl-col-head${col < activeSheet.frozenCols ? ' frozen' : ''}`}
+                    style={{ minWidth: activeSheet.columnWidths[col] }}
+                  >
+                    {toColumnLabel(col)}
+                    <div
+                      className="axl-resize-col"
+                      onMouseDown={(event) => {
+                        event.preventDefault();
+                        const startX = event.clientX;
+                        const initial = activeSheet.columnWidths[col];
+                        const onMove = (moveEvent: MouseEvent) => {
+                          const width = Math.max(MIN_COL_WIDTH, initial + moveEvent.clientX - startX);
+                          updateActiveSheet((sheet) => {
+                            const columnWidths = [...sheet.columnWidths];
+                            columnWidths[col] = width;
+                            return { ...sheet, columnWidths };
+                          }, false);
+                        };
+                        const onUp = () => {
+                          window.removeEventListener('mousemove', onMove);
+                          window.removeEventListener('mouseup', onUp);
+                        };
+                        window.addEventListener('mousemove', onMove);
+                        window.addEventListener('mouseup', onUp);
+                      }}
+                    />
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {allRows.map((row) => (
+                <tr key={row} style={{ height: activeSheet.rowHeights[row] }}>
+                  <th className={`axl-row-head${row < activeSheet.frozenRows ? ' frozen' : ''}`}>
+                    {row + 1}
+                    <div
+                      className="axl-resize-row"
+                      onMouseDown={(event) => {
+                        event.preventDefault();
+                        const startY = event.clientY;
+                        const initial = activeSheet.rowHeights[row];
+                        const onMove = (moveEvent: MouseEvent) => {
+                          const height = Math.max(MIN_ROW_HEIGHT, initial + moveEvent.clientY - startY);
+                          updateActiveSheet((sheet) => {
+                            const rowHeights = [...sheet.rowHeights];
+                            rowHeights[row] = height;
+                            return { ...sheet, rowHeights };
+                          }, false);
+                        };
+                        const onUp = () => {
+                          window.removeEventListener('mousemove', onMove);
+                          window.removeEventListener('mouseup', onUp);
+                        };
+                        window.addEventListener('mousemove', onMove);
+                        window.addEventListener('mouseup', onUp);
+                      }}
+                    />
+                  </th>
+                  {allCols.map((col) => {
+                    const selected = activeCell.row === row && activeCell.col === col;
+                    const inRange = isInSelection({ row, col }, selectionStart, selectionEnd);
+                    const format = activeSheet.formats[cellKey(row, col)];
+                    const raw = activeSheet.grid[row]?.[col] ?? '';
                     return (
                       <td
-                        key={colIndex}
-                        className={`axl-cell-premium${selected ? ' is-selected' : ''}`}
+                        key={`${row}-${col}`}
+                        className={`axl-cell${selected ? ' selected' : ''}${inRange ? ' in-range' : ''}`}
                         style={{
-                          minWidth: activeSheet.columnWidths[colIndex],
-                          fontWeight: fmt?.bold ? 650 : 450,
-                          fontStyle: fmt?.italic ? 'italic' : 'normal',
-                          textAlign: fmt?.align ?? 'left',
+                          minWidth: activeSheet.columnWidths[col],
+                          fontWeight: format?.bold ? 650 : 450,
+                          fontStyle: format?.italic ? 'italic' : 'normal',
+                          textDecoration: format?.underline ? 'underline' : 'none',
+                          textAlign: format?.align ?? 'left',
                         }}
-                        onClick={() => {
-                          setActiveCell({ row: rowIndex, col: colIndex });
-                          setSelectionStart({ row: rowIndex, col: colIndex });
-                          setSelectionEnd({ row: rowIndex, col: colIndex });
+                        onMouseDown={() => {
+                          setActiveCell({ row, col });
+                          setSelectionStart({ row, col });
+                          setSelectionEnd({ row, col });
                         }}
-                        onDoubleClick={() => setEditingCell({ row: rowIndex, col: colIndex })}
                         onMouseEnter={(event) => {
-                          if (event.buttons === 1 && selectionStart) {
-                            setSelectionEnd({ row: rowIndex, col: colIndex });
-                          }
+                          if (event.buttons === 1 && selectionStart) setSelectionEnd({ row, col });
+                        }}
+                        onDoubleClick={() => setEditingCell({ row, col })}
+                        onContextMenu={(event) => {
+                          event.preventDefault();
+                          setActiveCell({ row, col });
+                          setMenu({ x: event.clientX, y: event.clientY, row, col });
                         }}
                       >
-                        {editingCell?.row === rowIndex && editingCell?.col === colIndex ? (
+                        {editingCell?.row === row && editingCell.col === col ? (
                           <input
-                            className="axl-inline-editor"
+                            className="axl-cell-editor"
                             autoFocus
-                            value={rawValue}
-                            onChange={(event) => updateCell(rowIndex, colIndex, event.target.value)}
-                            onBlur={() => setEditingCell(null)}
+                            value={raw}
+                            onChange={(event) => writeCell(row, col, event.target.value, false)}
+                            onBlur={() => {
+                              setEditingCell(null);
+                              commitWorkbook(workbook, true);
+                            }}
                           />
                         ) : (
-                          formatDisplayValue(rawValue, activeSheet, fmt)
+                          formatDisplayValue(raw, activeSheet, format)
                         )}
                       </td>
                     );
                   })}
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {panelOpen && (
+          <aside className="axl-side-panel panel-glass">
+            <h4>Selection Metrics</h4>
+            <div className="axl-panel-row"><span>Cell</span><strong>{cellRef(activeCell.row, activeCell.col)}</strong></div>
+            <div className="axl-panel-row"><span>Raw</span><strong>{currentRaw || 'Empty'}</strong></div>
+            <div className="axl-panel-row"><span>Value</span><strong>{currentRaw.startsWith('=') ? evaluateFormula(currentRaw, activeSheet) : currentRaw || 'Empty'}</strong></div>
+            <h4>Workflow</h4>
+            <ul>
+              <li>Ctrl/Cmd + C, X, V for clipboard operations</li>
+              <li>Ctrl/Cmd + Z and Shift + Ctrl/Cmd + Z for history</li>
+              <li>Shift + arrows for range extension</li>
+              <li>Right-click for context operations</li>
+            </ul>
+          </aside>
+        )}
       </div>
 
-      <footer className="axl-sheet-footer">
+      <footer className="axl-footer-lux panel-glass">
         <div className="axl-tabs">
           {workbook.sheets.map((sheet) => (
             <button
               key={sheet.id}
               type="button"
-              className={`axl-tab${workbook.activeSheetId === sheet.id ? ' is-active' : ''}`}
-              onClick={() => saveWorkbook({ ...workbook, activeSheetId: sheet.id })}
+              className={`axl-tab${sheet.id === workbook.activeSheetId ? ' active' : ''}`}
+              onClick={() => commitWorkbook({ ...workbook, activeSheetId: sheet.id })}
             >
               {sheet.name}
             </button>
           ))}
           <button
             type="button"
-            className="axl-tab-add"
+            className="axl-tab"
             onClick={() => {
               const id = `sheet-${workbook.sheets.length + 1}`;
-              const nextSheet: SheetModel = {
-                id,
-                name: `Sheet ${workbook.sheets.length + 1}`,
-                rowCount: DEFAULT_ROWS,
-                colCount: DEFAULT_COLS,
-                grid: createEmptyGrid(DEFAULT_ROWS, DEFAULT_COLS),
-                formats: {},
-                columnWidths: Array.from({ length: DEFAULT_COLS }, () => DEFAULT_COL_WIDTH),
-              };
-              saveWorkbook({ ...workbook, sheets: [...workbook.sheets, nextSheet], activeSheetId: id });
+              const newSheet = createSheet(id, `Sheet ${workbook.sheets.length + 1}`);
+              commitWorkbook({ ...workbook, activeSheetId: id, sheets: [...workbook.sheets, newSheet] });
             }}
           >
-            New Sheet
+            Add Sheet
           </button>
         </div>
-        <div>{activeSheet.rowCount} rows × {activeSheet.colCount} columns</div>
+        <div>{activeSheet.rowCount} rows × {activeSheet.colCount} columns · {history.length} revisions</div>
       </footer>
+
+      {menu && (
+        <div className="axl-menu" style={{ top: menu.y, left: menu.x }} onClick={(event) => event.stopPropagation()}>
+          <button type="button" onClick={() => copySelection(false)}>Copy</button>
+          <button type="button" onClick={() => copySelection(true)}>Cut</button>
+          <button type="button" onClick={() => pasteSelection()}>Paste</button>
+          <button type="button" onClick={() => writeSelection('')}>Clear</button>
+        </div>
+      )}
     </div>
   );
 }
 
 export function AccelApp() {
   const { documents, activeDocumentId, setActiveDocument, createSpreadsheet } = useDriveStore();
-  const spreadsheets = documents.filter((doc) => doc.type === 'spreadsheet');
+  const workbooks = documents.filter((doc) => doc.type === 'spreadsheet');
   const [view, setView] = useState<ViewMode>('home');
-  const [currentId, setCurrentId] = useState<string | null>(activeDocumentId ?? spreadsheets[0]?.id ?? null);
+  const [currentId, setCurrentId] = useState<string | null>(activeDocumentId ?? workbooks[0]?.id ?? null);
 
   useEffect(() => {
-    if (activeDocumentId && spreadsheets.some((sheet) => sheet.id === activeDocumentId)) {
+    if (activeDocumentId && workbooks.some((sheet) => sheet.id === activeDocumentId)) {
       setCurrentId(activeDocumentId);
       setView('workbook');
     }
-  }, [activeDocumentId, spreadsheets]);
+  }, [activeDocumentId, workbooks]);
 
   if (view === 'workbook' && currentId) {
     return <WorkbookSurface docId={currentId} onClose={() => setView('home')} />;
   }
 
   return (
-    <div className="axl-home-shell">
-      <aside className="axl-home-nav">
-        <div className="axl-brand-block">
-          <div className="axl-brand-title">Accel Enterprise Grid</div>
-          <p>Precision modeling workspace for analysis, forecasting, and operational planning.</p>
-        </div>
+    <div className="axl-home-lux">
+      <section className="axl-home-main panel-glass">
+        <header>
+          <h3>Accel Enterprise Workbooks</h3>
+          <p>Spreadsheet-grade analysis workspace with structured computation and precision editing.</p>
+        </header>
+
         <button
-          className="axl-primary-cta"
           type="button"
+          className="axl-create"
           onClick={() => {
             const id = createSpreadsheet('Untitled Enterprise Workbook');
             setCurrentId(id);
             setView('workbook');
           }}
         >
-          Create Workbook
+          Create Enterprise Workbook
         </button>
-      </aside>
 
-      <main className="axl-home-canvas">
-        <header>
-          <h3>Workbook Hub</h3>
-          <p>{spreadsheets.length} workbook records</p>
-        </header>
-        <div className="axl-home-grid-premium">
-          {spreadsheets.map((sheet) => (
+        <div className="axl-card-grid">
+          {workbooks.map((book) => (
             <button
-              key={sheet.id}
               type="button"
-              className="axl-workbook-card"
+              key={book.id}
+              className="axl-book-card"
               onClick={() => {
-                setActiveDocument(sheet.id);
-                setCurrentId(sheet.id);
+                setActiveDocument(book.id);
+                setCurrentId(book.id);
                 setView('workbook');
               }}
             >
-              <div className="axl-workbook-preview" />
-              <strong>{sheet.title}</strong>
-              <span>{sheet.owner} · {new Date(sheet.updatedAt).toLocaleString()}</span>
+              <div className="axl-book-preview" />
+              <strong>{book.title}</strong>
+              <span>{book.owner} · {new Date(book.updatedAt).toLocaleString()}</span>
             </button>
           ))}
         </div>
-      </main>
+      </section>
     </div>
   );
 }

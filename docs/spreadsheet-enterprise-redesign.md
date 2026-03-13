@@ -1,102 +1,128 @@
 # AoS Accel Enterprise Spreadsheet Redesign Plan
 
-## 1. UI/UX redesign proposal
-- **Product shape**: a desktop-grade workbook application with a premium command ribbon, formula region, high-density grid workspace, workbook tabs, and status rail.
-- **Interaction hierarchy**:
-  1. Window title row for document metadata and collaboration state.
-  2. Ribbon for formatting and workbook actions.
-  3. Formula bar with name-box + expression editing.
-  4. Spreadsheet body with sticky row and column headers.
-  5. Sheet tabs and status insights in footer.
-- **Behavior model**:
-  - Workbook/sheet mental model with persistent active sheet.
-  - Single-cell and drag-range selection behavior.
-  - Inline editing and formula bar editing.
-  - Column resizing and number formatting.
-  - Formula evaluation with range support for SUM/AVG/MIN/MAX/COUNT.
+## 1) UI/UX redesign proposal
 
-## 2. Recommended architecture
+### Product framing
+Accel is treated as a desktop-class AoS productivity program, not a table widget. The redesigned shell has:
+- title and workspace metadata region
+- enterprise command ribbon
+- structured formula bar with address/name box
+- high-density spreadsheet work surface with frozen headers
+- workbook tabs + status footer
+- optional side intelligence panel for live context
 
-### Layered system
-1. **AoS shell layer**
-   - Window frame integration, document routing, application launch surfaces.
-2. **Spreadsheet domain state**
-   - Workbook JSON model (`WorkbookModel`, `SheetModel`), selection state, active sheet state.
-3. **Formula subsystem**
-   - Cell reference parser + formula evaluator with range and expression support.
-4. **Render subsystem**
-   - Sticky headers + viewport row-windowing (overscan strategy in current implementation).
-5. **Design system layer**
-   - Glass tokens, command button patterns, formula bar anatomy, workbook tab patterns.
+### Spreadsheet ergonomics
+- workbook/worksheet mental model with persistent active sheet
+- single-cell and range selection with drag extension
+- inline editing and formula-bar editing
+- keyboard-first navigation
+- context menu operations for cell workflows
+- explicit active, selected, in-range, editing, and frozen states
 
-### Default stack direction (target state)
-- **Foundation**: Vite + React + TypeScript (already in place).
-- **Styling and primitives**: Tailwind + shadcn/Radix migration path for controlled enterprise components.
-- **Motion layer**: Motion for panel transitions, command affordance, and focus choreography.
-- **Virtualization layer**: TanStack Virtual for row and column virtualization at enterprise sheet scale.
-- **Formula engine layer**: HyperFormula to expand from current formula subset to full dependency graph and advanced functions.
+## 2) Technical architecture (preferred stack aligned)
 
-## 3. Library and subsystem justification
-- **React + TypeScript**: strict state contracts for workbook and sheet models, predictable app-shell integration.
-- **Tailwind + tokenized CSS strategy**: deterministic visual language with reusable glass/elevation tiers.
-- **Radix primitives**: accessible context menus, dialogs, and command popovers with AoS styling control.
-- **TanStack Virtual**: high-scale rendering safety without shipping monolithic grid UI.
-- **HyperFormula**: robust spreadsheet computation and long-term formula parity strategy.
+### Layered architecture
+1. **AoS application shell layer**
+   - window framing, launch routing, title metadata, host integration
+2. **Spreadsheet state layer**
+   - workbook model, sheet model, selection model, revision history model
+3. **Formula engine layer**
+   - expression parsing, range function support, reference resolution, cycle guard
+4. **Rendering and performance layer**
+   - row/column windowing, sticky frozen panes, resize systems
+5. **Design-system layer**
+   - luminous glass tokens, interaction tokens, component anatomy patterns
 
-## 4. Component map
+### Stack direction
+- Vite + React + TypeScript as primary runtime foundation
+- Tailwind + shadcn/ui + Radix for production-grade primitives (command/menu/dialog) in the next hardening pass
+- Motion for panel and state transition choreography in the next hardening pass
+- TanStack Virtual for formal row/column virtualization upgrade
+- HyperFormula for enterprise formula breadth and dependency graph evaluation
 
-### Reusable platform primitives
+## 3) Major library and subsystem justification
+- **React/TypeScript**: strict contracts for workbook persistence and predictable shell integration
+- **Tailwind + token strategy**: faster iteration and consistent spacing/visual rules at scale
+- **Radix primitives**: accessible menus/dialogs/popovers while retaining full AoS visual ownership
+- **Motion**: restrained micro-interactions and state continuity without animation noise
+- **TanStack Virtual**: robust scale path for very large sheets with reduced render pressure
+- **HyperFormula**: high-confidence expansion path to Excel-class formula support
+
+## 4) Component map
+
+### Reusable primitives
 - `GlassPanel`
 - `CommandButton`
-- `SegmentedControl`
-- `FormulaInput`
+- `TokenInput`
 - `ContextMenuSurface`
 - `StatusMetric`
+- `SelectionBadge`
 
-### Spreadsheet-specific components
+### Spreadsheet components
 - `WorkbookSurface`
 - `WorkbookTitleBar`
 - `RibbonBar`
-- `FormulaRegion`
-- `SheetGrid`
-- `RowHeader`
-- `ColumnHeader`
-- `CellView`
+- `FormulaBar`
+- `SheetViewport`
+- `ColumnHeaderCell`
+- `RowHeaderCell`
+- `GridCell`
 - `InlineCellEditor`
 - `WorkbookTabs`
-- `WorkbookStatusFooter`
+- `StatusFooter`
 
-## 5. Visual system (glass specification)
-- **Surface tokens**: low-noise navy glass surfaces with opacity ladder for frame, ribbon, and content levels.
-- **Blur tiers**:
-  - Tier 1: 12px for nested controls.
-  - Tier 2: 20px for primary shells.
-  - Tier 3: 24px for modal overlays.
-- **Stroke language**: cool neutral border with light top-edge highlight.
-- **Elevation**: soft atmospheric shadow + subtle inset highlight.
-- **Typography**: compact, high-legibility, low-decorative enterprise text hierarchy.
-- **State system**: explicit hover/active/selected/focus/editing states with clear border and fill deltas.
+## 5) Luminous glass visual system specification
 
-## 6. Performance plan
-- Keep grid interactions responsive with viewport row-windowing and overscan.
-- Minimize object churn through immutable but localized sheet updates.
-- Avoid expensive paint regions; isolate blur panels and reduce animated properties.
-- Move to TanStack Virtual + memoized cell rendering for large-sheet targets.
-- Introduce formula dependency graph caching when HyperFormula is integrated.
+### Surface language
+- layered optical glass panels with restrained diffusion
+- thin luminous strokes and soft edge highlights
+- gentle atmospheric glow, no neon effects
+- high-contrast text on translucent backgrounds
 
-## 7. Phased implementation roadmap
-1. **Phase 1 – Core shell and workbook model**
-   - Ship premium glass shell, workbook JSON format, formula bar, tabs, and column resizing.
-2. **Phase 2 – Spreadsheet fundamentals hardening**
-   - Keyboard navigation matrix, undo/redo stack, fill handle, clipboard semantics.
-3. **Phase 3 – Enterprise tooling**
-   - Context menus, validation rules, sorting/filtering panels, freeze panes, named ranges.
-4. **Phase 4 – Platform scale and intelligence**
-   - HyperFormula integration, TanStack Virtualization upgrades, chart and automation extensibility.
+### Token groups
+- blur tiers (nested controls, main shell, overlays)
+- opacity tiers for shell/ribbon/workspace/panel surfaces
+- border highlight tokens (outer stroke + inset light)
+- elevation tokens (ambient shadow + inset optical cues)
+- focus/selection tokens for keyboard and cell states
 
-## 8. Production build strategy
-- Maintain strict TypeScript checks in CI.
-- Keep workbook format versioned (`version: 1`) for migration safety.
-- Progressive enhancement path: retain backward compatibility for legacy tab-separated sheet payloads.
-- Add visual regression snapshots for shell/ribbon/formula/grid states.
-- Add interaction tests for formula accuracy, cell editing lifecycle, and multi-sheet persistence.
+### Interaction states
+- hover: subtle luminosity increase + stroke lift
+- active: compact depth response
+- selected: clear focus outline + fill shift
+- editing: strict local emphasis with minimal visual distraction
+
+## 6) Performance plan
+- viewport row/column windowing to limit cell render volume
+- immutable but localized updates per active sheet
+- revision stack capped to bound memory growth
+- frozen panes rendered with sticky strategy for predictable layout
+- controlled blur regions to avoid expensive full-surface repaints
+- migrate to TanStack Virtual and memoized cells for larger datasets
+- migrate to HyperFormula cached dependency graph for formula scaling
+
+## 7) Phased implementation roadmap
+
+### Phase 1: premium shell + workbook core
+- luminous shell, formula bar, workbook tabs, frozen panes, resize controls
+- workbook persistence model with compatibility fallback
+
+### Phase 2: spreadsheet fundamentals hardening
+- richer keyboard matrix, copy/cut/paste reliability, fill semantics, undo/redo maturity
+- right-click command expansion and validation patterns
+
+### Phase 3: enterprise analysis workflows
+- filter/sort panels, data validation rules, named ranges, structured formatting
+- command palette and advanced navigation affordances
+
+### Phase 4: platform scale and extensibility
+- TanStack Virtual row/column virtualization
+- HyperFormula integration for broad formula parity
+- hooks for charting, automation, and workflow scripting
+
+## 8) Production-ready build strategy
+- strict type checks and production builds in CI
+- workbook schema versioning with migration guardrails
+- incremental feature flags for formula/virtualization engine swaps
+- regression tests for keyboard flow, formulas, and sheet persistence
+- visual regression snapshots for shell and grid state surfaces
