@@ -10,7 +10,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@aos/library-contracts": "file:../aOS-Circuit/packages/aos-library-contracts",
+    "@wcmyk/library-contracts": "^0.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zustand": "^4.5.2"
