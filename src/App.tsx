@@ -25,6 +25,7 @@ const AppCenterApp = lazy(() => import('./apps/appcenter/AppCenterApp').then((m)
 const RentCafeApp = lazy(() => import('./apps/rentcafe/RentCafeApp').then((m) => ({ default: m.RentCafeApp })));
 const PyCharmApp = lazy(() => import('./apps/pycharm/PyCharmApp').then((m) => ({ default: m.PyCharmApp })));
 const CalculatorApp = lazy(() => import('./apps/calculator/CalculatorApp').then((m) => ({ default: m.CalculatorApp })));
+const CircuitApp = lazy(() => import('./apps/circuit/CircuitApp').then((m) => ({ default: m.CircuitApp })));
 
 const artifacts = [
   { title: 'Roadmap.md', kind: 'Report', updated: '2h ago', detail: 'Phase 1 delivery outline', accent: '#7c8cff' },
@@ -124,6 +125,7 @@ function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDoc
   if (window.appId === 'rentcafe') return <Suspense fallback={null}><RentCafeApp /></Suspense>;
   if (window.appId === 'pycharm') return <Suspense fallback={null}><PyCharmApp /></Suspense>;
   if (window.appId === 'calculator') return <Suspense fallback={null}><CalculatorApp /></Suspense>;
+  if (window.appId === 'circuit') return <Suspense fallback={null}><CircuitApp /></Suspense>;
 
   if (window.appId === 'archive') return <Suspense fallback={null}><AccelApp /></Suspense>;
   if (window.appId === 'oracle') return <Suspense fallback={null}><OracleApp /></Suspense>;
