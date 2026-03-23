@@ -4,3 +4,4 @@ export { OracleApp } from './oracle/OracleApp';
 export { SanctumApp } from './sanctum/SanctumApp';
 export { SpotifyApp } from './spotify/SpotifyApp';
 export { SafariApp } from './safari/SafariApp';
+export { CircuitApp } from './circuit/CircuitApp';
