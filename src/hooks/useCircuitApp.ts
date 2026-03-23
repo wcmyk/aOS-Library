@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const useCircuitApp = (initialData) => {
+const useCircuitApp = (initialData: any) => {
     const [data, setData] = useState(initialData);
 
     useEffect(() => {
@@ -12,8 +12,8 @@ const useCircuitApp = (initialData) => {
         };
     }, []);
 
-    const updateData = (newData) => {
-        setData(prevData => ({ ...prevData, ...newData }));
+    const updateData = (newData: any) => {
+        setData((prevData: any) => ({ ...prevData, ...newData }));
     };
 
     return { data, updateData };
