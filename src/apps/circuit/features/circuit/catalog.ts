@@ -1,7 +1,20 @@
 import type { CircuitNode, CircuitTemplate } from './types'
 
-const NODE_WIDTH = 160
-const NODE_HEIGHT = 96
+// ─── Per-component dimensions ────────────────────────────────────────────────
+export const COMPONENT_DIMS: Record<string, { width: number; height: number }> = {
+  battery:      { width: 110, height: 80 },
+  resistor:     { width: 160, height: 54 },
+  led:          { width: 90,  height: 80 },
+  diode:        { width: 148, height: 52 },
+  switch:       { width: 110, height: 64 },
+  capacitor:    { width: 136, height: 56 },
+  inductor:     { width: 160, height: 60 },
+  transistor:   { width: 90,  height: 100 },
+  potentiometer:{ width: 100, height: 90 },
+  ground:       { width: 64,  height: 80 },
+}
+
+export const DEFAULT_DIMS = { width: 160, height: 60 }
 
 export const circuitTemplates: CircuitTemplate[] = [
   {
@@ -112,8 +125,8 @@ export const circuitTemplates: CircuitTemplate[] = [
     color: '#64748b',
     defaults: { resistance: 0.0001 },
     ports: [
-      { id: 'gnd', label: 'GND', side: 'left' },
-      { id: 'ref', label: '', side: 'right' },
+      { id: 'gnd', label: 'GND', side: 'top' },
+      { id: 'ref', label: '', side: 'bottom' },
     ],
   },
 ]
@@ -123,14 +136,16 @@ export const templateMap = Object.fromEntries(
 ) as Record<CircuitTemplate['type'], CircuitTemplate>
 
 export function getPortPosition(node: CircuitNode, portId: string): { x: number; y: number } {
+  const dims = COMPONENT_DIMS[node.type] ?? DEFAULT_DIMS
+  const { width, height } = dims
   const template = templateMap[node.type]
   const port = template?.ports.find((p) => p.id === portId)
   const side = port?.side ?? 'left'
 
-  if (side === 'right') return { x: node.position.x + NODE_WIDTH, y: node.position.y + NODE_HEIGHT / 2 }
-  if (side === 'top') return { x: node.position.x + NODE_WIDTH / 2, y: node.position.y }
-  if (side === 'bottom') return { x: node.position.x + NODE_WIDTH / 2, y: node.position.y + NODE_HEIGHT }
-  return { x: node.position.x, y: node.position.y + NODE_HEIGHT / 2 }
+  if (side === 'right')  return { x: node.position.x + width,      y: node.position.y + height / 2 }
+  if (side === 'top')    return { x: node.position.x + width / 2,   y: node.position.y }
+  if (side === 'bottom') return { x: node.position.x + width / 2,   y: node.position.y + height }
+  return { x: node.position.x, y: node.position.y + height / 2 }
 }
 
 export function getNodeValueLabel(node: CircuitNode): string {
