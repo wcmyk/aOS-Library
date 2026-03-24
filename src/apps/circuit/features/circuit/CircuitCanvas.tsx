@@ -1,7 +1,10 @@
-import type { PointerEvent as ReactPointerEvent } from 'react'
-import type { CircuitNode, CircuitWire } from './types'
-import { getNodeValueLabel, templateMap } from './catalog'
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
+import type { CircuitNode, CircuitWire, CircuitLayer } from './types'
+import { getNodeValueLabel, getPortPosition, templateMap } from './catalog'
 import { cn } from '../../lib/utils'
+
+const NODE_WIDTH = 160
+const NODE_HEIGHT = 96
 
 interface PreviewWire {
   from: { nodeId: string; portId: string }
@@ -12,13 +15,12 @@ interface PreviewWire {
 interface CircuitCanvasProps {
   nodes: CircuitNode[]
   wires: CircuitWire[]
+  layers: CircuitLayer[]
   selectedNodeId: string | null
   selectedPort: { nodeId: string; portId: string } | null
   previewWire: PreviewWire | null
   simulationActive: boolean
   ledOn: boolean
-  boardShape: 'rectangle' | 'rounded' | 'octagon'
-  boardSize: 'compact' | 'standard' | 'wide'
   onMoveNode: (nodeId: string, position: { x: number; y: number }) => void
   onSelectNode: (nodeId: string) => void
   onStartWireDrag: (nodeId: string, portId: string) => void
@@ -28,63 +30,49 @@ interface CircuitCanvasProps {
   onRemoveWire: (wireId: string) => void
 }
 
-const NODE_WIDTH = 168
-const NODE_HEIGHT = 112
-
-function getBoardHeight(size: CircuitCanvasProps['boardSize']) {
-  if (size === 'compact') return 'min-h-[520px]'
-  if (size === 'wide') return 'min-h-[720px]'
-  return 'min-h-[620px]'
-}
-
-function getPortPosition(node: CircuitNode, portId: string) {
-  const isLeft = ['negative', 'left', 'anode', 'input', 'collector', 'positive'].includes(portId)
-  return {
-    x: node.position.x + (isLeft ? 0 : NODE_WIDTH),
-    y: node.position.y + NODE_HEIGHT / 2,
-  }
-}
-
-function getNodeAccent(node: CircuitNode, simulationActive: boolean, ledOn: boolean) {
-  if (node.type === 'battery') return 'from-sky-400/50 to-cyan-300/30'
-  if (node.type === 'resistor') return 'from-violet-400/45 to-fuchsia-300/20'
-  if (node.type === 'led') return ledOn && simulationActive ? 'from-emerald-400/70 to-lime-300/40' : 'from-amber-400/35 to-rose-300/25'
-  if (node.type === 'switch') return 'from-slate-300/35 to-slate-500/20'
-  if (node.type === 'capacitor') return 'from-cyan-400/45 to-blue-400/20'
-  if (node.type === 'transistor') return 'from-pink-400/40 to-purple-400/20'
-  return 'from-white/20 to-white/5'
-}
-
 function buildWirePath(from: { x: number; y: number }, to: { x: number; y: number }) {
   const midX = (from.x + to.x) / 2
   return `M ${from.x} ${from.y} C ${midX} ${from.y}, ${midX} ${to.y}, ${to.x} ${to.y}`
 }
 
-function getWireStrokeColor(wire: CircuitWire, nodes: CircuitNode[], simulationActive: boolean) {
-  const fromNode = nodes.find((node) => node.id === wire.from.nodeId)
-  const toNode = nodes.find((node) => node.id === wire.to.nodeId)
-  const portIds = `${wire.from.portId}:${wire.to.portId}`
-
-  if (portIds.includes('positive') || portIds.includes('anode')) return simulationActive ? '#ef4444' : '#f87171'
-  if (portIds.includes('negative') || portIds.includes('cathode')) return simulationActive ? '#64748b' : '#94a3b8'
-  if (fromNode?.type === 'switch' || toNode?.type === 'switch') return '#f59e0b'
-  if (fromNode?.type === 'capacitor' || toNode?.type === 'capacitor') return '#06b6d4'
+function getWireColor(wire: CircuitWire, nodes: CircuitNode[], active: boolean) {
+  const fromNode = nodes.find((n) => n.id === wire.from.nodeId)
+  const toNode = nodes.find((n) => n.id === wire.to.nodeId)
+  const ports = `${wire.from.portId}:${wire.to.portId}`
+  if (ports.includes('positive') || ports.includes('anode')) return active ? '#ef4444' : '#f87171'
+  if (ports.includes('negative') || ports.includes('cathode')) return active ? '#475569' : '#64748b'
   if (fromNode?.type === 'transistor' || toNode?.type === 'transistor') return '#d946ef'
+  if (fromNode?.type === 'capacitor' || toNode?.type === 'capacitor') return '#06b6d4'
   if (fromNode?.type === 'resistor' || toNode?.type === 'resistor') return '#a855f7'
-  if (fromNode?.type === 'led' || toNode?.type === 'led') return '#22c55e'
-  return simulationActive ? '#38bdf8' : '#94a3b8'
+  if (fromNode?.type === 'led' || toNode?.type === 'led') return active ? '#22c55e' : '#4ade80'
+  if (fromNode?.type === 'inductor' || toNode?.type === 'inductor') return '#0ea5e9'
+  if (fromNode?.type === 'ground' || toNode?.type === 'ground') return '#475569'
+  return active ? '#38bdf8' : '#94a3b8'
+}
+
+function getPortStyle(side: string | undefined): CSSProperties {
+  const half = 9
+  if (side === 'right') return { right: -half, top: '50%', transform: 'translateY(-50%)' }
+  if (side === 'top') return { top: -half, left: '50%', transform: 'translateX(-50%)' }
+  if (side === 'bottom') return { bottom: -half, left: '50%', transform: 'translateX(-50%)' }
+  return { left: -half, top: '50%', transform: 'translateY(-50%)' }
+}
+
+function hexToRgb(hex: string): string {
+  const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  if (!r) return '148,163,184'
+  return `${parseInt(r[1], 16)},${parseInt(r[2], 16)},${parseInt(r[3], 16)}`
 }
 
 export function CircuitCanvas({
   nodes,
   wires,
+  layers,
   selectedNodeId,
   selectedPort,
   previewWire,
   simulationActive,
   ledOn,
-  boardShape,
-  boardSize,
   onMoveNode,
   onSelectNode,
   onStartWireDrag,
@@ -93,150 +81,232 @@ export function CircuitCanvas({
   onCancelWireDrag,
   onRemoveWire,
 }: CircuitCanvasProps) {
-  const boardClipPath = boardShape === 'octagon'
-    ? 'polygon(12% 0, 88% 0, 100% 12%, 100% 88%, 88% 100%, 12% 100%, 0 88%, 0 12%)'
-    : undefined
+  const visibleLayerIds = new Set(layers.filter((l) => l.visible).map((l) => l.id))
+  const visibleNodes = nodes.filter((n) => visibleLayerIds.has(n.layer))
 
   return (
     <div
-      className={cn(
-        'relative overflow-hidden border border-white/10 bg-slate-950/40 shadow-glass',
-        boardShape === 'rounded' ? 'rounded-[40px]' : 'rounded-[20px]',
-        getBoardHeight(boardSize),
-      )}
-      style={boardClipPath ? { clipPath: boardClipPath } : undefined}
-      onPointerMove={(event) => {
+      className="relative h-full overflow-hidden"
+      style={{
+        background: '#060c18',
+        backgroundImage:
+          'linear-gradient(rgba(148,163,184,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.04) 1px, transparent 1px)',
+        backgroundSize: '24px 24px',
+      }}
+      onPointerMove={(e) => {
         if (!previewWire) return
-        const rect = (event.currentTarget as HTMLDivElement).getBoundingClientRect()
-        onUpdatePreviewWire({ x: event.clientX - rect.left, y: event.clientY - rect.top })
+        const rect = e.currentTarget.getBoundingClientRect()
+        onUpdatePreviewWire({ x: e.clientX - rect.left, y: e.clientY - rect.top })
       }}
       onPointerUp={() => {
         if (previewWire) onCancelWireDrag()
       }}
     >
-      <div className="absolute inset-0 bg-grid bg-[size:32px_32px] opacity-60" />
-      <svg className="absolute inset-0 h-full w-full">
+      {/* Wire layer */}
+      <svg className="pointer-events-none absolute inset-0 h-full w-full" style={{ overflow: 'visible' }}>
         {wires.map((wire) => {
-          const fromNode = nodes.find((node) => node.id === wire.from.nodeId)
-          const toNode = nodes.find((node) => node.id === wire.to.nodeId)
+          const fromNode = visibleNodes.find((n) => n.id === wire.from.nodeId)
+          const toNode = visibleNodes.find((n) => n.id === wire.to.nodeId)
           if (!fromNode || !toNode) return null
-
           const from = getPortPosition(fromNode, wire.from.portId)
           const to = getPortPosition(toNode, wire.to.portId)
+          const color = getWireColor(wire, visibleNodes, simulationActive)
           return (
-            <g key={wire.id}>
+            <g key={wire.id} className="pointer-events-auto">
               <path
                 d={buildWirePath(from, to)}
                 fill="none"
-                stroke={getWireStrokeColor(wire, nodes, simulationActive)}
-                strokeDasharray={simulationActive ? '10 6' : '0'}
+                stroke={color}
+                strokeDasharray={simulationActive ? '8 5' : '0'}
                 strokeLinecap="round"
-                strokeWidth={4}
+                strokeWidth={2}
               />
+              {/* wider invisible hit target for double-click removal */}
               <path
                 d={buildWirePath(from, to)}
                 fill="none"
-                onDoubleClick={() => onRemoveWire(wire.id)}
                 stroke="transparent"
-                strokeWidth={18}
+                strokeWidth={16}
+                style={{ cursor: 'pointer' }}
+                onDoubleClick={() => onRemoveWire(wire.id)}
               />
             </g>
           )
         })}
-        {previewWire && (() => {
-          const fromNode = nodes.find((node) => node.id === previewWire.from.nodeId)
-          if (!fromNode) return null
-          const from = getPortPosition(fromNode, previewWire.from.portId)
-          return (
-            <path
-              d={buildWirePath(from, { x: previewWire.x, y: previewWire.y })}
-              fill="none"
-              stroke="#e2e8f0"
-              strokeDasharray="8 8"
-              strokeLinecap="round"
-              strokeWidth={3}
-            />
-          )
-        })()}
+        {/* Preview wire while dragging */}
+        {previewWire &&
+          (() => {
+            const fromNode = visibleNodes.find((n) => n.id === previewWire.from.nodeId)
+            if (!fromNode) return null
+            const from = getPortPosition(fromNode, previewWire.from.portId)
+            return (
+              <path
+                d={buildWirePath(from, { x: previewWire.x, y: previewWire.y })}
+                fill="none"
+                stroke="rgba(255,255,255,0.35)"
+                strokeDasharray="5 5"
+                strokeLinecap="round"
+                strokeWidth={1.5}
+              />
+            )
+          })()}
       </svg>
 
-      {nodes.map((node) => {
+      {/* Component nodes */}
+      {visibleNodes.map((node) => {
         const template = templateMap[node.type]
+        const layer = layers.find((l) => l.id === node.layer)
+        const isSelected = selectedNodeId === node.id
+        const isLedOn = node.type === 'led' && ledOn && simulationActive
+
         return (
           <div
             key={node.id}
-            className={cn(
-              'absolute rounded-3xl border bg-slate-950/70 p-4 backdrop-blur-xl transition-transform hover:-translate-y-1',
-              'w-[168px] cursor-grab shadow-[0_16px_48px_rgba(15,23,42,0.38)]',
-              selectedNodeId === node.id ? 'border-sky-300/70 ring-2 ring-sky-300/30' : 'border-white/10',
-            )}
-            onPointerDown={(event: ReactPointerEvent<HTMLDivElement>) => {
-              if ((event.target as HTMLElement).closest('button')) return
-              event.preventDefault()
+            style={{
+              position: 'absolute',
+              left: node.position.x,
+              top: node.position.y,
+              width: NODE_WIDTH,
+              minHeight: NODE_HEIGHT,
+              userSelect: 'none',
+            }}
+            onPointerDown={(e: ReactPointerEvent<HTMLDivElement>) => {
+              if ((e.target as HTMLElement).closest('button')) return
+              e.preventDefault()
               onSelectNode(node.id)
-              const startX = event.clientX
-              const startY = event.clientY
+              const startX = e.clientX
+              const startY = e.clientY
               const origin = { ...node.position }
-
-              const handleMove = (moveEvent: PointerEvent) => {
+              const handleMove = (mv: PointerEvent) => {
                 onMoveNode(node.id, {
-                  x: origin.x + (moveEvent.clientX - startX),
-                  y: origin.y + (moveEvent.clientY - startY),
+                  x: Math.max(0, origin.x + (mv.clientX - startX)),
+                  y: Math.max(0, origin.y + (mv.clientY - startY)),
                 })
               }
               const handleUp = () => {
                 window.removeEventListener('pointermove', handleMove)
                 window.removeEventListener('pointerup', handleUp)
               }
-
               window.addEventListener('pointermove', handleMove)
               window.addEventListener('pointerup', handleUp)
             }}
-            style={{ left: node.position.x, top: node.position.y, minHeight: NODE_HEIGHT }}
           >
-            <div className={cn('absolute inset-0 rounded-3xl bg-gradient-to-br opacity-90', getNodeAccent(node, simulationActive, ledOn))} />
-            <div className="relative flex h-full flex-col justify-between gap-3">
-              <div>
-                <div className="text-xs uppercase tracking-[0.3em] text-slate-200/75">{node.type}</div>
-                <div className="text-lg font-semibold text-white">{node.label}</div>
-              </div>
-              <div className="grid gap-2 rounded-2xl border border-white/10 bg-slate-950/45 px-3 py-2 text-sm text-slate-100">
-                <div>{getNodeValueLabel(node)}</div>
-                {simulationActive && <div className="text-xs text-slate-300">Energized path visual active</div>}
+            {/* Card body */}
+            <div
+              className={cn('absolute inset-0 rounded-xl backdrop-blur-xl', isSelected ? 'cursor-grabbing' : 'cursor-grab')}
+              style={{
+                border: isSelected
+                  ? '1px solid rgba(56,189,248,.55)'
+                  : '1px solid rgba(255,255,255,.07)',
+                background: `linear-gradient(135deg, rgba(${hexToRgb(template.color)},0.14), rgba(${hexToRgb(template.color)},0.04))`,
+                boxShadow: isLedOn
+                  ? `0 0 24px rgba(34,197,94,0.45), 0 4px 12px rgba(0,0,0,0.5)`
+                  : isSelected
+                    ? '0 0 0 2px rgba(56,189,248,.2), 0 4px 16px rgba(0,0,0,0.5)'
+                    : '0 4px 12px rgba(0,0,0,0.4)',
+              }}
+            >
+              {/* Layer dot */}
+              <span
+                style={{
+                  position: 'absolute',
+                  top: 6,
+                  right: 8,
+                  width: 5,
+                  height: 5,
+                  borderRadius: '50%',
+                  background: layer?.color ?? '#64748b',
+                  opacity: 0.6,
+                }}
+              />
+              <div style={{ padding: '8px 12px 10px' }}>
+                <div
+                  style={{
+                    fontSize: 9,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.18em',
+                    color: template.color,
+                    marginBottom: 2,
+                    opacity: 0.85,
+                  }}
+                >
+                  {node.type}
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#f1f5f9', lineHeight: 1.3 }}>{node.label}</div>
+                <div style={{ fontSize: 10.5, color: '#64748b', marginTop: 3 }}>{getNodeValueLabel(node)}</div>
+                {simulationActive && (
+                  <div style={{ fontSize: 9, color: isLedOn ? '#22c55e' : '#334155', marginTop: 4 }}>
+                    {isLedOn ? '◉ energized' : '○ idle'}
+                  </div>
+                )}
               </div>
             </div>
-            {[template.ports[0], template.ports[1]].map((port, index) => {
-              const sideClass = index === 0 ? 'left-0 -translate-x-1/2' : 'right-0 translate-x-1/2'
+
+            {/* Port buttons */}
+            {template.ports.map((port) => {
+              const isPortSelected = selectedPort?.nodeId === node.id && selectedPort.portId === port.id
               return (
-                <div key={port.id} className={cn('absolute inset-y-0 flex items-center', sideClass)}>
-                  <button
-                    className={cn(
-                      'relative h-6 w-6 rounded-full border-2 border-white bg-slate-950/90 shadow-[0_0_0_4px_rgba(15,23,42,0.24)]',
-                      selectedPort?.nodeId === node.id && selectedPort.portId === port.id && 'border-primary shadow-[0_0_0_4px_rgba(125,211,252,0.2)]',
-                    )}
-                    onPointerDown={(event) => {
-                      event.stopPropagation()
-                      onSelectNode(node.id)
-                      onStartWireDrag(node.id, port.id)
+                <button
+                  key={port.id}
+                  type="button"
+                  title={`${node.label}: ${port.label || port.id}`}
+                  style={{
+                    position: 'absolute',
+                    width: 18,
+                    height: 18,
+                    borderRadius: '50%',
+                    border: `2px solid ${isPortSelected ? '#7dd3fc' : 'rgba(255,255,255,0.35)'}`,
+                    background: isPortSelected ? 'rgba(125,211,252,.3)' : 'rgba(8,14,26,.92)',
+                    cursor: 'crosshair',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: isPortSelected
+                      ? '0 0 0 3px rgba(125,211,252,.2)'
+                      : '0 2px 4px rgba(0,0,0,.5)',
+                    zIndex: 2,
+                    ...getPortStyle(port.side),
+                  }}
+                  onPointerDown={(e) => {
+                    e.stopPropagation()
+                    onSelectNode(node.id)
+                    onStartWireDrag(node.id, port.id)
+                  }}
+                  onPointerUp={(e) => {
+                    e.stopPropagation()
+                    if (previewWire) onCompleteWire(node.id, port.id)
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 6,
+                      color: '#94a3b8',
+                      fontWeight: 700,
+                      pointerEvents: 'none',
+                      lineHeight: 1,
                     }}
-                    onPointerUp={(event) => {
-                      event.stopPropagation()
-                      if (previewWire) onCompleteWire(node.id, port.id)
-                    }}
-                    title={`${node.label} ${port.label}`}
-                    type="button"
                   >
-                    <span className="absolute inset-0 rounded-full bg-white/10" />
-                  </button>
-                </div>
+                    {port.label}
+                  </span>
+                </button>
               )
             })}
           </div>
         )
       })}
 
-      <div className="absolute bottom-4 right-4 rounded-2xl border border-white/10 bg-slate-950/75 px-4 py-3 text-xs text-slate-300 backdrop-blur">
-        Drag components to reposition. Drag from one port to another to create wires. Double-click any wire to remove it.
+      {/* Hint */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 10,
+          right: 12,
+          fontSize: 10,
+          color: '#1e293b',
+          pointerEvents: 'none',
+        }}
+      >
+        Drag to move · Port → port to wire · Dbl-click wire to remove
       </div>
     </div>
   )

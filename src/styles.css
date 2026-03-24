@@ -944,19 +944,41 @@ kbd {
 .spotify-player { grid-column: 1 / -1; display:flex; justify-content:space-between; align-items:center; padding: 10px 14px; }
 .spotify-player button { border-radius:999px; background:#1db954; color:#102016; font-weight:700; padding:8px 14px; }
 
-.safari-shell { height: 100%; display:flex; flex-direction:column; gap:10px; }
-.safari-toolbar { display:flex; align-items:center; gap:10px; border-radius:12px; border:1px solid rgba(255,255,255,.1); background: rgba(16,22,32,.84); padding: 8px 10px; }
-.safari-dots { display:flex; gap:6px; }
-.safari-dots span { width:10px; height:10px; border-radius:50%; background:#ff5f56; }
+.safari-shell { height: 100%; display:flex; flex-direction:column; background: rgba(10,16,26,.97); }
+.safari-toolbar { display:flex; align-items:center; gap:8px; border-bottom:1px solid rgba(255,255,255,.07); background: rgba(8,14,24,.98); padding: 7px 10px; flex-shrink:0; }
+.safari-dots { display:flex; gap:5px; }
+.safari-dots span { width:9px; height:9px; border-radius:50%; background:#ff5f56; }
 .safari-dots span:nth-child(2) { background:#ffbd2e; }
 .safari-dots span:nth-child(3) { background:#27c93f; }
-.safari-address { flex:1; border-radius:999px; border:1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); color:#dfe8fa; padding:7px 12px; }
-.safari-layout { flex:1; display:grid; grid-template-columns: 260px 1fr; gap:10px; }
-.safari-sidebar { border-radius:12px; border:1px solid rgba(255,255,255,.1); background: rgba(15,22,34,.8); padding: 10px; display:flex; flex-direction:column; gap:8px; }
-.safari-sidebar button { text-align:left; border-radius:9px; padding: 9px; background: rgba(255,255,255,.05); border:1px solid transparent; display:flex; flex-direction:column; }
-.safari-sidebar button.active { border-color: rgba(119,169,255,.65); background: rgba(80,138,255,.2); }
-.safari-sidebar span { font-size:11px; color:#b9cae4; }
-.safari-view { border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,.1); background: #fff; }
+.safari-address { flex:1; border-radius:999px; border:1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.05); color:#dfe8fa; padding:5px 12px; font-size:12px; outline:none; }
+.safari-address:focus { border-color: rgba(56,189,248,.4); background: rgba(255,255,255,.07); }
+
+/* Tab bar */
+.safari-tabbar { display:flex; align-items:flex-end; gap:1px; padding: 5px 8px 0; background: rgba(8,14,24,.98); border-bottom:1px solid rgba(255,255,255,.06); overflow-x:auto; flex-shrink:0; scrollbar-width:none; }
+.safari-tabbar::-webkit-scrollbar { display:none; }
+.safari-tab { display:flex; align-items:center; gap:5px; padding: 5px 10px 6px; background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-bottom:none; border-radius:6px 6px 0 0; font-size:11.5px; color:#475569; cursor:pointer; white-space:nowrap; max-width:160px; min-width:72px; transition:background 0.1s; }
+.safari-tab:hover { background: rgba(255,255,255,.06); color:#64748b; }
+.safari-tab.active { background: rgba(12,20,34,.98); border-color:rgba(255,255,255,.1); color:#e2e8f0; }
+.safari-tab-title { flex:1; overflow:hidden; text-overflow:ellipsis; }
+.safari-tab-close { opacity:0; font-size:13px; line-height:1; color:#64748b; background:none; border:none; padding:0; cursor:pointer; flex-shrink:0; }
+.safari-tab:hover .safari-tab-close, .safari-tab.active .safari-tab-close { opacity:0.55; }
+.safari-tab-close:hover { opacity:1 !important; color:#f87171; }
+.safari-newtab-btn { padding:5px 10px; color:#334155; font-size:18px; cursor:pointer; background:none; border:none; line-height:1; flex-shrink:0; }
+.safari-newtab-btn:hover { color:#64748b; }
+.safari-tab-loading { width:10px; height:10px; border-radius:50%; border:1.5px solid rgba(56,189,248,.25); border-top-color:#7dd3fc; animation:safari-spin 0.65s linear infinite; flex-shrink:0; }
+@keyframes safari-spin { to { transform:rotate(360deg); } }
+
+/* Layout */
+.safari-layout { flex:1; display:grid; grid-template-columns: 220px 1fr; overflow:hidden; min-height:0; }
+.safari-sidebar { border-right:1px solid rgba(255,255,255,.07); background: rgba(8,14,24,.95); padding: 6px 0; display:flex; flex-direction:column; gap:0; overflow-y:auto; }
+.safari-sidebar button { text-align:left; padding: 7px 12px; background: none; border:none; border-left:2px solid transparent; display:flex; flex-direction:column; gap:2px; cursor:pointer; transition:background 0.1s; }
+.safari-sidebar button:hover { background: rgba(255,255,255,.04); }
+.safari-sidebar button strong { font-size:12px; color:#94a3b8; font-weight:500; }
+.safari-sidebar button.active { border-left-color: rgba(56,189,248,.5); background: rgba(56,189,248,.07); }
+.safari-sidebar button.active strong { color:#e2e8f0; }
+.safari-sidebar span { font-size:10px; color:#334155; }
+.safari-section-label { padding: 5px 12px 3px; font-size:9px; text-transform:uppercase; letter-spacing:0.12em; color:#1e293b; pointer-events:none; }
+.safari-view { overflow:hidden; background: #fff; }
 .safari-view iframe { width:100%; height:100%; border:none; background:white; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
