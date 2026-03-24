@@ -8,10 +8,11 @@ import { BuganizerSite } from './sites/BuganizerSite';
 import { ProjectSailSite } from './sites/ProjectSailSite';
 import { CoLabSite } from './sites/CoLabSite';
 import { SamsungPortalSite } from './sites/SamsungPortalSite';
+import { CurcuitSite } from './sites/CurcuitSite';
 import { useSafariStore } from '../../state/useSafariStore';
 import { useCompanyStore } from '../../state/useCompanyStore';
 
-type SiteId = 'linkedin' | 'workday' | 'workfront' | 'radar' | 'buganizer' | 'project-sail' | 'project-hub' | 'colab' | 'samsung-portal' | 'company-site';
+type SiteId = 'linkedin' | 'workday' | 'workfront' | 'radar' | 'buganizer' | 'project-sail' | 'project-hub' | 'colab' | 'samsung-portal' | 'curcuit' | 'company-site';
 
 type SiteEntry = { id: SiteId; title: string; domain: string; component: ComponentType };
 
@@ -53,6 +54,7 @@ const CORE_SITES: SiteEntry[] = [
   { id: 'project-hub', title: 'Project Hub', domain: 'projects.aos', component: ProjectHubSite },
   { id: 'colab', title: 'CoLab', domain: 'colab.aos', component: CoLabSite },
   { id: 'samsung-portal', title: 'Samsung PLCM Portal', domain: 'portal.samsung-dev.net', component: SamsungPortalSite },
+  { id: 'curcuit', title: 'curcuit', domain: 'curcuit.aos', component: CurcuitSite },
   { id: 'company-site', title: 'Company Site', domain: '.com', component: CompanySite },
 ];
 
