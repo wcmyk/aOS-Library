@@ -158,6 +158,9 @@ export function CircuitApp() {
                 <p className="mt-3 max-w-3xl text-base leading-7 text-slate-200">
                   Assemble a more realistic single-loop circuit with batteries, switches, resistors, LEDs, capacitors, and transistor stages. Drag wires between ports, tune part values in the inspector, and inspect richer voltage, power, and timing outputs.
                 </p>
+                <div className="mt-3 rounded-2xl border border-amber-300/30 bg-amber-300/10 px-4 py-3 text-sm text-amber-100">
+                  Solver assumptions: MNA-lite DC operating point with deterministic graph ordering, linearized active devices, and first-order RC timing approximation.
+                </div>
               </div>
             </div>
             <div className="relative grid gap-3 sm:grid-cols-4">
