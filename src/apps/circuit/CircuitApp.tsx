@@ -43,6 +43,8 @@ export function CircuitApp() {
   const [selectedPort, setSelectedPort] = useState<{ nodeId: string; portId: string } | null>(null)
   const [previewWire, setPreviewWire] = useState<{ from: { nodeId: string; portId: string }; x: number; y: number } | null>(null)
   const [simulation, setSimulation] = useState<SimulationResult | null>(initialSimulation)
+  const [boardShape, setBoardShape] = useState<'rectangle' | 'rounded' | 'octagon'>('rounded')
+  const [boardSize, setBoardSize] = useState<'compact' | 'standard' | 'wide'>('standard')
 
   const selectedNode = useMemo(() => nodes.find((node) => node.id === selectedNodeId) ?? null, [nodes, selectedNodeId])
 
@@ -154,9 +156,9 @@ export function CircuitApp() {
                 <Badge>{circuitModuleManifest.capabilities.join(' · ')}</Badge>
               </div>
               <div>
-                <h1 className="text-4xl font-semibold tracking-tight text-white">Realistic circuit building with a live storefront-to-lab workflow.</h1>
+                <h1 className="text-4xl font-semibold tracking-tight text-white">Cirkit Studios IDE Workspace</h1>
                 <p className="mt-3 max-w-3xl text-base leading-7 text-slate-200">
-                  Assemble a more realistic single-loop circuit with batteries, switches, resistors, LEDs, capacitors, and transistor stages. Drag wires between ports, tune part values in the inspector, and inspect richer voltage, power, and timing outputs.
+                  Design and simulate realistic circuits with batteries, switches, resistors, LEDs, capacitors, and transistor stages. Use the component palette, board controls, inspector tuning, and trace diagnostics in one integrated studio.
                 </p>
                 <div className="mt-3 rounded-2xl border border-amber-300/30 bg-amber-300/10 px-4 py-3 text-sm text-amber-100">
                   Solver assumptions: MNA-lite DC operating point with deterministic graph ordering, linearized active devices, and first-order RC timing approximation.
@@ -205,8 +207,34 @@ export function CircuitApp() {
                     <CardDescription>Drag parts to reposition them, then drag from one port to another to lay out the loop.</CardDescription>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Button variant="primary" onClick={runSimulation}>▶ Run Simulation</Button>
-                    <Button onClick={reset}>↺ Reset</Button>
+                    <Button variant="primary" onClick={runSimulation}>Run Simulation</Button>
+                    <Button onClick={reset}>Reset</Button>
+                  </div>
+                </div>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs uppercase tracking-[0.24em] text-slate-400">Board Shape</span>
+                    <select
+                      className="rounded-lg border border-white/10 bg-slate-950/70 px-2 py-1 text-sm text-white"
+                      value={boardShape}
+                      onChange={(event) => setBoardShape(event.target.value as 'rectangle' | 'rounded' | 'octagon')}
+                    >
+                      <option value="rectangle">Rectangle</option>
+                      <option value="rounded">Rounded</option>
+                      <option value="octagon">Octagon</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs uppercase tracking-[0.24em] text-slate-400">Board Size</span>
+                    <select
+                      className="rounded-lg border border-white/10 bg-slate-950/70 px-2 py-1 text-sm text-white"
+                      value={boardSize}
+                      onChange={(event) => setBoardSize(event.target.value as 'compact' | 'standard' | 'wide')}
+                    >
+                      <option value="compact">Compact</option>
+                      <option value="standard">Standard</option>
+                      <option value="wide">Wide</option>
+                    </select>
                   </div>
                 </div>
               </CardHeader>
@@ -219,6 +247,8 @@ export function CircuitApp() {
                   previewWire={previewWire}
                   simulationActive={Boolean(simulation?.isClosedLoop)}
                   ledOn={Boolean(simulation?.ledOn)}
+                  boardShape={boardShape}
+                  boardSize={boardSize}
                   onMoveNode={moveNode}
                   onSelectNode={setSelectedNodeId}
                   onStartWireDrag={(nodeId, portId) => {
@@ -248,16 +278,14 @@ export function CircuitApp() {
             <div className="grid gap-4 md:grid-cols-3">
               <Card>
                 <CardContent className="flex items-center gap-3 px-5 py-5">
-                  <div className="text-3xl">🪛</div>
                   <div>
                     <div className="text-sm font-medium text-white">Workbench</div>
-                    <div className="text-xs text-slate-300">Parts now support inspector-driven value tuning and removal.</div>
+                    <div className="text-xs text-slate-300">Inspector-driven part tuning and board-level workspace controls.</div>
                   </div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="flex items-center gap-3 px-5 py-5">
-                  <div className="text-3xl">⚡</div>
                   <div>
                     <div className="text-sm font-medium text-white">Electrical Model</div>
                     <div className="text-xs text-slate-300">Reports current, voltage drops, power, switch continuity, and RC timing.</div>
@@ -266,7 +294,6 @@ export function CircuitApp() {
               </Card>
               <Card>
                 <CardContent className="flex items-center gap-3 px-5 py-5">
-                  <div className="text-3xl">🧭</div>
                   <div>
                     <div className="text-sm font-medium text-white">Traceability</div>
                     <div className="text-xs text-slate-300">Structured trace still explains every topology, rule, and computation step.</div>

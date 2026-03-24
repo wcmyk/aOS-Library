@@ -17,6 +17,8 @@ interface CircuitCanvasProps {
   previewWire: PreviewWire | null
   simulationActive: boolean
   ledOn: boolean
+  boardShape: 'rectangle' | 'rounded' | 'octagon'
+  boardSize: 'compact' | 'standard' | 'wide'
   onMoveNode: (nodeId: string, position: { x: number; y: number }) => void
   onSelectNode: (nodeId: string) => void
   onStartWireDrag: (nodeId: string, portId: string) => void
@@ -28,6 +30,12 @@ interface CircuitCanvasProps {
 
 const NODE_WIDTH = 168
 const NODE_HEIGHT = 112
+
+function getBoardHeight(size: CircuitCanvasProps['boardSize']) {
+  if (size === 'compact') return 'min-h-[520px]'
+  if (size === 'wide') return 'min-h-[720px]'
+  return 'min-h-[620px]'
+}
 
 function getPortPosition(node: CircuitNode, portId: string) {
   const isLeft = ['negative', 'left', 'anode', 'input', 'collector', 'positive'].includes(portId)
@@ -52,6 +60,21 @@ function buildWirePath(from: { x: number; y: number }, to: { x: number; y: numbe
   return `M ${from.x} ${from.y} C ${midX} ${from.y}, ${midX} ${to.y}, ${to.x} ${to.y}`
 }
 
+function getWireStrokeColor(wire: CircuitWire, nodes: CircuitNode[], simulationActive: boolean) {
+  const fromNode = nodes.find((node) => node.id === wire.from.nodeId)
+  const toNode = nodes.find((node) => node.id === wire.to.nodeId)
+  const portIds = `${wire.from.portId}:${wire.to.portId}`
+
+  if (portIds.includes('positive') || portIds.includes('anode')) return simulationActive ? '#ef4444' : '#f87171'
+  if (portIds.includes('negative') || portIds.includes('cathode')) return simulationActive ? '#64748b' : '#94a3b8'
+  if (fromNode?.type === 'switch' || toNode?.type === 'switch') return '#f59e0b'
+  if (fromNode?.type === 'capacitor' || toNode?.type === 'capacitor') return '#06b6d4'
+  if (fromNode?.type === 'transistor' || toNode?.type === 'transistor') return '#d946ef'
+  if (fromNode?.type === 'resistor' || toNode?.type === 'resistor') return '#a855f7'
+  if (fromNode?.type === 'led' || toNode?.type === 'led') return '#22c55e'
+  return simulationActive ? '#38bdf8' : '#94a3b8'
+}
+
 export function CircuitCanvas({
   nodes,
   wires,
@@ -60,6 +83,8 @@ export function CircuitCanvas({
   previewWire,
   simulationActive,
   ledOn,
+  boardShape,
+  boardSize,
   onMoveNode,
   onSelectNode,
   onStartWireDrag,
@@ -68,9 +93,18 @@ export function CircuitCanvas({
   onCancelWireDrag,
   onRemoveWire,
 }: CircuitCanvasProps) {
+  const boardClipPath = boardShape === 'octagon'
+    ? 'polygon(12% 0, 88% 0, 100% 12%, 100% 88%, 88% 100%, 12% 100%, 0 88%, 0 12%)'
+    : undefined
+
   return (
     <div
-      className="relative min-h-[620px] overflow-hidden rounded-[28px] border border-white/10 bg-slate-950/40 shadow-glass"
+      className={cn(
+        'relative overflow-hidden border border-white/10 bg-slate-950/40 shadow-glass',
+        boardShape === 'rounded' ? 'rounded-[40px]' : 'rounded-[20px]',
+        getBoardHeight(boardSize),
+      )}
+      style={boardClipPath ? { clipPath: boardClipPath } : undefined}
       onPointerMove={(event) => {
         if (!previewWire) return
         const rect = (event.currentTarget as HTMLDivElement).getBoundingClientRect()
@@ -94,7 +128,7 @@ export function CircuitCanvas({
               <path
                 d={buildWirePath(from, to)}
                 fill="none"
-                stroke={simulationActive ? '#7dd3fc' : '#94a3b8'}
+                stroke={getWireStrokeColor(wire, nodes, simulationActive)}
                 strokeDasharray={simulationActive ? '10 6' : '0'}
                 strokeLinecap="round"
                 strokeWidth={4}
@@ -117,7 +151,7 @@ export function CircuitCanvas({
             <path
               d={buildWirePath(from, { x: previewWire.x, y: previewWire.y })}
               fill="none"
-              stroke="#f8fafc"
+              stroke="#e2e8f0"
               strokeDasharray="8 8"
               strokeLinecap="round"
               strokeWidth={3}
