@@ -35,7 +35,12 @@ function NumberField({
         step={step}
         type="number"
         value={value ?? ''}
-        onChange={(event) => onChange(Number(event.target.value))}
+        onChange={(event) => {
+          const parsed = Number(event.target.value)
+          if (!Number.isFinite(parsed)) return
+          const clamped = Math.min(max, Math.max(min, parsed))
+          onChange(clamped)
+        }}
       />
     </label>
   )
