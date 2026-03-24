@@ -67,6 +67,16 @@ function getComponentResistance(node: CircuitNode): number {
     const vf = node.forwardVoltage ?? templateMap.led.defaults.forwardVoltage ?? 2
     return Math.max(1, vf / 0.02)
   }
+  if (node.type === 'diode') {
+    const vf = node.forwardVoltage ?? templateMap.diode.defaults.forwardVoltage ?? 0.7
+    return Math.max(1, vf / 0.02)
+  }
+  if (node.type === 'inductor') return node.resistance ?? templateMap.inductor.defaults.resistance ?? 0.5
+  if (node.type === 'potentiometer') {
+    const wiper = (node.potentiometerWiper ?? templateMap.potentiometer.defaults.potentiometerWiper ?? 50) / 100
+    return Math.max(1, (node.resistance ?? templateMap.potentiometer.defaults.resistance ?? 10000) * wiper)
+  }
+  if (node.type === 'ground') return 0.0001
   return Number.POSITIVE_INFINITY
 }
 
