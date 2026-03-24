@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { CircuitCanvas } from './features/circuit/CircuitCanvas'
-import { circuitTemplates, getPortPosition, getNodeValueLabel, templateMap } from './features/circuit/catalog'
+import { circuitTemplates, getPortPosition, getNodeValueLabel, templateMap, COMPONENT_DIMS, DEFAULT_DIMS } from './features/circuit/catalog'
 import { simulateCircuit } from './features/circuit/simulate'
 import type {
   CircuitComponentType,
@@ -21,12 +21,15 @@ const INITIAL_TYPES: CircuitComponentType[] = ['battery', 'switch', 'resistor', 
 
 function createNode(type: CircuitComponentType, index: number, layer = 1): CircuitNode {
   const template = templateMap[type]
+  const dims = COMPONENT_DIMS[type] ?? DEFAULT_DIMS
+  const colSpacing = dims.width + 40
+  const rowSpacing = dims.height + 50
   return {
     id: crypto.randomUUID(),
     type,
     label: `${template.label} ${index + 1}`,
     layer,
-    position: { x: 80 + (index % 4) * 200, y: 80 + Math.floor(index / 4) * 160 },
+    position: { x: 60 + (index % 4) * colSpacing, y: 60 + Math.floor(index / 4) * rowSpacing },
     voltage: template.defaults.voltage,
     resistance: template.defaults.resistance,
     forwardVoltage: template.defaults.forwardVoltage,
