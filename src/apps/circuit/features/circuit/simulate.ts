@@ -26,6 +26,16 @@ function formatPath(nodes: CircuitNode[], path: string[]) {
   return labels.join(' → ')
 }
 
+function getNodeResistance(node: CircuitNode) {
+  if (node.type === 'switch') {
+    return (node.isClosed ?? templateMap.switch.defaults.isClosed) ? node.resistance ?? templateMap.switch.defaults.resistance ?? 0.05 : Number.POSITIVE_INFINITY
+  }
+  if (node.type === 'transistor') return node.resistance ?? templateMap.transistor.defaults.resistance ?? 8
+  if (node.type === 'capacitor') return node.resistance ?? templateMap.capacitor.defaults.resistance ?? 0.2
+  if (node.type === 'resistor') return node.resistance ?? templateMap.resistor.defaults.resistance ?? 220
+  return 0
+}
+
 export function simulateCircuit(nodes: CircuitNode[], wires: CircuitWire[]): SimulationResult {
   const steps = [
     circuitTraceStep.intent(
@@ -41,21 +51,26 @@ export function simulateCircuit(nodes: CircuitNode[], wires: CircuitWire[]): Sim
     requestedAt: new Date().toISOString(),
   }
 
+  const emptyResult = (errors: string[], warnings: string[] = []): SimulationResult => ({
+    isClosedLoop: false,
+    isSeries: false,
+    currentAmps: 0,
+    totalResistanceOhms: 0,
+    supplyVoltage: 0,
+    ledOn: false,
+    voltageDrops: {},
+    powerWatts: {},
+    netVoltage: 0,
+    capacitorChargeSeconds: null,
+    warnings,
+    errors,
+    path: [],
+    trace: createCircuitTrace(context, steps),
+  })
+
   if (nodes.length === 0) {
     steps.push(circuitTraceStep.failure('No components placed', 'Simulation aborted because the canvas is empty.'))
-    return {
-      isClosedLoop: false,
-      isSeries: false,
-      currentAmps: 0,
-      totalResistanceOhms: 0,
-      supplyVoltage: 0,
-      ledOn: false,
-      voltageDrops: {},
-      warnings: [],
-      errors: ['No components placed on the canvas.'],
-      path: [],
-      trace: createCircuitTrace(context, steps),
-    }
+    return emptyResult(['No components placed on the canvas.'])
   }
 
   const adjacency = buildAdjacency(nodes, wires)
@@ -68,19 +83,7 @@ export function simulateCircuit(nodes: CircuitNode[], wires: CircuitWire[]): Sim
         { disconnected: disconnected.map((node) => node.id) },
       ),
     )
-    return {
-      isClosedLoop: false,
-      isSeries: false,
-      currentAmps: 0,
-      totalResistanceOhms: 0,
-      supplyVoltage: 0,
-      ledOn: false,
-      voltageDrops: {},
-      warnings: [],
-      errors: ['One or more components are disconnected.'],
-      path: [],
-      trace: createCircuitTrace(context, steps),
-    }
+    return emptyResult(['One or more components are disconnected.'])
   }
 
   steps.push(
@@ -106,36 +109,19 @@ export function simulateCircuit(nodes: CircuitNode[], wires: CircuitWire[]): Sim
     )
     steps.push(circuitTraceStep.effect('Current forced to zero', 'Without a closed loop, charge cannot circulate through the circuit.', 'warning'))
 
-    return {
-      isClosedLoop: false,
-      isSeries: false,
-      currentAmps: 0,
-      totalResistanceOhms: 0,
-      supplyVoltage: 0,
-      ledOn: false,
-      voltageDrops: {},
-      warnings: [],
-      errors: ['No closed loop detected, current = 0 A.'],
-      path: [],
-      trace: createCircuitTrace(context, steps),
-    }
+    return emptyResult(['No closed loop detected, current = 0 A.'])
   }
 
   const startNode = nodes.find((node) => node.type === 'battery') ?? nodes[0]
-  const visited = new Set<string>()
   const path = [startNode.id]
   let previous: string | null = null
   let current = startNode.id
 
   while (true) {
-    visited.add(current)
     const neighbors = (adjacency.get(current) ?? []).filter((entry) => entry.targetNodeId !== previous)
     const next = neighbors[0]?.targetNodeId
 
-    if (!next) {
-      break
-    }
-
+    if (!next) break
     if (next === startNode.id) {
       path.push(next)
       break
@@ -145,14 +131,13 @@ export function simulateCircuit(nodes: CircuitNode[], wires: CircuitWire[]): Sim
     previous = current
     current = next
 
-    if (path.length > nodes.length + 1) {
-      break
-    }
+    if (path.length > nodes.length + 1) break
   }
 
   const uniquePath = path.slice(0, -1)
   const uniqueNodes = uniquePath.map((nodeId) => nodes.find((node) => node.id === nodeId)).filter(Boolean) as CircuitNode[]
-  const batteryCount = nodes.filter((node) => node.type === 'battery').length
+  const batteries = nodes.filter((node) => node.type === 'battery')
+  const batteryCount = batteries.length
   const seriesSupported = batteryCount === 1 && uniqueNodes.length === nodes.length
 
   steps.push(
@@ -165,9 +150,8 @@ export function simulateCircuit(nodes: CircuitNode[], wires: CircuitWire[]): Sim
   )
 
   if (!seriesSupported) {
-    const message = batteryCount === 1 ? 'Invalid topology for current solver.' : 'Exactly one battery is supported in the MVP solver.'
-    steps.push(circuitTraceStep.failure('Topology is outside MVP solver scope', message, { batteryCount, path }))
-
+    const message = batteryCount === 1 ? 'Invalid topology for current solver.' : 'Exactly one battery is supported in the current solver.'
+    steps.push(circuitTraceStep.failure('Topology is outside supported solver scope', message, { batteryCount, path }))
     return {
       isClosedLoop: true,
       isSeries: false,
@@ -176,6 +160,9 @@ export function simulateCircuit(nodes: CircuitNode[], wires: CircuitWire[]): Sim
       supplyVoltage: 0,
       ledOn: false,
       voltageDrops: {},
+      powerWatts: {},
+      netVoltage: 0,
+      capacitorChargeSeconds: null,
       warnings: [],
       errors: [message],
       path,
@@ -183,28 +170,66 @@ export function simulateCircuit(nodes: CircuitNode[], wires: CircuitWire[]): Sim
     }
   }
 
-  const battery = nodes.find((node) => node.type === 'battery')!
+  const battery = batteries[0]
   const supplyVoltage = battery.voltage ?? templateMap.battery.defaults.voltage ?? 9
   const resistors = nodes.filter((node) => node.type === 'resistor')
   const leds = nodes.filter((node) => node.type === 'led')
-  const totalResistanceOhms = resistors.reduce(
-    (sum, resistor) => sum + (resistor.resistance ?? templateMap.resistor.defaults.resistance ?? 220),
-    0,
-  )
+  const switches = nodes.filter((node) => node.type === 'switch')
+  const capacitors = nodes.filter((node) => node.type === 'capacitor')
+  const transistors = nodes.filter((node) => node.type === 'transistor')
+  const warnings: string[] = []
+
+  const openSwitches = switches.filter((node) => !(node.isClosed ?? templateMap.switch.defaults.isClosed))
+  if (openSwitches.length > 0) {
+    steps.push(
+      circuitTraceStep.failure(
+        'Open switch detected',
+        `The following switches break continuity: ${openSwitches.map((node) => node.label).join(', ')}.`,
+        { openSwitches: openSwitches.map((node) => node.id) },
+      ),
+    )
+    return {
+      isClosedLoop: false,
+      isSeries: true,
+      currentAmps: 0,
+      totalResistanceOhms: 0,
+      supplyVoltage,
+      ledOn: false,
+      voltageDrops: {},
+      powerWatts: {},
+      netVoltage: 0,
+      capacitorChargeSeconds: null,
+      warnings,
+      errors: ['At least one switch is open, so the path is interrupted.'],
+      path,
+      trace: createCircuitTrace(context, steps),
+    }
+  }
+
+  const totalResistanceOhms = uniqueNodes.reduce((sum, node) => sum + getNodeResistance(node), 0)
+  const totalLedDrop = leds.reduce((sum, led) => sum + (led.forwardVoltage ?? templateMap.led.defaults.forwardVoltage ?? 2), 0)
+  const transistorDrop = transistors.reduce((sum, transistor) => sum + (transistor.collectorEmitterDrop ?? templateMap.transistor.defaults.collectorEmitterDrop ?? 0.2), 0)
+  const netVoltage = supplyVoltage - totalLedDrop - transistorDrop
 
   steps.push(
     circuitTraceStep.rule(
-      'Series circuit detected',
-      'The solver will apply a single-loop series analysis using component resistance and LED forward voltage.',
-      { resistorCount: resistors.length, ledCount: leds.length },
+      'Enhanced series solver selected',
+      'The simulator combines resistive loads, switch continuity, LED forward drop, transistor drop, and capacitor timing estimates.',
+      {
+        resistorCount: resistors.length,
+        ledCount: leds.length,
+        switchCount: switches.length,
+        capacitorCount: capacitors.length,
+        transistorCount: transistors.length,
+      },
     ),
   )
 
-  if (totalResistanceOhms <= 0) {
+  if (!Number.isFinite(totalResistanceOhms) || totalResistanceOhms <= 0) {
     steps.push(
       circuitTraceStep.failure(
         'Resistance too low',
-        'The equivalent series resistance must be greater than zero for the MVP Ohm\u2019s Law solver.',
+        'The equivalent series resistance must be greater than zero for the current solver.',
         { totalResistanceOhms },
       ),
     )
@@ -216,21 +241,22 @@ export function simulateCircuit(nodes: CircuitNode[], wires: CircuitWire[]): Sim
       supplyVoltage,
       ledOn: false,
       voltageDrops: {},
-      warnings: [],
+      powerWatts: {},
+      netVoltage,
+      capacitorChargeSeconds: null,
+      warnings,
       errors: ['Resistance too low for the current solver.'],
       path,
       trace: createCircuitTrace(context, steps),
     }
   }
 
-  const totalLedDrop = leds.reduce((sum, led) => sum + (led.forwardVoltage ?? templateMap.led.defaults.forwardVoltage ?? 2), 0)
-  const availableVoltage = supplyVoltage - totalLedDrop
-  if (availableVoltage <= 0) {
+  if (netVoltage <= 0) {
     steps.push(
       circuitTraceStep.failure(
-        'Insufficient voltage for LED path',
-        'The battery voltage does not exceed the LED forward-voltage requirements.',
-        { supplyVoltage, totalLedDrop },
+        'Insufficient available voltage',
+        'The battery voltage does not exceed aggregate LED and transistor drops.',
+        { supplyVoltage, totalLedDrop, transistorDrop },
       ),
     )
     return {
@@ -241,36 +267,55 @@ export function simulateCircuit(nodes: CircuitNode[], wires: CircuitWire[]): Sim
       supplyVoltage,
       ledOn: false,
       voltageDrops: {},
-      warnings: [],
-      errors: ['Battery voltage is too low to forward-bias the LED path.'],
+      powerWatts: {},
+      netVoltage,
+      capacitorChargeSeconds: null,
+      warnings,
+      errors: ['Supply voltage is too low for the selected active components.'],
       path,
       trace: createCircuitTrace(context, steps),
     }
   }
 
-  const currentAmps = availableVoltage / totalResistanceOhms
-  const voltageDrops = Object.fromEntries([
-    ...resistors.map((resistor) => [resistor.id, currentAmps * (resistor.resistance ?? templateMap.resistor.defaults.resistance ?? 220)]),
-    ...leds.map((led) => [led.id, led.forwardVoltage ?? templateMap.led.defaults.forwardVoltage ?? 2]),
-    [battery.id, supplyVoltage],
-  ])
+  const currentAmps = netVoltage / totalResistanceOhms
+  const voltageDrops = Object.fromEntries(
+    uniqueNodes.map((node) => {
+      if (node.type === 'battery') return [node.id, supplyVoltage]
+      if (node.type === 'led') return [node.id, node.forwardVoltage ?? templateMap.led.defaults.forwardVoltage ?? 2]
+      if (node.type === 'transistor') return [node.id, node.collectorEmitterDrop ?? templateMap.transistor.defaults.collectorEmitterDrop ?? 0.2]
+      return [node.id, currentAmps * getNodeResistance(node)]
+    }),
+  )
+  const powerWatts = Object.fromEntries(
+    uniqueNodes.map((node) => {
+      const drop = voltageDrops[node.id] ?? 0
+      return [node.id, node.type === 'battery' ? supplyVoltage * currentAmps : drop * currentAmps]
+    }),
+  )
+
+  const totalCapacitanceMicro = capacitors.reduce((sum, capacitor) => sum + (capacitor.capacitance ?? templateMap.capacitor.defaults.capacitance ?? 220), 0)
+  const capacitorChargeSeconds = totalCapacitanceMicro > 0 ? 5 * totalResistanceOhms * (totalCapacitanceMicro / 1_000_000) : null
+
+  if (currentAmps > 0.08) warnings.push('Current exceeds 80 mA; use a larger resistor or lower supply voltage.')
+  if (transistors.length > 0) warnings.push('Transistor behavior is estimated with a simplified collector-emitter drop model.')
+  if (capacitors.length > 0) warnings.push('Capacitor timing is approximated with a single equivalent RC constant.')
 
   steps.push(
     circuitTraceStep.computation(
-      'Applied Ohm\u2019s Law',
-      `Computed current = (${supplyVoltage.toFixed(2)} V - ${totalLedDrop.toFixed(2)} V) / ${totalResistanceOhms.toFixed(2)} \u03A9 = ${currentAmps.toFixed(3)} A.`,
+      'Applied enhanced series analysis',
+      `Computed current = (${supplyVoltage.toFixed(2)} V - ${totalLedDrop.toFixed(2)} V - ${transistorDrop.toFixed(2)} V) / ${totalResistanceOhms.toFixed(2)} Ω = ${currentAmps.toFixed(4)} A.`,
       'success',
-      { supplyVoltage, totalLedDrop, totalResistanceOhms, currentAmps },
+      { supplyVoltage, totalLedDrop, transistorDrop, totalResistanceOhms, currentAmps, capacitorChargeSeconds },
     ),
   )
   steps.push(
     circuitTraceStep.effect(
-      leds.length > 0 ? 'LED activated' : 'Passive loop stabilized',
+      leds.length > 0 ? 'Interactive components energized' : 'Passive loop stabilized',
       leds.length > 0
-        ? 'At least one LED is forward biased, so the indicator is considered on in the visualization.'
-        : 'No LED was present, so the solver produced current without a visible light output.',
-      'success',
-      { ledCount: leds.length, voltageDrops },
+        ? 'At least one LED is forward biased, so the canvas can animate the energized path while reporting voltage and power metrics.'
+        : 'No LED was present, so the solver produced electrical metrics without a light indicator.',
+      warnings.length > 0 ? 'warning' : 'success',
+      { warnings, voltageDrops, powerWatts },
     ),
   )
 
@@ -280,9 +325,12 @@ export function simulateCircuit(nodes: CircuitNode[], wires: CircuitWire[]): Sim
     currentAmps,
     totalResistanceOhms,
     supplyVoltage,
-    ledOn: leds.length > 0,
+    ledOn: leds.length > 0 && currentAmps > 0.002,
     voltageDrops,
-    warnings: [],
+    powerWatts,
+    netVoltage,
+    capacitorChargeSeconds,
+    warnings,
     errors: [],
     path,
     trace: createCircuitTrace(context, steps),

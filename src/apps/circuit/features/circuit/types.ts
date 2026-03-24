@@ -1,6 +1,6 @@
 import type { AosModuleManifest, TraceEnvelope } from '../../contracts'
 
-export type CircuitComponentType = 'battery' | 'resistor' | 'led'
+export type CircuitComponentType = 'battery' | 'resistor' | 'led' | 'switch' | 'capacitor' | 'transistor'
 
 export interface PortDefinition {
   id: string
@@ -15,6 +15,11 @@ export interface CircuitTemplate {
     voltage?: number
     resistance?: number
     forwardVoltage?: number
+    capacitance?: number
+    chargePercent?: number
+    gain?: number
+    collectorEmitterDrop?: number
+    isClosed?: boolean
   }
   ports: [PortDefinition, PortDefinition]
 }
@@ -27,6 +32,11 @@ export interface CircuitNode {
   voltage?: number
   resistance?: number
   forwardVoltage?: number
+  capacitance?: number
+  chargePercent?: number
+  gain?: number
+  collectorEmitterDrop?: number
+  isClosed?: boolean
 }
 
 export interface CircuitWireEndpoint {
@@ -56,6 +66,9 @@ export interface SimulationResult {
   supplyVoltage: number
   ledOn: boolean
   voltageDrops: Record<string, number>
+  powerWatts: Record<string, number>
+  netVoltage: number
+  capacitorChargeSeconds: number | null
   warnings: string[]
   errors: string[]
   path: string[]
