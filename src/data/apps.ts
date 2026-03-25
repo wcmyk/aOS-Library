@@ -191,10 +191,28 @@ export const apps: ShellApp[] = [
     defaultSize: { width: 960, height: 640 },
   },
 
+
+  {
+    id: 'notepad',
+    name: 'Notepad',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f172a'/%3E%3Crect x='14' y='10' width='36' height='44' rx='6' fill='%23f8fafc'/%3E%3Crect x='20' y='22' width='24' height='2.8' rx='1.4' fill='%233b82f6'/%3E%3Crect x='20' y='29' width='24' height='2.8' rx='1.4' fill='%2364758b'/%3E%3Crect x='20' y='36' width='19' height='2.8' rx='1.4' fill='%2364758b'/%3E%3Ccircle cx='18' cy='14' r='1.5' fill='%23f59e0b'/%3E%3Ccircle cx='24' cy='14' r='1.5' fill='%2310b981'/%3E%3Ccircle cx='30' cy='14' r='1.5' fill='%236366f1'/%3E%3C/svg%3E`,
+    description: 'Simple notes with hidden EDEN unlock trigger',
+    accent: '#3b82f6',
+    defaultSize: { width: 780, height: 560 },
+  },
+  {
+    id: 'eden',
+    name: 'EDENS GARDEN',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2302050c'/%3E%3Cpath d='M13 44h38v7H13z' fill='%2306512f'/%3E%3Cpath d='M18 20h28v20H18z' fill='none' stroke='%2322c55e' stroke-width='2.6'/%3E%3Cpath d='M22 27h8M22 31h17M22 35h13' stroke='%2386efac' stroke-width='2'/%3E%3Ccircle cx='49' cy='17' r='5' fill='%2310b981'/%3E%3C/svg%3E`,
+    description: 'Hidden terminal archive simulator unlocked via Notepad trigger',
+    accent: '#22c55e',
+    defaultSize: { width: 980, height: 640 },
+    dockHidden: true,
+  },
   {
     id: 'inventory',
     name: 'Inventory',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b1324'/%3E%3Crect x='10' y='14' width='44' height='36' rx='6' fill='none' stroke='%237dd3fc' stroke-width='3'/%3E%3Cpath d='M22 14v-4a10 10 0 0 1 20 0v4' fill='none' stroke='%23a78bfa' stroke-width='3'/%3E%3Ccircle cx='24' cy='33' r='3' fill='%2334d399'/%3E%3Ccircle cx='32' cy='33' r='3' fill='%2334d399'/%3E%3Ccircle cx='40' cy='33' r='3' fill='%2334d399'/%3E%3C/svg%3E`,
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230f172a'/%3E%3Cstop offset='1' stop-color='%231e3a8a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Crect x='12' y='16' width='40' height='34' rx='8' fill='none' stroke='%2393c5fd' stroke-width='2.6'/%3E%3Cpath d='M24 16v-4a8 8 0 0 1 16 0v4' fill='none' stroke='%23c4b5fd' stroke-width='2.6'/%3E%3Crect x='18' y='24' width='28' height='4' rx='2' fill='%2338bdf8'/%3E%3Crect x='18' y='31' width='20' height='4' rx='2' fill='%2360a5fa'/%3E%3Crect x='18' y='38' width='24' height='4' rx='2' fill='%23a78bfa'/%3E%3C/svg%3E`,
     description: 'Track lab materials bought from CIRCUTE and consumed by circuit builds',
     accent: '#7dd3fc',
     defaultSize: { width: 780, height: 540 },
