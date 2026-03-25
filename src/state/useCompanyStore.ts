@@ -132,9 +132,6 @@ export const useCompanyStore = create<CompanyStore>()(
             color: '#2563eb',
             careersSummary: `Careers at ${companyName}`,
           };
-        const existing = state.employerAccounts.find((a) => a.companyId === company.id);
-        if (existing) return existing;
-
         const used = state.employerAccounts.map((a) => a.companyEmail);
         const companyEmail = generateCompanyEmail(fullName, company.domain, used);
         const account: EmployerAccount = {

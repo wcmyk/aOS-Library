@@ -7,6 +7,7 @@ import { WindowFrame } from './components/WindowFrame';
 import { useDriveStore, type DriveDocument } from './state/useDriveStore';
 import { useShellStore, type WindowState } from './state/useShellStore';
 import { useCircuitLabStore } from './state/useCircuitLabStore';
+import { useEdenStore } from './state/useEdenStore';
 
 const AccelApp = lazy(() => import('./apps/accel/AccelApp').then((m) => ({ default: m.AccelApp })));
 const OracleApp = lazy(() => import('./apps/oracle/OracleApp').then((m) => ({ default: m.OracleApp })));
@@ -28,6 +29,8 @@ const PyCharmApp = lazy(() => import('./apps/pycharm/PyCharmApp').then((m) => ({
 const CalculatorApp = lazy(() => import('./apps/calculator/CalculatorApp').then((m) => ({ default: m.CalculatorApp })));
 const CircuitApp = lazy(() => import('./apps/circuit/CircuitApp').then((m) => ({ default: m.CircuitApp })));
 const InventoryApp = lazy(() => import('./apps/inventory/InventoryApp').then((m) => ({ default: m.InventoryApp })));
+const NotepadApp = lazy(() => import('./apps/notepad/NotepadApp').then((m) => ({ default: m.NotepadApp })));
+const EdenGardenApp = lazy(() => import('./apps/eden/EdenGardenApp').then((m) => ({ default: m.EdenGardenApp })));
 
 const artifacts = [
   { title: 'Roadmap.md', kind: 'Report', updated: '2h ago', detail: 'Phase 1 delivery outline', accent: '#7c8cff' },
@@ -129,6 +132,8 @@ function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDoc
   if (window.appId === 'calculator') return <Suspense fallback={null}><CalculatorApp /></Suspense>;
   if (window.appId === 'circuit') return <Suspense fallback={null}><CircuitApp /></Suspense>;
   if (window.appId === 'inventory') return <Suspense fallback={null}><InventoryApp /></Suspense>;
+  if (window.appId === 'notepad') return <Suspense fallback={null}><NotepadApp /></Suspense>;
+  if (window.appId === 'eden') return <Suspense fallback={null}><EdenGardenApp /></Suspense>;
 
   if (window.appId === 'archive') return <Suspense fallback={null}><AccelApp /></Suspense>;
   if (window.appId === 'oracle') return <Suspense fallback={null}><OracleApp /></Suspense>;
@@ -170,6 +175,7 @@ export default function App() {
   } = useShellStore();
   const setActiveDocument = useDriveStore((state) => state.setActiveDocument);
   const exportedSystems = useCircuitLabStore((s) => s.exportedSystems);
+  const edenUnlocked = useEdenStore((s) => s.unlocked);
 
   // Defer background image load so it doesn't block initial paint
   useEffect(() => {
@@ -209,9 +215,11 @@ export default function App() {
     openWindow('sanctum');
   };
 
+  const visibleApps = useMemo(() => apps.filter((app) => app.id !== 'eden' || edenUnlocked), [edenUnlocked]);
+
   const commands = useMemo(
     () =>
-      apps.map((app) => ({
+      visibleApps.map((app) => ({
         id: `open-${app.id}`,
         title: `Open ${app.name}`,
         description: app.description,
@@ -221,7 +229,7 @@ export default function App() {
           toggleSpotlight(false);
         },
       })),
-    [openWindow, toggleSpotlight],
+    [openWindow, toggleSpotlight, visibleApps],
   );
 
   return (
@@ -275,7 +283,7 @@ export default function App() {
           </div>
         ))}
 
-        <Dock apps={apps} windows={windows} onLaunch={openWindow} />
+        <Dock apps={visibleApps} windows={windows} onLaunch={openWindow} />
       </div>
     </div>
   );

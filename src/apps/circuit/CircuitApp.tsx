@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useCircuitLabStore } from '../../state/useCircuitLabStore'
 import { CircuitCanvas } from './features/circuit/CircuitCanvas'
 import { circuitTemplates, getPortPosition, getNodeValueLabel, templateMap, COMPONENT_DIMS, DEFAULT_DIMS } from './features/circuit/catalog'
@@ -19,6 +19,26 @@ const DEFAULT_LAYERS: CircuitLayer[] = [
 ]
 
 const INITIAL_TYPES: CircuitComponentType[] = ['battery', 'switch', 'resistor', 'led', 'motor', 'propeller']
+
+
+const CIRCUIT_SNAPSHOT_KEY = 'aos-circuit-snapshot-v1'
+
+type CircuitSnapshot = {
+  circuitName: string
+  nodes: CircuitNode[]
+  wires: CircuitWire[]
+  layers: CircuitLayer[]
+}
+
+function loadSnapshot(): CircuitSnapshot | null {
+  try {
+    const raw = localStorage.getItem(CIRCUIT_SNAPSHOT_KEY)
+    if (!raw) return null
+    return JSON.parse(raw) as CircuitSnapshot
+  } catch {
+    return null
+  }
+}
 
 function createNode(type: CircuitComponentType, index: number, layer = 1): CircuitNode {
   const template = templateMap[type]
@@ -60,6 +80,7 @@ function InlineField({
   step: number
   onChange: (v: number) => void
 }) {
+
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
       <span style={{ fontSize: 11, color: '#64748b', whiteSpace: 'nowrap', flex: 1 }}>{label}</span>
@@ -356,9 +377,10 @@ function CompactInspector({ node, simulation, layers, onUpdateNode, onRemoveNode
 
 // ─── Main app ─────────────────────────────────────────────────────────────────
 export function CircuitApp() {
-  const [nodes, setNodes] = useState<CircuitNode[]>(() => INITIAL_TYPES.map((t, i) => createNode(t, i)))
-  const [wires, setWires] = useState<CircuitWire[]>([])
-  const [layers, setLayers] = useState<CircuitLayer[]>(DEFAULT_LAYERS)
+  const snapshot = loadSnapshot()
+  const [nodes, setNodes] = useState<CircuitNode[]>(() => snapshot?.nodes ?? INITIAL_TYPES.map((t, i) => createNode(t, i)))
+  const [wires, setWires] = useState<CircuitWire[]>(() => snapshot?.wires ?? [])
+  const [layers, setLayers] = useState<CircuitLayer[]>(() => snapshot?.layers ?? DEFAULT_LAYERS)
   const [activeLayer, setActiveLayer] = useState(1)
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [selectedPort, setSelectedPort] = useState<{ nodeId: string; portId: string } | null>(null)
@@ -370,7 +392,7 @@ export function CircuitApp() {
   const [simulation, setSimulation] = useState<SimulationResult | null>(null)
   const [showTrace, setShowTrace] = useState(false)
   const [componentSearch, setComponentSearch] = useState('')
-  const [circuitName, setCircuitName] = useState('untitled.ckt')
+  const [circuitName, setCircuitName] = useState(snapshot?.circuitName ?? 'untitled.ckt')
   const [isRenamingCircuit, setIsRenamingCircuit] = useState(false)
   const [labMode, setLabMode] = useState<'blueprint' | 'build'>('blueprint')
   const [popupLog, setPopupLog] = useState<string | null>(null)
@@ -454,6 +476,15 @@ export function CircuitApp() {
       { id: newId, name: `Layer ${newId}`, visible: true, color: colors[(newId - 1) % colors.length] },
     ])
   }
+
+
+
+  useEffect(() => {
+    localStorage.setItem(
+      CIRCUIT_SNAPSHOT_KEY,
+      JSON.stringify({ circuitName, nodes, wires, layers } satisfies CircuitSnapshot),
+    )
+  }, [circuitName, layers, nodes, wires])
 
   return (
     <div
