@@ -12,6 +12,11 @@ export const COMPONENT_DIMS: Record<string, { width: number; height: number }> =
   transistor:   { width: 90,  height: 100 },
   potentiometer:{ width: 100, height: 90 },
   ground:       { width: 64,  height: 80 },
+  gear:         { width: 92,  height: 92 },
+  motor:        { width: 130, height: 70 },
+  propeller:    { width: 120, height: 80 },
+  antenna:      { width: 90,  height: 90 },
+  bluetooth:    { width: 86,  height: 86 },
 }
 
 export const DEFAULT_DIMS = { width: 160, height: 60 }
@@ -118,6 +123,62 @@ export const circuitTemplates: CircuitTemplate[] = [
       { id: 'wiper', label: 'W', side: 'bottom' },
     ],
   },
+
+  {
+    type: 'gear',
+    label: 'Gear',
+    description: 'Mechanical transfer gear',
+    color: '#f59e0b',
+    defaults: { resistance: 4 },
+    ports: [
+      { id: 'left', label: 'IN', side: 'left' },
+      { id: 'right', label: 'OUT', side: 'right' },
+    ],
+  },
+  {
+    type: 'motor',
+    label: 'Motor',
+    description: 'Rotary motor drive',
+    color: '#fb7185',
+    defaults: { resistance: 12 },
+    ports: [
+      { id: 'left', label: '+', side: 'left' },
+      { id: 'right', label: '-', side: 'right' },
+    ],
+  },
+  {
+    type: 'propeller',
+    label: 'Propeller',
+    description: 'Thrust module',
+    color: '#22d3ee',
+    defaults: { resistance: 9 },
+    ports: [
+      { id: 'left', label: 'IN', side: 'left' },
+      { id: 'right', label: 'OUT', side: 'right' },
+    ],
+  },
+  {
+    type: 'antenna',
+    label: 'Antenna',
+    description: 'Wireless signal mast',
+    color: '#c084fc',
+    defaults: { resistance: 18 },
+    ports: [
+      { id: 'left', label: 'SIG', side: 'left' },
+      { id: 'right', label: 'GND', side: 'right' },
+    ],
+  },
+  {
+    type: 'bluetooth',
+    label: 'Bluetooth',
+    description: 'BT sync module',
+    color: '#60a5fa',
+    defaults: { resistance: 22 },
+    ports: [
+      { id: 'left', label: 'TX', side: 'left' },
+      { id: 'right', label: 'RX', side: 'right' },
+    ],
+  },
   {
     type: 'ground',
     label: 'Ground',
@@ -160,5 +221,10 @@ export function getNodeValueLabel(node: CircuitNode): string {
   if (node.type === 'potentiometer') return `${node.resistance ?? template.defaults.resistance} Ω · ${node.potentiometerWiper ?? 50}%`
   if (node.type === 'transistor') return `β ${node.gain ?? template.defaults.gain}`
   if (node.type === 'ground') return 'GND'
+  if (node.type === 'gear') return 'Drive Coupler'
+  if (node.type === 'motor') return 'Rotary Motor'
+  if (node.type === 'propeller') return 'Rotor'
+  if (node.type === 'antenna') return 'RF mast'
+  if (node.type === 'bluetooth') return 'BLE sync'
   return ''
 }

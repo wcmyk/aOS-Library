@@ -88,7 +88,7 @@ const CORE_SITES: SiteEntry[] = [
   { id: 'project-hub',   title: 'Project Hub',           domain: 'projects.aos',                component: ProjectHubSite },
   { id: 'colab',         title: 'CoLab',                 domain: 'colab.aos',                   component: CoLabSite },
   { id: 'samsung-portal',title: 'Samsung PLCM',          domain: 'portal.samsung-dev.net',      component: SamsungPortalSite },
-  { id: 'curcuit',       title: 'Curcuit',               domain: 'curcuit.aos',                 component: CurcuitSite },
+  { id: 'curcuit',       title: 'CIRCUTE',               domain: 'circute.aos',                 component: CurcuitSite },
   { id: 'company-site',  title: 'Company',               domain: '.com',                        component: CompanySite },
   { id: 'new-tab',       title: 'New Tab',               domain: '',                            component: NewTabPage },
 ];

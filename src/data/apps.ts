@@ -190,6 +190,15 @@ export const apps: ShellApp[] = [
     accent: '#667eea',
     defaultSize: { width: 960, height: 640 },
   },
+
+  {
+    id: 'inventory',
+    name: 'Inventory',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b1324'/%3E%3Crect x='10' y='14' width='44' height='36' rx='6' fill='none' stroke='%237dd3fc' stroke-width='3'/%3E%3Cpath d='M22 14v-4a10 10 0 0 1 20 0v4' fill='none' stroke='%23a78bfa' stroke-width='3'/%3E%3Ccircle cx='24' cy='33' r='3' fill='%2334d399'/%3E%3Ccircle cx='32' cy='33' r='3' fill='%2334d399'/%3E%3Ccircle cx='40' cy='33' r='3' fill='%2334d399'/%3E%3C/svg%3E`,
+    description: 'Track lab materials bought from CIRCUTE and consumed by circuit builds',
+    accent: '#7dd3fc',
+    defaultSize: { width: 780, height: 540 },
+  },
   {
     id: 'circuit',
     name: 'aOS Circuits',
