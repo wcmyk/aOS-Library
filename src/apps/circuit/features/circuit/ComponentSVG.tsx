@@ -521,6 +521,67 @@ export function PotentiometerSVG({ w, h, wiper = 50, resistance = 10000 }: { w: 
   )
 }
 
+
+
+export function GearSVG({ w, h }: { w: number; h: number }) {
+  const c = w / 2
+  const r = Math.min(w, h) * 0.28
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
+      <circle cx={c} cy={h / 2} r={r * 1.45} fill="none" stroke="#f59e0b" strokeWidth="6" strokeDasharray="8 5" />
+      <circle cx={c} cy={h / 2} r={r} fill="#1f2937" stroke="#fbbf24" strokeWidth="2" />
+      <circle cx={c} cy={h / 2} r={r * 0.35} fill="#fbbf24" />
+    </svg>
+  )
+}
+
+export function MotorSVG({ w, h }: { w: number; h: number }) {
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
+      <rect x="15" y="16" width={w - 30} height={h - 32} rx="12" fill="#334155" stroke="#fb7185" strokeWidth="2" />
+      <circle cx={w / 2} cy={h / 2} r="12" fill="#fb7185" />
+      <line x1="0" y1={h / 2} x2="15" y2={h / 2} stroke="#9ca3af" strokeWidth="2" />
+      <line x1={w - 15} y1={h / 2} x2={w} y2={h / 2} stroke="#9ca3af" strokeWidth="2" />
+    </svg>
+  )
+}
+
+export function PropellerSVG({ w, h }: { w: number; h: number }) {
+  const cx = w / 2
+  const cy = h / 2
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
+      <circle cx={cx} cy={cy} r="6" fill="#67e8f9" />
+      <ellipse cx={cx} cy={cy - 20} rx="10" ry="22" fill="#22d3ee" opacity="0.9" />
+      <ellipse cx={cx + 20} cy={cy} rx="22" ry="10" fill="#22d3ee" opacity="0.9" />
+      <ellipse cx={cx} cy={cy + 20} rx="10" ry="22" fill="#22d3ee" opacity="0.9" />
+      <ellipse cx={cx - 20} cy={cy} rx="22" ry="10" fill="#22d3ee" opacity="0.9" />
+    </svg>
+  )
+}
+
+export function AntennaSVG({ w, h }: { w: number; h: number }) {
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
+      <line x1={w / 2} y1={h - 8} x2={w / 2} y2={12} stroke="#c084fc" strokeWidth="3" />
+      <circle cx={w / 2} cy="10" r="4" fill="#e9d5ff" />
+      <path d={`M ${w / 2 - 6} 22 Q ${w / 2} 10 ${w / 2 + 6} 22`} fill="none" stroke="#c084fc" strokeWidth="2" />
+      <path d={`M ${w / 2 - 14} 30 Q ${w / 2} 10 ${w / 2 + 14} 30`} fill="none" stroke="#c084fc" strokeWidth="2" opacity="0.7" />
+    </svg>
+  )
+}
+
+export function BluetoothSVG({ w, h }: { w: number; h: number }) {
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
+      <circle cx={w / 2} cy={h / 2} r={Math.min(w, h) * 0.42} fill="#1e3a8a" opacity="0.5" />
+      <path d={`M ${w / 2 - 4} 14 L ${w / 2 + 14} ${h / 2} L ${w / 2 - 4} ${h - 14} L ${w / 2 - 4} 14`} fill="none" stroke="#60a5fa" strokeWidth="4" strokeLinejoin="round" />
+      <line x1={w / 2 - 10} y1={h / 2 - 12} x2={w / 2 + 10} y2={h / 2} stroke="#93c5fd" strokeWidth="3" />
+      <line x1={w / 2 - 10} y1={h / 2 + 12} x2={w / 2 + 10} y2={h / 2} stroke="#93c5fd" strokeWidth="3" />
+    </svg>
+  )
+}
+
 // ─── Main dispatcher ─────────────────────────────────────────────────────────
 interface ComponentSVGProps {
   node: CircuitNode
@@ -552,6 +613,16 @@ export function ComponentSVG({ node, width, height, simulationActive, ledOn }: C
       return <PotentiometerSVG w={width} h={height} wiper={node.potentiometerWiper ?? 50} resistance={node.resistance ?? 10000} />
     case 'ground':
       return <GroundSVG w={width} h={height} />
+    case 'gear':
+      return <GearSVG w={width} h={height} />
+    case 'motor':
+      return <MotorSVG w={width} h={height} />
+    case 'propeller':
+      return <PropellerSVG w={width} h={height} />
+    case 'antenna':
+      return <AntennaSVG w={width} h={height} />
+    case 'bluetooth':
+      return <BluetoothSVG w={width} h={height} />
     default:
       return null
   }

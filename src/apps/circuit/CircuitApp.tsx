@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useCircuitLabStore } from '../../state/useCircuitLabStore'
 import { CircuitCanvas } from './features/circuit/CircuitCanvas'
 import { circuitTemplates, getPortPosition, getNodeValueLabel, templateMap, COMPONENT_DIMS, DEFAULT_DIMS } from './features/circuit/catalog'
 import { simulateCircuit } from './features/circuit/simulate'
@@ -17,7 +18,7 @@ const DEFAULT_LAYERS: CircuitLayer[] = [
   { id: 3, name: 'Ground', visible: true, color: '#64748b' },
 ]
 
-const INITIAL_TYPES: CircuitComponentType[] = ['battery', 'switch', 'resistor', 'led']
+const INITIAL_TYPES: CircuitComponentType[] = ['battery', 'switch', 'resistor', 'led', 'motor', 'propeller']
 
 function createNode(type: CircuitComponentType, index: number, layer = 1): CircuitNode {
   const template = templateMap[type]
@@ -368,8 +369,22 @@ export function CircuitApp() {
   } | null>(null)
   const [simulation, setSimulation] = useState<SimulationResult | null>(null)
   const [showTrace, setShowTrace] = useState(false)
+  const [componentSearch, setComponentSearch] = useState('')
+  const [circuitName, setCircuitName] = useState('untitled.ckt')
+  const [isRenamingCircuit, setIsRenamingCircuit] = useState(false)
+  const [labMode, setLabMode] = useState<'blueprint' | 'build'>('blueprint')
+  const [popupLog, setPopupLog] = useState<string | null>(null)
+
+  const inventory = useCircuitLabStore((s) => s.inventory)
+  const consumeInventory = useCircuitLabStore((s) => s.consumeInventory)
+  const addExportedSystem = useCircuitLabStore((s) => s.addExportedSystem)
 
   const selectedNode = useMemo(() => nodes.find((n) => n.id === selectedNodeId) ?? null, [nodes, selectedNodeId])
+  const filteredTemplates = useMemo(() => {
+    const term = componentSearch.trim().toLowerCase()
+    if (!term) return circuitTemplates
+    return circuitTemplates.filter((tmpl) => tmpl.label.toLowerCase().includes(term) || tmpl.description.toLowerCase().includes(term) || tmpl.type.includes(term))
+  }, [componentSearch])
 
   const addComponent = (type: CircuitComponentType) => {
     setNodes((current) => [...current, createNode(type, current.length, activeLayer)])
@@ -478,7 +493,18 @@ export function CircuitApp() {
 
         <span style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>Circuit Studio</span>
         <span style={{ width: 1, height: 14, background: 'rgba(255,255,255,.08)' }} />
-        <span style={{ fontSize: 11, color: '#334155' }}>untitled.ckt</span>
+        {isRenamingCircuit ? (
+          <input
+            value={circuitName}
+            onChange={(e) => setCircuitName(e.target.value)}
+            onBlur={() => setIsRenamingCircuit(false)}
+            onKeyDown={(e) => { if (e.key === 'Enter') setIsRenamingCircuit(false) }}
+            autoFocus
+            style={{ fontSize: 11, color: '#64748b', background: 'transparent', border: '1px solid rgba(255,255,255,.12)', borderRadius: 4, padding: '1px 6px' }}
+          />
+        ) : (
+          <span style={{ fontSize: 11, color: '#334155', cursor: 'text' }} onDoubleClick={() => setIsRenamingCircuit(true)}>{circuitName}</span>
+        )}
 
         <div style={{ flex: 1 }} />
 
@@ -495,6 +521,51 @@ export function CircuitApp() {
             )}
           </div>
         )}
+
+        <button
+          onClick={() => setLabMode((current) => (current === 'blueprint' ? 'build' : 'blueprint'))}
+          style={{
+            fontSize: 11,
+            padding: '3px 8px',
+            borderRadius: 5,
+            background: labMode === 'build' ? 'rgba(34,197,94,.14)' : 'rgba(148,163,184,.08)',
+            color: labMode === 'build' ? '#86efac' : '#94a3b8',
+            border: '1px solid rgba(255,255,255,.07)',
+            cursor: 'pointer',
+          }}
+        >
+          {labMode === 'build' ? 'Build Side' : 'Blueprint Side'}
+        </button>
+        <button
+          onClick={() => {
+            const stockSkus = Object.keys(inventory)
+            if (stockSkus.length === 0) {
+              setPopupLog('Build failed: no materials available. Buy parts from CIRCUTE first.')
+              return
+            }
+            const requirements = stockSkus.slice(0, Math.min(6, nodes.length)).map((sku) => ({ sku, quantity: 1 }))
+            const consume = consumeInventory(requirements)
+            if (!consume.ok) {
+              setPopupLog(`Build failed: missing materials for ${consume.missing.length} components.`)
+              return
+            }
+            setPopupLog('Build completed. Welding, soldering, and assembly steps succeeded.')
+          }}
+          style={{ fontSize: 11, padding: '3px 8px', borderRadius: 5, background: 'rgba(251,191,36,.12)', color: '#fcd34d', border: '1px solid rgba(251,191,36,.25)', cursor: 'pointer' }}
+        >
+          Build
+        </button>
+        <button
+          onClick={() => {
+            const lowerName = circuitName.toLowerCase()
+            const kind = lowerName.includes('drone') || nodes.some((n) => n.type === 'propeller') ? 'drone' : lowerName.includes('generator') ? 'generator' : 'machine'
+            addExportedSystem({ name: circuitName.replace('.ckt', ''), kind })
+            setPopupLog(`${circuitName} exported to aOS desktop rewards.`)
+          }}
+          style={{ fontSize: 11, padding: '3px 8px', borderRadius: 5, background: 'rgba(168,85,247,.13)', color: '#d8b4fe', border: '1px solid rgba(168,85,247,.3)', cursor: 'pointer' }}
+        >
+          Export
+        </button>
 
         <button
           onClick={() => setShowTrace((v) => !v)}
@@ -568,7 +639,8 @@ export function CircuitApp() {
             >
               Components
             </div>
-            {circuitTemplates.map((tmpl) => (
+            <div style={{ padding: '0 10px 6px' }}><input value={componentSearch} onChange={(e)=>setComponentSearch(e.target.value)} placeholder="Search components" style={{ width:'100%', fontSize:11, borderRadius:6, border:'1px solid rgba(255,255,255,.1)', background:'rgba(255,255,255,.03)', color:'#94a3b8', padding:'5px 7px' }} /></div>
+            {filteredTemplates.map((tmpl) => (
               <button
                 key={tmpl.type}
                 type="button"
@@ -760,6 +832,12 @@ export function CircuitApp() {
             >
               Inspector
             </div>
+            {labMode === 'build' && (
+              <div style={{ padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,.06)', fontSize: 11, color: '#94a3b8' }}>
+                Build actions: welding • soldering • dismantling • rebuilding.
+                <div style={{ marginTop: 6, color: '#64748b' }}>Inventory materials: {Object.keys(inventory).length}</div>
+              </div>
+            )}
             {!selectedNode ? (
               <div style={{ padding: '12px', fontSize: 11, color: '#1e293b', lineHeight: 1.6 }}>
                 Select a component on the canvas to edit properties.
@@ -833,6 +911,15 @@ export function CircuitApp() {
           )}
         </div>
       </div>
+      {popupLog && (
+        <div style={{ position: 'absolute', right: 18, bottom: 18, background: 'rgba(15,23,42,.96)', border: '1px solid rgba(125,211,252,.25)', color: '#cbd5e1', borderRadius: 10, padding: '10px 12px', maxWidth: 340, fontSize: 11 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+            <strong style={{ color: '#7dd3fc' }}>Lab Log</strong>
+            <button onClick={() => setPopupLog(null)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>×</button>
+          </div>
+          <div style={{ marginTop: 6, color: '#94a3b8' }}>{popupLog}</div>
+        </div>
+      )}
     </div>
   )
 }

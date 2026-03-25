@@ -77,6 +77,11 @@ function getComponentResistance(node: CircuitNode): number {
     return Math.max(1, (node.resistance ?? templateMap.potentiometer.defaults.resistance ?? 10000) * wiper)
   }
   if (node.type === 'ground') return 0.0001
+  if (node.type === 'gear') return node.resistance ?? templateMap.gear.defaults.resistance ?? 4
+  if (node.type === 'motor') return node.resistance ?? templateMap.motor.defaults.resistance ?? 12
+  if (node.type === 'propeller') return node.resistance ?? templateMap.propeller.defaults.resistance ?? 9
+  if (node.type === 'antenna') return node.resistance ?? templateMap.antenna.defaults.resistance ?? 18
+  if (node.type === 'bluetooth') return node.resistance ?? templateMap.bluetooth.defaults.resistance ?? 22
   return Number.POSITIVE_INFINITY
 }
 
@@ -463,6 +468,9 @@ export function simulateCircuit(nodes: CircuitNode[], wires: CircuitWire[]): Sim
     'Active-device behavior (LED/transistor) is linearized for this solver.',
   ]
   if (primaryCurrent > 0.08) warnings.push('Current exceeds 80 mA; use a larger resistor or lower supply voltage.')
+  const ledStressThreshold = 0.03
+  const stressedLeds = nodes.filter((node) => node.type === 'led' && primaryCurrent > ledStressThreshold)
+  if (stressedLeds.length > 0) warnings.push(`LED overload event: ${stressedLeds.map((node) => node.label).join(', ')} exceeded ${(ledStressThreshold * 1000).toFixed(0)}mA and exploded in simulation.`)
   if (hasBranch) warnings.push('Branching topology detected; MNA-lite solved DC operating point without full nonlinear device models.')
 
   steps.push(
@@ -499,7 +507,7 @@ export function simulateCircuit(nodes: CircuitNode[], wires: CircuitWire[]): Sim
     currentAmps: primaryCurrent,
     totalResistanceOhms,
     supplyVoltage,
-    ledOn: nodes.some((node) => node.type === 'led') && primaryCurrent > 0.002,
+    ledOn: nodes.some((node) => node.type === 'led') && primaryCurrent > 0.002 && primaryCurrent <= 0.03,
     voltageDrops,
     powerWatts,
     netVoltage,

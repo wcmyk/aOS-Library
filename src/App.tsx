@@ -6,6 +6,7 @@ import { Spotlight } from './components/Spotlight';
 import { WindowFrame } from './components/WindowFrame';
 import { useDriveStore, type DriveDocument } from './state/useDriveStore';
 import { useShellStore, type WindowState } from './state/useShellStore';
+import { useCircuitLabStore } from './state/useCircuitLabStore';
 
 const AccelApp = lazy(() => import('./apps/accel/AccelApp').then((m) => ({ default: m.AccelApp })));
 const OracleApp = lazy(() => import('./apps/oracle/OracleApp').then((m) => ({ default: m.OracleApp })));
@@ -26,6 +27,7 @@ const RentCafeApp = lazy(() => import('./apps/rentcafe/RentCafeApp').then((m) =>
 const PyCharmApp = lazy(() => import('./apps/pycharm/PyCharmApp').then((m) => ({ default: m.PyCharmApp })));
 const CalculatorApp = lazy(() => import('./apps/calculator/CalculatorApp').then((m) => ({ default: m.CalculatorApp })));
 const CircuitApp = lazy(() => import('./apps/circuit/CircuitApp').then((m) => ({ default: m.CircuitApp })));
+const InventoryApp = lazy(() => import('./apps/inventory/InventoryApp').then((m) => ({ default: m.InventoryApp })));
 
 const artifacts = [
   { title: 'Roadmap.md', kind: 'Report', updated: '2h ago', detail: 'Phase 1 delivery outline', accent: '#7c8cff' },
@@ -126,6 +128,7 @@ function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDoc
   if (window.appId === 'pycharm') return <Suspense fallback={null}><PyCharmApp /></Suspense>;
   if (window.appId === 'calculator') return <Suspense fallback={null}><CalculatorApp /></Suspense>;
   if (window.appId === 'circuit') return <Suspense fallback={null}><CircuitApp /></Suspense>;
+  if (window.appId === 'inventory') return <Suspense fallback={null}><InventoryApp /></Suspense>;
 
   if (window.appId === 'archive') return <Suspense fallback={null}><AccelApp /></Suspense>;
   if (window.appId === 'oracle') return <Suspense fallback={null}><OracleApp /></Suspense>;
@@ -166,6 +169,7 @@ export default function App() {
     toggleMaximizeWindow,
   } = useShellStore();
   const setActiveDocument = useDriveStore((state) => state.setActiveDocument);
+  const exportedSystems = useCircuitLabStore((s) => s.exportedSystems);
 
   // Defer background image load so it doesn't block initial paint
   useEffect(() => {
@@ -252,6 +256,24 @@ export default function App() {
           commands={commands}
           onClose={() => toggleSpotlight(false)}
         />
+
+        {exportedSystems.map((system, index) => (
+          <div
+            key={system.id}
+            style={{
+              position: 'absolute',
+              top: 70 + (index % 5) * 48,
+              right: 28 + (Math.floor(index / 5) % 3) * 74,
+              fontSize: 22,
+              filter: 'drop-shadow(0 3px 8px rgba(0,0,0,.45))',
+              animation: 'float 4s ease-in-out infinite',
+              pointerEvents: 'none',
+            }}
+            title={`${system.name} exported from circuit lab`}
+          >
+            {system.kind === 'drone' ? '🛸' : system.kind === 'generator' ? '⚙️' : '🔩'}
+          </div>
+        ))}
 
         <Dock apps={apps} windows={windows} onLaunch={openWindow} />
       </div>

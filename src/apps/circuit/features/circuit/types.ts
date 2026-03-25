@@ -11,6 +11,11 @@ export type CircuitComponentType =
   | 'ground'
   | 'inductor'
   | 'potentiometer'
+  | 'gear'
+  | 'motor'
+  | 'propeller'
+  | 'antenna'
+  | 'bluetooth'
 
 export interface PortDefinition {
   id: string
