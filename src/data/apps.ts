@@ -218,6 +218,14 @@ export const apps: ShellApp[] = [
     defaultSize: { width: 780, height: 540 },
   },
   {
+    id: 'mnemo',
+    name: 'Mnemo',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2306111f'/%3E%3Crect x='8' y='8' width='24' height='24' rx='4' fill='none' stroke='%237dd3fc' stroke-width='2.2'/%3E%3Cpath d='M14 20 L18 13 L22 20 L26 16' stroke='%237dd3fc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Crect x='34' y='8' width='22' height='24' rx='4' fill='none' stroke='%23a78bfa' stroke-width='2.2'/%3E%3Cpath d='M40 22h10M40 17h7' stroke='%23a78bfa' stroke-width='2' stroke-linecap='round'/%3E%3Crect x='8' y='36' width='22' height='20' rx='4' fill='none' stroke='%2334d399' stroke-width='2.2'/%3E%3Ccircle cx='14' cy='42' r='2' fill='%2334d399'/%3E%3Ccircle cx='14' cy='50' r='2' fill='%2334d399'/%3E%3Crect x='18' y='41' width='9' height='2.4' rx='1.2' fill='%2334d399'/%3E%3Crect x='18' y='49' width='7' height='2.4' rx='1.2' fill='%2334d399'/%3E%3Crect x='34' y='36' width='22' height='20' rx='4' fill='none' stroke='%23f59e0b' stroke-width='2.2'/%3E%3Cpath d='M40 48 L43 42 L46 48 L49 44' stroke='%23f59e0b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E`,
+    description: 'Quizlet-style study app with flashcards, adaptive learning, tests, matching games, and Tetris',
+    accent: '#7dd3fc',
+    defaultSize: { width: 1200, height: 780 },
+  },
+  {
     id: 'chemistry',
     name: 'Chem Lab',
     icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a1628'/%3E%3Cpath d='M24 8L24 28L10 50L54 50L40 28L40 8Z' fill='none' stroke='%237dd3fc' stroke-width='2.2' stroke-linejoin='round'/%3E%3Cline x1='22' y1='8' x2='42' y2='8' stroke='%237dd3fc' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='22' cy='38' r='3.5' fill='%23a78bfa'/%3E%3Ccircle cx='34' cy='42' r='2.5' fill='%2334d399'/%3E%3Ccircle cx='28' cy='33' r='1.8' fill='%237dd3fc'/%3E%3Crect x='8' y='46' width='48' height='8' rx='3' fill='%230e2040'/%3E%3C/svg%3E`,

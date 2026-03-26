@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ComponentType, type MouseEvent, type ReactNode } from 'react';
+import { useRef, useState, type ComponentType, type ReactNode } from 'react';
 import { LinkedInSite } from './sites/LinkedInSite';
 import { WorkdaySite } from './sites/WorkdaySite';
 import { ProjectHubSite } from './sites/ProjectHubSite';
@@ -27,14 +27,6 @@ type SiteId =
   | 'new-tab';
 
 type SiteEntry = { id: SiteId; title: string; domain: string; component: ComponentType; favicon?: string };
-
-interface BrowserTab {
-  id: string;
-  title: string;
-  url: string;
-  siteId: SiteId;
-  loading: boolean;
-}
 
 function NewTabPage() {
   return (
@@ -103,154 +95,207 @@ function resolveSiteId(url: string, companies: { domain: string; name: string }[
   return 'new-tab';
 }
 
-function makeTab(title: string, url: string, siteId: SiteId): BrowserTab {
-  return { id: crypto.randomUUID(), title, url, siteId, loading: false };
+// ─── Bookmark homepage grid ────────────────────────────────────────────────────
+
+const FAVICON_COLORS: Record<string, string> = {
+  linkedin: '#0a66c2', workday: '#f36f21', workfront: '#e8232a',
+  radar: '#0071e3', buganizer: '#34a853', 'project-sail': '#003087',
+  'project-hub': '#6366f1', colab: '#5b5fc7', 'samsung-portal': '#1428a0',
+  curcuit: '#7dd3fc',
+};
+
+function FaviconSVG({ siteId, size = 28 }: { siteId: string; size?: number }) {
+  const color = FAVICON_COLORS[siteId] ?? '#475569';
+  const letter = (siteId.charAt(0) ?? 'W').toUpperCase();
+  return (
+    <svg width={size} height={size} viewBox="0 0 28 28">
+      <rect width="28" height="28" rx="6" fill={color} />
+      <text x="14" y="19.5" textAnchor="middle" fontSize="13" fontWeight="700"
+        fill="white" fontFamily="SF Pro Display, Inter, sans-serif">{letter}</text>
+    </svg>
+  );
 }
 
-const INITIAL_TABS: BrowserTab[] = [
-  makeTab('LinkedIn', 'https://linkedin.com', 'linkedin'),
-];
+function BookmarksPage({ onNavigate }: { onNavigate: (url: string, siteId: SiteId, title: string) => void }) {
+  const companies = useCompanyStore((s) => s.companies);
+  const companyBookmarks = companies.slice(0, 8);
+  const coreSites = CORE_SITES.filter((s) => s.id !== 'company-site' && s.id !== 'new-tab');
+
+  return (
+    <div style={{ height: '100%', overflowY: 'auto', background: '#0a1220', padding: '40px 32px' }}>
+      {/* Search prompt */}
+      <div style={{ textAlign: 'center', marginBottom: 40 }}>
+        <svg width="44" height="44" viewBox="0 0 44 44" style={{ marginBottom: 12 }}>
+          <circle cx="22" cy="22" r="21" fill="none" stroke="rgba(125,211,252,0.3)" strokeWidth="1.5" />
+          <path d="M14 22 Q22 10 30 22 Q22 34 14 22Z" fill="none" stroke="rgba(125,211,252,0.5)" strokeWidth="1.5" />
+          <ellipse cx="22" cy="22" rx="5" ry="21" fill="none" stroke="rgba(125,211,252,0.3)" strokeWidth="1" />
+        </svg>
+        <div style={{ fontSize: 13, color: '#64748b' }}>Type a URL or site name in the address bar to navigate</div>
+      </div>
+
+      {/* Core bookmarks */}
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ fontSize: 11, fontWeight: 600, color: '#475569', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 14 }}>
+          Bookmarks
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
+          {coreSites.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => onNavigate(`https://${s.domain}`, s.id, s.title)}
+              style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                padding: '18px 12px', background: 'rgba(15,25,45,0.9)',
+                border: '1px solid rgba(148,163,184,0.12)', borderRadius: 12,
+                cursor: 'pointer', transition: 'border-color 0.15s, background 0.15s',
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(125,211,252,0.35)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(20,40,70,0.9)'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(148,163,184,0.12)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(15,25,45,0.9)'; }}
+            >
+              <FaviconSVG siteId={s.id} />
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#cbd5e1', textAlign: 'center' }}>{s.title}</div>
+              <div style={{ fontSize: 10, color: '#475569', textAlign: 'center' }}>{s.domain}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Company bookmarks */}
+      {companyBookmarks.length > 0 && (
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#475569', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 14 }}>
+            Companies
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
+            {companyBookmarks.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => onNavigate(`https://${c.domain}`, 'company-site', c.name)}
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                  padding: '18px 12px', background: 'rgba(15,25,45,0.9)',
+                  border: '1px solid rgba(148,163,184,0.12)', borderRadius: 12,
+                  cursor: 'pointer', transition: 'border-color 0.15s, background 0.15s',
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(125,211,252,0.35)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(20,40,70,0.9)'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(148,163,184,0.12)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(15,25,45,0.9)'; }}
+              >
+                <svg width="28" height="28" viewBox="0 0 28 28">
+                  <rect width="28" height="28" rx="6" fill={c.color ?? '#334155'} />
+                  <text x="14" y="19.5" textAnchor="middle" fontSize="11" fontWeight="700"
+                    fill="white" fontFamily="SF Pro Display, Inter, sans-serif">
+                    {c.name.slice(0, 2).toUpperCase()}
+                  </text>
+                </svg>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#cbd5e1', textAlign: 'center' }}>{c.name}</div>
+                <div style={{ fontSize: 10, color: '#475569', textAlign: 'center' }}>{c.domain}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main Browser Shell ────────────────────────────────────────────────────────
 
 export function SafariApp() {
-  const [tabs, setTabs] = useState<BrowserTab[]>(INITIAL_TABS);
-  const [activeTabId, setActiveTabId] = useState(INITIAL_TABS[0].id);
-  const [addressBar, setAddressBar] = useState(INITIAL_TABS[0].url);
+  // Current page state — null means "show bookmarks homepage"
+  const [currentPage, setCurrentPage] = useState<{ url: string; siteId: SiteId; title: string } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [addressBar, setAddressBar] = useState('');
   const [editingAddress, setEditingAddress] = useState(false);
   const navigate = useSafariStore((s) => s.navigate);
   const companies = useCompanyStore((s) => s.companies);
   const loadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const activeTab = tabs.find((t) => t.id === activeTabId) ?? tabs[0];
-
-  // Keep address bar in sync with active tab when not editing
-  useEffect(() => {
-    if (!editingAddress) setAddressBar(activeTab?.url ?? '');
-  }, [activeTab?.url, editingAddress]);
-
-  function switchTab(tabId: string) {
-    setActiveTabId(tabId);
-    const tab = tabs.find((t) => t.id === tabId);
-    if (tab) navigate(tab.url);
-  }
-
-  function openTab(url: string, siteId: SiteId, title: string) {
-    // If tab with same siteId already open, switch to it
-    const existing = tabs.find((t) => t.siteId === siteId && siteId !== 'new-tab');
-    if (existing) {
-      switchTab(existing.id);
-      return;
-    }
-    const newTab: BrowserTab = { id: crypto.randomUUID(), title, url, siteId, loading: true };
-    setTabs((current) => [...current, newTab]);
-    setActiveTabId(newTab.id);
-    navigate(url);
-    // Simulate page load
-    if (loadTimerRef.current) clearTimeout(loadTimerRef.current);
-    loadTimerRef.current = setTimeout(() => {
-      setTabs((current) => current.map((t) => (t.id === newTab.id ? { ...t, loading: false } : t)));
-    }, 450);
-  }
-
-  function closeTab(tabId: string, e: MouseEvent) {
-    e.stopPropagation();
-    if (tabs.length === 1) return; // keep at least one tab
-    const idx = tabs.findIndex((t) => t.id === tabId);
-    const next = tabs[idx + 1] ?? tabs[idx - 1];
-    setTabs((current) => current.filter((t) => t.id !== tabId));
-    if (tabId === activeTabId && next) switchTab(next.id);
-  }
-
-  function newBlankTab() {
-    const t = makeTab('New Tab', 'about:blank', 'new-tab');
-    setTabs((current) => [...current, t]);
-    setActiveTabId(t.id);
+  function goHome() {
+    setCurrentPage(null);
     setAddressBar('');
-    setEditingAddress(true);
+    setEditingAddress(false);
   }
 
-  function navigateActiveTab(rawInput: string) {
-    // Resolve company name shortcut
+  function openPage(url: string, siteId: SiteId, title: string) {
+    setLoading(true);
+    setCurrentPage({ url, siteId, title });
+    setAddressBar(url);
+    setEditingAddress(false);
+    navigate(url);
+    if (loadTimerRef.current) clearTimeout(loadTimerRef.current);
+    loadTimerRef.current = setTimeout(() => setLoading(false), 420);
+  }
+
+  function handleNavigate(rawInput: string) {
+    if (!rawInput.trim()) { goHome(); return; }
     const companyMatch = companies.find((c) => c.name.toLowerCase() === rawInput.toLowerCase().trim());
     const url = companyMatch
       ? `https://${companyMatch.domain}`
-      : rawInput.startsWith('http')
-        ? rawInput
-        : `https://${rawInput}`;
-
+      : rawInput.startsWith('http') ? rawInput : `https://${rawInput}`;
     const siteId = resolveSiteId(url, companies);
     const siteEntry = CORE_SITES.find((s) => s.id === siteId);
-    const title = companyMatch?.name ?? siteEntry?.title ?? url;
-
-    // Update active tab
-    setTabs((current) =>
-      current.map((t) =>
-        t.id === activeTabId ? { ...t, url, title, siteId, loading: true } : t
-      )
-    );
-    navigate(url);
-    setAddressBar(url);
-    setEditingAddress(false);
-
-    if (loadTimerRef.current) clearTimeout(loadTimerRef.current);
-    loadTimerRef.current = setTimeout(() => {
-      setTabs((current) => current.map((t) => (t.id === activeTabId ? { ...t, loading: false } : t)));
-    }, 450);
+    openPage(url, siteId, companyMatch?.name ?? siteEntry?.title ?? url);
   }
 
-  const SiteComponent = CORE_SITES.find((s) => s.id === activeTab?.siteId)?.component ?? NewTabPage;
-  const companyBookmarks = companies.slice(0, 10);
+  const SiteComponent = currentPage
+    ? (CORE_SITES.find((s) => s.id === currentPage.siteId)?.component ?? NewTabPage)
+    : null;
 
   return (
-    <div className="safari-shell" style={{ gap: 0 }}>
-      {/* Toolbar */}
-      <div className="safari-toolbar">
-        <div className="safari-dots">
-          <span /><span /><span />
-        </div>
+    <div className="safari-shell" style={{ gap: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* ── Toolbar ── */}
+      <div className="safari-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', flexShrink: 0 }}>
+        <div className="safari-dots"><span /><span /><span /></div>
+
+        {/* Back to home button */}
+        <button
+          type="button"
+          onClick={goHome}
+          title="Bookmarks"
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px',
+            color: currentPage ? '#7dd3fc' : '#334155', borderRadius: 6,
+            display: 'flex', alignItems: 'center',
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M2 5.5L8 2l6 3.5V14H2V5.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+            <rect x="5.5" y="9" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.2" />
+          </svg>
+        </button>
+
+        {/* Back button (only when a page is loaded) */}
+        {currentPage && (
+          <button
+            type="button"
+            onClick={goHome}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: '#94a3b8', borderRadius: 6 }}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        )}
+
+        {/* Address bar */}
         <input
           className="safari-address"
-          value={editingAddress ? addressBar : (activeTab?.url ?? '')}
-          onFocus={() => { setEditingAddress(true); setAddressBar(activeTab?.url ?? ''); }}
+          style={{ flex: 1 }}
+          value={editingAddress ? addressBar : (currentPage?.url ?? '')}
+          onFocus={() => { setEditingAddress(true); setAddressBar(currentPage?.url ?? ''); }}
           onBlur={() => setEditingAddress(false)}
           onChange={(e) => setAddressBar(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') navigateActiveTab(addressBar); }}
-          placeholder="Search or enter URL"
+          onKeyDown={(e) => { if (e.key === 'Enter') handleNavigate(addressBar); if (e.key === 'Escape') { setEditingAddress(false); } }}
+          placeholder="Search bookmarks or enter a URL"
           spellCheck={false}
         />
+
+        {/* Loading indicator */}
+        {loading && <span className="safari-tab-loading" style={{ width: 14, height: 14, flexShrink: 0 }} />}
       </div>
 
-      {/* Tab bar */}
-      <div className="safari-tabbar">
-        {tabs.map((tab) => (
-          <div
-            key={tab.id}
-            className={`safari-tab${tab.id === activeTabId ? ' active' : ''}`}
-            onClick={() => switchTab(tab.id)}
-            title={tab.url}
-          >
-            {tab.loading ? (
-              <span className="safari-tab-loading" />
-            ) : (
-              <span style={{ fontSize: 10, opacity: 0.6 }}>◉</span>
-            )}
-            <span className="safari-tab-title">{tab.title}</span>
-            <button
-              type="button"
-              className="safari-tab-close"
-              onClick={(e) => closeTab(tab.id, e)}
-              title="Close tab"
-            >
-              ×
-            </button>
-          </div>
-        ))}
-        <button type="button" className="safari-newtab-btn" onClick={newBlankTab} title="New tab">
-          +
-        </button>
-      </div>
-
-      {/* Main layout */}
-      <div className="safari-layout">
+      {/* ── Main layout ── */}
+      <div className="safari-layout" style={{ flex: 1, minHeight: 0 }}>
         {/* Bookmarks sidebar */}
         <aside className="safari-sidebar">
           <div className="safari-section-label">Bookmarks</div>
@@ -258,23 +303,23 @@ export function SafariApp() {
             <button
               key={s.id}
               type="button"
-              className={activeTab?.siteId === s.id ? 'active' : ''}
-              onClick={() => openTab(`https://${s.domain}`, s.id, s.title)}
+              className={currentPage?.siteId === s.id ? 'active' : ''}
+              onClick={() => openPage(`https://${s.domain}`, s.id, s.title)}
             >
               <strong>{s.title}</strong>
               <span>{s.domain}</span>
             </button>
           ))}
 
-          {companyBookmarks.length > 0 && (
+          {companies.slice(0, 10).length > 0 && (
             <>
               <div className="safari-section-label" style={{ marginTop: 6 }}>Companies</div>
-              {companyBookmarks.map((c) => (
+              {companies.slice(0, 10).map((c) => (
                 <button
                   key={c.id}
                   type="button"
-                  className={activeTab?.siteId === 'company-site' && activeTab.url.includes(c.domain) ? 'active' : ''}
-                  onClick={() => openTab(`https://${c.domain}`, 'company-site', c.name)}
+                  className={currentPage?.siteId === 'company-site' && currentPage.url.includes(c.domain) ? 'active' : ''}
+                  onClick={() => openPage(`https://${c.domain}`, 'company-site', c.name)}
                 >
                   <strong>{c.name}</strong>
                   <span>{c.domain}</span>
@@ -285,16 +330,18 @@ export function SafariApp() {
         </aside>
 
         {/* Page content */}
-        <section className="safari-view safari-view-react">
-          {activeTab?.loading ? (
+        <section className="safari-view safari-view-react" style={{ flex: 1, overflow: 'hidden' }}>
+          {loading ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#0f1218' }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
                 <div className="safari-tab-loading" style={{ width: 22, height: 22, borderWidth: 2.5 }} />
                 <div style={{ fontSize: 12, color: '#334155' }}>Loading…</div>
               </div>
             </div>
-          ) : (
+          ) : currentPage && SiteComponent ? (
             <SiteComponent />
+          ) : (
+            <BookmarksPage onNavigate={openPage} />
           )}
         </section>
       </div>
