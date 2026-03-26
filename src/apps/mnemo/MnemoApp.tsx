@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useMnemoStore } from './state/useMnemoStore';
+import { useThothWidgetStore } from '../../state/useThothWidgetStore';
 import { Library } from './components/Library';
 import { SetEditor } from './components/SetEditor';
 import { ImportFlow } from './components/ImportFlow';
@@ -13,17 +14,39 @@ import { TetrisGame } from './components/games/TetrisGame';
 import { SpeedMatch } from './components/games/SpeedMatch';
 import { MemoryFlip } from './components/games/MemoryFlip';
 import { BlastGame } from './components/games/BlastGame';
-import type { AppView, StudyMode, AnswerDirection } from './types';
+import type { AppView, StudyMode, AnswerDirection, ThemeColor } from './types';
+
+// ─── Theme System ─────────────────────────────────────────────────────────────
+
+const THEMES: Record<ThemeColor, { primary: string; primaryMuted: string; bg: string }> = {
+  blue:          { primary: '#7dd3fc', primaryMuted: 'rgba(125,211,252,0.15)', bg: '#06111f' },
+  pastel_pink:   { primary: '#f9a8d4', primaryMuted: 'rgba(249,168,212,0.15)', bg: '#1a0d14' },
+  pastel_red:    { primary: '#fca5a5', primaryMuted: 'rgba(252,165,165,0.15)', bg: '#1a0a0a' },
+  forest_green:  { primary: '#86efac', primaryMuted: 'rgba(134,239,172,0.15)', bg: '#061a0f' },
+  dark_blue:     { primary: '#818cf8', primaryMuted: 'rgba(129,140,248,0.15)', bg: '#08091f' },
+  pastel_purple: { primary: '#c4b5fd', primaryMuted: 'rgba(196,181,253,0.15)', bg: '#100d1a' },
+  pastel_yellow: { primary: '#fef08a', primaryMuted: 'rgba(254,240,138,0.15)', bg: '#1a1800' },
+  dark_yellow:   { primary: '#fcd34d', primaryMuted: 'rgba(252,211,77,0.15)', bg: '#1a1200' },
+};
+
+const THEME_LABELS: Record<ThemeColor, string> = {
+  blue: 'Blue',
+  pastel_pink: 'Pink',
+  pastel_red: 'Red',
+  forest_green: 'Forest',
+  dark_blue: 'Indigo',
+  pastel_purple: 'Purple',
+  pastel_yellow: 'Yellow',
+  dark_yellow: 'Amber',
+};
 
 const C = {
-  bg: '#06111f',
   sidebar: 'rgba(6,17,31,0.95)',
   sidebarBorder: 'rgba(148,163,184,0.12)',
   surface: 'rgba(10,25,47,0.8)',
   border: 'rgba(148,163,184,0.2)',
   text: '#e8ebf0',
   muted: '#94a3b8',
-  cyan: '#7dd3fc',
   purple: '#a78bfa',
   green: '#34d399',
   amber: '#f59e0b',
@@ -65,40 +88,6 @@ function IconCards() {
   );
 }
 
-function IconBrain() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-1.98-3.5A3 3 0 0 1 4 12a3 3 0 0 1 1-5.67A2.5 2.5 0 0 1 9.5 2Z"/>
-      <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 1.98-3.5A3 3 0 0 0 20 12a3 3 0 0 0-1-5.67A2.5 2.5 0 0 0 14.5 2Z"/>
-    </svg>
-  );
-}
-
-function IconClipboard() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-      <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-    </svg>
-  );
-}
-
-function IconGrid() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-    </svg>
-  );
-}
-
-function IconColumns() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/>
-    </svg>
-  );
-}
-
 function IconGamepad() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -126,10 +115,10 @@ function IconSettings() {
   );
 }
 
-function IconSearch() {
+function IconGrid() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
     </svg>
   );
 }
@@ -146,12 +135,94 @@ function IconTetris() {
 // ─── Settings Panel ──────────────────────────────────────────────────────────
 
 function SettingsPanel() {
-  const { answerDirection, setAnswerDirection } = useMnemoStore();
+  const { answerDirection, setAnswerDirection, themeColor, setThemeColor, sets } = useMnemoStore();
+  const { widgets, addWidget, removeWidget } = useThothWidgetStore();
+  const theme = THEMES[themeColor];
+
+  const [showWidgetModal, setShowWidgetModal] = useState(false);
+  const [widgetSetId, setWidgetSetId] = useState(sets[0]?.id ?? '');
+  const [widgetPhaseId, setWidgetPhaseId] = useState<string>('');
+  const [widgetDirection, setWidgetDirection] = useState<AnswerDirection>('term_to_definition');
+
+  const selectedSet = sets.find((s) => s.id === widgetSetId);
+
+  const handleAddWidget = () => {
+    if (!widgetSetId) return;
+    addWidget({
+      setId: widgetSetId,
+      phaseId: widgetPhaseId || null,
+      direction: widgetDirection,
+    });
+    setShowWidgetModal(false);
+  };
+
+  const inputStyle: React.CSSProperties = {
+    background: 'rgba(255,255,255,0.04)',
+    border: `1px solid ${C.border}`,
+    borderRadius: 8,
+    padding: '8px 12px',
+    color: C.text,
+    fontSize: 13,
+    outline: 'none',
+    fontFamily: 'inherit',
+    width: '100%',
+    boxSizing: 'border-box',
+  };
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '24px', gap: 24, overflowY: 'auto' }}>
       <h2 style={{ margin: 0, color: C.text, fontSize: 20, fontWeight: 700 }}>Settings</h2>
 
+      {/* Theme Color */}
+      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <h3 style={{ margin: 0, color: C.text, fontSize: 15, fontWeight: 600 }}>Theme Color</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+          {(Object.keys(THEMES) as ThemeColor[]).map((key) => {
+            const t = THEMES[key];
+            const isSelected = themeColor === key;
+            return (
+              <button
+                key={key}
+                onClick={() => setThemeColor(key)}
+                title={THEME_LABELS[key]}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: isSelected ? t.primaryMuted : 'transparent',
+                  border: `2px solid ${isSelected ? t.primary : 'rgba(148,163,184,0.15)'}`,
+                  borderRadius: 10,
+                  padding: '10px 6px',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <div style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: '50%',
+                  background: t.primary,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  {isSelected && (
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <path d="M2.5 7l3 3 6-6" stroke="#0a1628" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                </div>
+                <span style={{ fontSize: 10, color: isSelected ? t.primary : C.muted, fontWeight: isSelected ? 600 : 400 }}>
+                  {THEME_LABELS[key]}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Study Defaults */}
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <h3 style={{ margin: 0, color: C.text, fontSize: 15, fontWeight: 600 }}>Study Defaults</h3>
         <div>
@@ -162,12 +233,12 @@ function SettingsPanel() {
                 key={dir}
                 onClick={() => setAnswerDirection(dir)}
                 style={{
-                  background: answerDirection === dir ? 'rgba(125,211,252,0.15)' : C.surface,
-                  border: `1px solid ${answerDirection === dir ? C.cyan : C.border}`,
+                  background: answerDirection === dir ? theme.primaryMuted : C.surface,
+                  border: `1px solid ${answerDirection === dir ? theme.primary : C.border}`,
                   borderRadius: 8,
                   padding: '8px 16px',
                   cursor: 'pointer',
-                  color: answerDirection === dir ? C.cyan : C.muted,
+                  color: answerDirection === dir ? theme.primary : C.muted,
                   fontSize: 13,
                   fontWeight: answerDirection === dir ? 600 : 400,
                 }}
@@ -179,10 +250,170 @@ function SettingsPanel() {
         </div>
       </div>
 
+      {/* Desktop Widgets */}
+      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 style={{ margin: 0, color: C.text, fontSize: 15, fontWeight: 600 }}>Desktop Widgets</h3>
+          <button
+            onClick={() => { setShowWidgetModal(true); if (sets.length > 0) setWidgetSetId(sets[0].id); }}
+            style={{
+              background: theme.primaryMuted,
+              border: `1px solid ${theme.primary}`,
+              borderRadius: 8,
+              padding: '6px 14px',
+              cursor: 'pointer',
+              color: theme.primary,
+              fontSize: 12,
+              fontWeight: 600,
+            }}
+          >
+            + Add Widget
+          </button>
+        </div>
+        <p style={{ margin: 0, color: C.muted, fontSize: 13, lineHeight: 1.5 }}>
+          Place a flashcard widget on your desktop. Cards auto-flip after 10 seconds.
+        </p>
+
+        {/* Widget Modal */}
+        {showWidgetModal && (
+          <div style={{
+            background: 'rgba(6,17,31,0.98)',
+            border: `1px solid ${theme.primary}`,
+            borderRadius: 12,
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 14,
+          }}>
+            <h4 style={{ margin: 0, color: C.text, fontSize: 14, fontWeight: 600 }}>Configure Widget</h4>
+
+            <div>
+              <label style={{ display: 'block', color: C.muted, fontSize: 12, marginBottom: 6 }}>Study Set</label>
+              <select
+                value={widgetSetId}
+                onChange={(e) => { setWidgetSetId(e.target.value); setWidgetPhaseId(''); }}
+                style={inputStyle}
+              >
+                {sets.map((s) => (
+                  <option key={s.id} value={s.id}>{s.title}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', color: C.muted, fontSize: 12, marginBottom: 6 }}>Phase</label>
+              <select
+                value={widgetPhaseId}
+                onChange={(e) => setWidgetPhaseId(e.target.value)}
+                style={inputStyle}
+              >
+                <option value="">All Cards</option>
+                {selectedSet?.phases.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', color: C.muted, fontSize: 12, marginBottom: 6 }}>Direction</label>
+              <select
+                value={widgetDirection}
+                onChange={(e) => setWidgetDirection(e.target.value as AnswerDirection)}
+                style={inputStyle}
+              >
+                <option value="term_to_definition">Term → Definition</option>
+                <option value="definition_to_term">Definition → Term</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowWidgetModal(false)}
+                style={{
+                  background: 'transparent',
+                  border: `1px solid ${C.border}`,
+                  borderRadius: 8,
+                  padding: '8px 16px',
+                  cursor: 'pointer',
+                  color: C.muted,
+                  fontSize: 13,
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddWidget}
+                disabled={!widgetSetId || sets.length === 0}
+                style={{
+                  background: theme.primary,
+                  border: 'none',
+                  borderRadius: 8,
+                  padding: '8px 16px',
+                  cursor: widgetSetId && sets.length > 0 ? 'pointer' : 'default',
+                  color: '#0a1628',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  opacity: widgetSetId && sets.length > 0 ? 1 : 0.5,
+                }}
+              >
+                Add Widget
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Active Widgets List */}
+        {widgets.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <label style={{ color: C.muted, fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>Active Widgets</label>
+            {widgets.map((w) => {
+              const wSet = sets.find((s) => s.id === w.setId);
+              const wPhase = wSet?.phases.find((p) => p.id === w.phaseId);
+              return (
+                <div
+                  key={w.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${C.border}`,
+                    borderRadius: 8,
+                    padding: '8px 12px',
+                  }}
+                >
+                  <div>
+                    <div style={{ color: C.text, fontSize: 13, fontWeight: 500 }}>{wSet?.title ?? 'Unknown Set'}</div>
+                    <div style={{ color: C.muted, fontSize: 11 }}>
+                      {wPhase ? wPhase.name : 'All Cards'} · {w.direction === 'term_to_definition' ? 'Term → Def' : 'Def → Term'}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => removeWidget(w.id)}
+                    style={{
+                      background: 'rgba(239,68,68,0.1)',
+                      border: '1px solid rgba(239,68,68,0.3)',
+                      borderRadius: 6,
+                      padding: '4px 10px',
+                      cursor: 'pointer',
+                      color: C.red,
+                      fontSize: 12,
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* About */}
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: '20px' }}>
-        <h3 style={{ margin: '0 0 8px', color: C.text, fontSize: 15, fontWeight: 600 }}>About Mnemo</h3>
+        <h3 style={{ margin: '0 0 8px', color: C.text, fontSize: 15, fontWeight: 600 }}>About Thoth</h3>
         <p style={{ margin: 0, color: C.muted, fontSize: 13, lineHeight: 1.6 }}>
-          Mnemo is a Quizlet-style study application built for the aOS framework.
+          Thoth is a study application built for the aOS framework, named after the Egyptian god of knowledge.
           It supports flashcards, adaptive learning, tests, matching games, and more.
         </p>
       </div>
@@ -193,11 +424,12 @@ function SettingsPanel() {
 // ─── Study Hub ────────────────────────────────────────────────────────────────
 
 function StudyHub() {
-  const { sets, activeSetId, setStudyMode, studyMode } = useMnemoStore();
+  const { sets, activeSetId, setStudyMode, studyMode, themeColor } = useMnemoStore();
   const activeSet = sets.find((s) => s.id === activeSetId);
+  const theme = THEMES[themeColor];
 
   const modes: { mode: StudyMode; label: string; desc: string; color: string }[] = [
-    { mode: 'flashcards', label: 'Flashcards', desc: 'Classic flip cards with keyboard shortcuts', color: C.cyan },
+    { mode: 'flashcards', label: 'Flashcards', desc: 'Classic flip cards with keyboard shortcuts', color: theme.primary },
     { mode: 'learn', label: 'Learn', desc: 'Adaptive mode with multiple question types', color: C.purple },
     { mode: 'test', label: 'Test', desc: 'Generate a timed test with various formats', color: C.amber },
     { mode: 'match', label: 'Match', desc: 'Click matching pairs in a grid', color: C.green },
@@ -233,7 +465,7 @@ function StudyHub() {
         display: 'flex',
         gap: 0,
         padding: '0 20px',
-        borderBottom: `1px solid ${C.sidebarBorder}`,
+        borderBottom: `1px solid rgba(148,163,184,0.12)`,
         background: 'rgba(6,17,31,0.5)',
         flexShrink: 0,
         overflowX: 'auto',
@@ -272,11 +504,12 @@ function StudyHub() {
 // ─── Games Hub ───────────────────────────────────────────────────────────────
 
 function GamesHub() {
-  const { sets, activeSetId, studyMode, setStudyMode } = useMnemoStore();
+  const { sets, activeSetId, studyMode, setStudyMode, themeColor } = useMnemoStore();
   const activeSet = sets.find((s) => s.id === activeSetId);
+  const theme = THEMES[themeColor];
 
   const games: { mode: StudyMode; label: string; desc: string; color: string; icon: React.ReactNode }[] = [
-    { mode: 'game_tetris', label: 'Mnemo Tetris', desc: 'Classic Tetris with study questions every 3 pieces', color: C.cyan, icon: <IconTetris /> },
+    { mode: 'game_tetris', label: 'Thoth Tetris', desc: 'Classic Tetris with study questions every 3 pieces', color: theme.primary, icon: <IconTetris /> },
     { mode: 'game_speed', label: 'Speed Match', desc: 'Same or different? 60 seconds, rapid fire', color: C.amber, icon: <IconGamepad /> },
     { mode: 'game_memory', label: 'Memory Flip', desc: 'Match term-definition pairs on a grid', color: C.purple, icon: <IconGrid /> },
     { mode: 'game_blast', label: 'Blast', desc: 'Click the correct definition bubble to blast it', color: C.red, icon: <IconGamepad /> },
@@ -302,7 +535,7 @@ function GamesHub() {
           display: 'flex',
           gap: 0,
           padding: '0 16px',
-          borderBottom: `1px solid ${C.sidebarBorder}`,
+          borderBottom: `1px solid rgba(148,163,184,0.12)`,
           background: 'rgba(6,17,31,0.5)',
           flexShrink: 0,
           overflowX: 'auto',
@@ -396,38 +629,39 @@ interface NavItem {
   color?: string;
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { view: 'library', label: 'Library', icon: <IconBooks /> },
-  { view: 'create', label: 'Create', icon: <IconPlus />, color: C.cyan },
-  { view: 'import', label: 'Import', icon: <IconUpload /> },
-  { view: 'study', label: 'Study', icon: <IconCards />, color: C.purple },
-  { view: 'games', label: 'Games', icon: <IconGamepad />, color: C.amber },
-  { view: 'stats', label: 'Statistics', icon: <IconBarChart /> },
-  { view: 'settings', label: 'Settings', icon: <IconSettings /> },
-];
-
 function Sidebar() {
-  const { activeView, setView, sets, activeSetId } = useMnemoStore();
+  const { activeView, setView, sets, activeSetId, themeColor } = useMnemoStore();
   const activeSet = sets.find((s) => s.id === activeSetId);
+  const theme = THEMES[themeColor];
+
+  const NAV_ITEMS: NavItem[] = [
+    { view: 'library', label: 'Library', icon: <IconBooks /> },
+    { view: 'create', label: 'Create', icon: <IconPlus />, color: theme.primary },
+    { view: 'import', label: 'Import', icon: <IconUpload /> },
+    { view: 'study', label: 'Study', icon: <IconCards />, color: C.purple },
+    { view: 'games', label: 'Games', icon: <IconGamepad />, color: C.amber },
+    { view: 'stats', label: 'Statistics', icon: <IconBarChart /> },
+    { view: 'settings', label: 'Settings', icon: <IconSettings /> },
+  ];
 
   return (
     <div style={{
       width: 200,
       background: C.sidebar,
-      borderRight: `1px solid ${C.sidebarBorder}`,
+      borderRight: `1px solid rgba(148,163,184,0.12)`,
       display: 'flex',
       flexDirection: 'column',
       flexShrink: 0,
       overflow: 'hidden',
     }}>
       {/* Brand */}
-      <div style={{ padding: '20px 16px 16px', borderBottom: `1px solid ${C.sidebarBorder}` }}>
+      <div style={{ padding: '20px 16px 16px', borderBottom: `1px solid rgba(148,163,184,0.12)` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-            <rect x="2" y="2" width="24" height="24" rx="6" fill="rgba(125,211,252,0.12)" stroke={C.cyan} strokeWidth="1.5"/>
-            <path d="M7 20 L10 8 L14 16 L18 10 L21 20" stroke={C.cyan} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+            <rect x="2" y="2" width="24" height="24" rx="6" fill={theme.primaryMuted} stroke={theme.primary} strokeWidth="1.5"/>
+            <path d="M7 20 L10 8 L14 16 L18 10 L21 20" stroke={theme.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
           </svg>
-          <span style={{ color: C.text, fontWeight: 800, fontSize: 18, letterSpacing: -0.5 }}>Mnemo</span>
+          <span style={{ color: C.text, fontWeight: 800, fontSize: 18, letterSpacing: -0.5 }}>Thoth</span>
         </div>
       </div>
 
@@ -435,11 +669,11 @@ function Sidebar() {
       {activeSet && (
         <div style={{
           padding: '10px 14px',
-          borderBottom: `1px solid ${C.sidebarBorder}`,
-          background: 'rgba(125,211,252,0.04)',
+          borderBottom: `1px solid rgba(148,163,184,0.12)`,
+          background: theme.primaryMuted,
         }}>
           <p style={{ margin: 0, color: C.muted, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 3 }}>Active Set</p>
-          <p style={{ margin: 0, color: C.cyan, fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <p style={{ margin: 0, color: theme.primary, fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {activeSet.title}
           </p>
         </div>
@@ -449,7 +683,7 @@ function Sidebar() {
       <nav style={{ flex: 1, padding: '8px 0', overflowY: 'auto' }}>
         {NAV_ITEMS.map(({ view, label, icon, color }) => {
           const isActive = activeView === view;
-          const accentColor = color ?? C.cyan;
+          const accentColor = color ?? theme.primary;
           return (
             <button
               key={view}
@@ -460,7 +694,7 @@ function Sidebar() {
                 alignItems: 'center',
                 gap: 10,
                 padding: '9px 16px',
-                background: isActive ? `rgba(125,211,252,0.08)` : 'none',
+                background: isActive ? theme.primaryMuted : 'none',
                 border: 'none',
                 borderLeft: isActive ? `2px solid ${accentColor}` : '2px solid transparent',
                 color: isActive ? accentColor : C.muted,
@@ -487,8 +721,9 @@ function Sidebar() {
 // ─── Top Bar ─────────────────────────────────────────────────────────────────
 
 function TopBar() {
-  const { sets, activeSetId, activeView, answerDirection, setAnswerDirection } = useMnemoStore();
+  const { sets, activeSetId, activeView, answerDirection, setAnswerDirection, themeColor } = useMnemoStore();
   const activeSet = sets.find((s) => s.id === activeSetId);
+  const theme = THEMES[themeColor];
 
   const viewLabels: Record<AppView, string> = {
     library: 'Library',
@@ -505,7 +740,7 @@ function TopBar() {
     <div style={{
       height: 48,
       background: C.sidebar,
-      borderBottom: `1px solid ${C.sidebarBorder}`,
+      borderBottom: `1px solid rgba(148,163,184,0.12)`,
       display: 'flex',
       alignItems: 'center',
       padding: '0 20px',
@@ -561,13 +796,16 @@ function MainContent() {
 // ─── MnemoApp ─────────────────────────────────────────────────────────────────
 
 export function MnemoApp() {
+  const { themeColor } = useMnemoStore();
+  const theme = THEMES[themeColor];
+
   return (
     <div style={{
       width: '100%',
       height: '100%',
       display: 'flex',
       flexDirection: 'column',
-      background: C.bg,
+      background: theme.bg,
       fontFamily: "'SF Pro Display', Inter, system-ui, -apple-system, sans-serif",
       color: C.text,
       overflow: 'hidden',
@@ -575,7 +813,7 @@ export function MnemoApp() {
       <TopBar />
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         <Sidebar />
-        <main style={{ flex: 1, display: 'flex', overflow: 'hidden', background: C.bg }}>
+        <main style={{ flex: 1, display: 'flex', overflow: 'hidden', background: theme.bg }}>
           <MainContent />
         </main>
       </div>

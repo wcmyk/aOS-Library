@@ -8,6 +8,7 @@ import { useDriveStore, type DriveDocument } from './state/useDriveStore';
 import { useShellStore, type WindowState } from './state/useShellStore';
 import { useCircuitLabStore } from './state/useCircuitLabStore';
 import { useEdenStore } from './state/useEdenStore';
+import { useThothWidgetStore } from './state/useThothWidgetStore';
 
 const AccelApp = lazy(() => import('./apps/accel/AccelApp').then((m) => ({ default: m.AccelApp })));
 const OracleApp = lazy(() => import('./apps/oracle/OracleApp').then((m) => ({ default: m.OracleApp })));
@@ -30,6 +31,7 @@ const CalculatorApp = lazy(() => import('./apps/calculator/CalculatorApp').then(
 const CircuitApp = lazy(() => import('./apps/circuit/CircuitApp').then((m) => ({ default: m.CircuitApp })));
 const ChemistryApp = lazy(() => import('./apps/chemistry/ChemistryApp').then((m) => ({ default: m.ChemistryApp })));
 const MnemoApp = lazy(() => import('./apps/mnemo/MnemoApp').then((m) => ({ default: m.MnemoApp })));
+const ThothWidget = lazy(() => import('./apps/mnemo/ThothWidget').then((m) => ({ default: m.ThothWidget })));
 const InventoryApp = lazy(() => import('./apps/inventory/InventoryApp').then((m) => ({ default: m.InventoryApp })));
 const NotepadApp = lazy(() => import('./apps/notepad/NotepadApp').then((m) => ({ default: m.NotepadApp })));
 const EdenGardenApp = lazy(() => import('./apps/eden/EdenGardenApp').then((m) => ({ default: m.EdenGardenApp })));
@@ -180,6 +182,7 @@ export default function App() {
   const setActiveDocument = useDriveStore((state) => state.setActiveDocument);
   const exportedSystems = useCircuitLabStore((s) => s.exportedSystems);
   const edenUnlocked = useEdenStore((s) => s.unlocked);
+  const { widgets } = useThothWidgetStore();
 
   // Defer background image load so it doesn't block initial paint
   useEffect(() => {
@@ -285,6 +288,12 @@ export default function App() {
           >
             {system.kind === 'drone' ? '🛸' : system.kind === 'generator' ? '⚙️' : '🔩'}
           </div>
+        ))}
+
+        {widgets.map((widget) => (
+          <Suspense fallback={null} key={widget.id}>
+            <ThothWidget widget={widget} />
+          </Suspense>
         ))}
 
         <Dock apps={visibleApps} windows={windows} onLaunch={openWindow} />

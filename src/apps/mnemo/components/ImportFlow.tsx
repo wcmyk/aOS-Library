@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useMnemoStore } from '../state/useMnemoStore';
 
 const C = {
@@ -31,6 +31,18 @@ function stripNumbering(line: string): string {
   return line.replace(/^\s*\d+[\.\)\-\s]+/, '').trim();
 }
 
+const AUTO_DELIMITERS = [' - ', ' – ', ': ', ' | ', ',', '\t'];
+
+function tryAutoDetect(line: string): { term: string; definition: string } | null {
+  for (const d of AUTO_DELIMITERS) {
+    const idx = line.indexOf(d);
+    if (idx !== -1) {
+      return { term: line.slice(0, idx).trim(), definition: line.slice(idx + d.length).trim() };
+    }
+  }
+  return null;
+}
+
 function parseLines(
   text: string,
   delimiter: string,
@@ -42,9 +54,7 @@ function parseLines(
     .filter(Boolean)
     .map((line) => {
       const processed = doStripNumbering ? stripNumbering(line) : line;
-      const idx = delimiter === '\t'
-        ? processed.indexOf('\t')
-        : processed.indexOf(delimiter);
+      const idx = processed.indexOf(delimiter);
       if (idx !== -1) {
         return {
           term: processed.slice(0, idx).trim(),
@@ -52,14 +62,10 @@ function parseLines(
           confidence: 'high' as const,
         };
       }
-      // try to auto-detect
-      const tabIdx = processed.indexOf('\t');
-      if (tabIdx !== -1) {
-        return {
-          term: processed.slice(0, tabIdx).trim(),
-          definition: processed.slice(tabIdx + 1).trim(),
-          confidence: 'low' as const,
-        };
+      // Explicit delimiter not found — try auto-detect
+      const auto = tryAutoDetect(processed);
+      if (auto) {
+        return { term: auto.term, definition: auto.definition, confidence: 'low' as const };
       }
       return { term: processed, definition: '', confidence: 'low' as const };
     })
@@ -87,6 +93,7 @@ export function ImportFlow() {
   const [setTitle, setSetTitle] = useState('Imported Set');
   const [editingPairs, setEditingPairs] = useState<{ term: string; definition: string; confidence: 'high' | 'low' }[] | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [dragOver, setDragOver] = useState(false);
 
   const activeText = tab === 'text' ? text : csvText;
   const delim = getDelimiter(delimiter, customDelimiter);
@@ -96,12 +103,32 @@ export function ImportFlow() {
     ? displayPairs.map((p) => ({ term: p.definition, definition: p.term, confidence: p.confidence }))
     : displayPairs;
 
+  const loadFile = useCallback(async (file: File) => {
+    const fileText = await file.text();
+    setCsvText(fileText);
+    setSetTitle(file.name.replace(/\.(csv|txt)$/i, ''));
+  }, []);
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const text = await file.text();
-    setCsvText(text);
-    setSetTitle(file.name.replace(/\.(csv|txt)$/i, ''));
+    loadFile(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file) loadFile(file);
   };
 
   const handleImport = () => {
@@ -113,7 +140,7 @@ export function ImportFlow() {
       tab === 'csv' ? 'imported_csv' : 'imported_text',
     );
     setActiveSet(newSet.id);
-    setView('edit');
+    setView('library');
   };
 
   const inputStyle: React.CSSProperties = {
@@ -259,27 +286,43 @@ export function ImportFlow() {
           />
           {!csvText ? (
             <div
-              onClick={() => fileRef.current?.click()}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
               style={{
-                border: `2px dashed ${C.border}`,
+                border: `2px dashed ${dragOver ? C.cyan : C.border}`,
                 borderRadius: 12,
                 padding: '40px',
                 textAlign: 'center',
-                cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 gap: 12,
                 transition: 'border-color 0.2s',
+                background: dragOver ? 'rgba(125,211,252,0.04)' : 'transparent',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = C.cyan)}
-              onMouseLeave={(e) => (e.currentTarget.style.borderColor = C.border)}
             >
               <UploadIcon />
               <div>
-                <p style={{ margin: 0, color: C.text, fontSize: 15, fontWeight: 600 }}>Click to upload CSV or TXT</p>
-                <p style={{ margin: '4px 0 0', color: C.muted, fontSize: 13 }}>Supports .csv and .txt files</p>
+                <p style={{ margin: 0, color: C.text, fontSize: 15, fontWeight: 600 }}>Drag & drop a CSV or TXT file</p>
+                <p style={{ margin: '4px 0 0', color: C.muted, fontSize: 13 }}>or click the button below to browse</p>
               </div>
+              <button
+                onClick={() => fileRef.current?.click()}
+                style={{
+                  background: 'rgba(125,211,252,0.1)',
+                  border: `1px solid ${C.cyan}`,
+                  borderRadius: 8,
+                  padding: '8px 20px',
+                  cursor: 'pointer',
+                  color: C.cyan,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  marginTop: 4,
+                }}
+              >
+                Choose File
+              </button>
             </div>
           ) : (
             <div style={{ position: 'relative' }}>
