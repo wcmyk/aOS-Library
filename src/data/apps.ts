@@ -219,10 +219,10 @@ export const apps: ShellApp[] = [
   },
   {
     id: 'mnemo',
-    name: 'Mnemo',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2306111f'/%3E%3Crect x='8' y='8' width='24' height='24' rx='4' fill='none' stroke='%237dd3fc' stroke-width='2.2'/%3E%3Cpath d='M14 20 L18 13 L22 20 L26 16' stroke='%237dd3fc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Crect x='34' y='8' width='22' height='24' rx='4' fill='none' stroke='%23a78bfa' stroke-width='2.2'/%3E%3Cpath d='M40 22h10M40 17h7' stroke='%23a78bfa' stroke-width='2' stroke-linecap='round'/%3E%3Crect x='8' y='36' width='22' height='20' rx='4' fill='none' stroke='%2334d399' stroke-width='2.2'/%3E%3Ccircle cx='14' cy='42' r='2' fill='%2334d399'/%3E%3Ccircle cx='14' cy='50' r='2' fill='%2334d399'/%3E%3Crect x='18' y='41' width='9' height='2.4' rx='1.2' fill='%2334d399'/%3E%3Crect x='18' y='49' width='7' height='2.4' rx='1.2' fill='%2334d399'/%3E%3Crect x='34' y='36' width='22' height='20' rx='4' fill='none' stroke='%23f59e0b' stroke-width='2.2'/%3E%3Cpath d='M40 48 L43 42 L46 48 L49 44' stroke='%23f59e0b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E`,
-    description: 'Quizlet-style study app with flashcards, adaptive learning, tests, matching games, and Tetris',
-    accent: '#7dd3fc',
+    name: 'Thoth',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a1520'/%3E%3Cellipse cx='26' cy='37' rx='12' ry='8.5' fill='%23f59e0b'/%3E%3Cellipse cx='22' cy='36' rx='7' ry='5' fill='%23d97706'/%3E%3Cpath d='M35 30 C42 22 38 16 36 10' fill='none' stroke='%23f59e0b' stroke-width='3.2' stroke-linecap='round'/%3E%3Ccircle cx='35' cy='9' r='5' fill='%23f59e0b'/%3E%3Cpath d='M39 7 C45 4 50 6 52 10' fill='none' stroke='%23f59e0b' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='37' cy='8' r='1.8' fill='%230a1520'/%3E%3Cline x1='22' y1='45' x2='18' y2='57' stroke='%23f59e0b' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='30' y1='45' x2='34' y2='57' stroke='%23f59e0b' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M18 57 L15 59 M18 57 L18 60 M18 57 L21 59' stroke='%23f59e0b' stroke-width='1.5' stroke-linecap='round'/%3E%3Ccircle cx='8' cy='10' r='1' fill='%237dd3fc' opacity='0.7'/%3E%3Ccircle cx='14' cy='6' r='1.5' fill='%237dd3fc' opacity='0.6'/%3E%3Ccircle cx='55' cy='42' r='1' fill='%237dd3fc' opacity='0.5'/%3E%3C/svg%3E`,
+    description: 'Study smarter with Thoth — flashcards, adaptive learning, and games',
+    accent: '#f59e0b',
     defaultSize: { width: 1200, height: 780 },
   },
   {

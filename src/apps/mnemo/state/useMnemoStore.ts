@@ -8,6 +8,7 @@ import type {
   AppView,
   StudyMode,
   AnswerDirection,
+  ThemeColor,
 } from '../types';
 
 function genId(): string {
@@ -21,6 +22,7 @@ interface MnemoState {
   activeView: AppView;
   studyMode: StudyMode;
   answerDirection: AnswerDirection;
+  themeColor: ThemeColor;
   currentSession: StudySession | null;
 
   createSet(title: string, description: string): StudySet;
@@ -35,6 +37,7 @@ interface MnemoState {
   setView(view: AppView): void;
   setStudyMode(mode: StudyMode): void;
   setAnswerDirection(dir: AnswerDirection): void;
+  setThemeColor(color: ThemeColor): void;
   startSession(setId: string, mode: StudyMode): void;
   recordResult(cardId: string, correct: boolean, timeMs: number): void;
   endSession(): void;
@@ -54,6 +57,7 @@ export const useMnemoStore = create<MnemoState>()(
       activeView: 'library',
       studyMode: 'flashcards',
       answerDirection: 'term_to_definition',
+      themeColor: 'blue',
       currentSession: null,
 
       createSet(title, description) {
@@ -179,6 +183,10 @@ export const useMnemoStore = create<MnemoState>()(
         set({ answerDirection: dir });
       },
 
+      setThemeColor(color) {
+        set({ themeColor: color });
+      },
+
       startSession(setId, mode) {
         const session: StudySession = {
           id: genId(),
@@ -256,6 +264,7 @@ export const useMnemoStore = create<MnemoState>()(
         sets: state.sets,
         sessions: state.sessions,
         answerDirection: state.answerDirection,
+        themeColor: state.themeColor,
       }),
     },
   ),

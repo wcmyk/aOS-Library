@@ -1,3 +1,13 @@
+export type ThemeColor =
+  | 'blue'
+  | 'pastel_pink'
+  | 'pastel_red'
+  | 'forest_green'
+  | 'dark_blue'
+  | 'pastel_purple'
+  | 'pastel_yellow'
+  | 'dark_yellow';
+
 export type StudyMode =
   | 'flashcards'
   | 'learn'
