@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTheme } from '../../theme';
 import { useMnemoStore } from '../../state/useMnemoStore';
 
 function shuffle<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
@@ -7,6 +8,7 @@ interface Bubble { id: string; text: string; isCorrect: boolean; x: number; y: n
 
 export function BlastGame() {
   const { sets, activeSetId, startSession, recordResult, endSession, setView } = useMnemoStore();
+  const theme = useTheme();
   const activeSet = sets.find((s) => s.id === activeSetId);
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
@@ -96,7 +98,7 @@ export function BlastGame() {
         <div style={{ fontSize: 13, color: '#64748b' }}>{correct}/{total} correct</div>
         <div style={{ display: 'flex', gap: 12 }}>
           <button style={{ padding: '10px 28px', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', border: 'none', background: '#ef4444', color: '#fff' }} onClick={start}>Play Again</button>
-          <button style={{ padding: '10px 28px', borderRadius: 8, fontSize: 13, cursor: 'pointer', border: '1px solid rgba(125,211,252,0.3)', background: 'transparent', color: '#7dd3fc' }} onClick={() => setView('library')}>Done</button>
+          <button style={{ padding: '10px 28px', borderRadius: 8, fontSize: 13, cursor: 'pointer', border: '1px solid theme.primaryMuted', background: 'transparent', color: theme.primary }} onClick={() => setView('library')}>Done</button>
         </div>
       </div>
     );

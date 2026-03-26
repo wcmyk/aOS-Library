@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTheme } from '../../theme';
 import { useMnemoStore } from '../../state/useMnemoStore';
 
 export function SpeedMatch() {
   const { sets, activeSetId, startSession, recordResult, endSession, setView } = useMnemoStore();
+  const theme = useTheme();
   const activeSet = sets.find((s) => s.id === activeSetId);
   const [running, setRunning] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60);
@@ -83,7 +85,7 @@ export function SpeedMatch() {
         <div style={{ fontSize: 13, color: '#64748b' }}>{correct}/{total} correct · Best streak: {streak}</div>
         <div style={{ display: 'flex', gap: 12 }}>
           <button style={{ padding: '10px 28px', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', border: 'none', background: '#f59e0b', color: '#06111f' }} onClick={start}>Play Again</button>
-          <button style={{ padding: '10px 28px', borderRadius: 8, fontSize: 14, cursor: 'pointer', border: '1px solid rgba(125,211,252,0.3)', background: 'transparent', color: '#7dd3fc' }} onClick={() => setView('library')}>Done</button>
+          <button style={{ padding: '10px 28px', borderRadius: 8, fontSize: 14, cursor: 'pointer', border: '1px solid theme.primaryMuted', background: 'transparent', color: theme.primary }} onClick={() => setView('library')}>Done</button>
         </div>
       </div>
     );
@@ -92,7 +94,7 @@ export function SpeedMatch() {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', height: '100%', background: bgFlash, transition: 'background 0.2s', overflow: 'hidden' }}>
       <div style={{ padding: '12px 20px', borderBottom: '1px solid rgba(148,163,184,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-        <span style={{ fontFamily: 'monospace', fontSize: 22, fontWeight: 700, color: timeLeft <= 10 ? '#ef4444' : '#7dd3fc' }}>{timeLeft}s</span>
+        <span style={{ fontFamily: 'monospace', fontSize: 22, fontWeight: 700, color: timeLeft <= 10 ? '#ef4444' : theme.primary }}>{timeLeft}s</span>
         <span style={{ fontSize: 15, color: '#64748b' }}>Score: <strong style={{ color: '#e2e8f0' }}>{score}</strong></span>
         <span style={{ fontSize: 15, color: streak >= 3 ? '#f59e0b' : '#475569' }}>Streak ×{streak}</span>
       </div>

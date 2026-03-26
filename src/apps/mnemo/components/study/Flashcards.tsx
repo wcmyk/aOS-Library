@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTheme } from '../../theme';
 import { useMnemoStore } from '../../state/useMnemoStore';
 import type { Flashcard } from '../../types';
 
@@ -7,7 +8,6 @@ const C = {
   border: 'rgba(148,163,184,0.2)',
   text: '#e8ebf0',
   muted: '#94a3b8',
-  cyan: '#7dd3fc',
   purple: '#a78bfa',
   green: '#34d399',
   red: '#ef4444',
@@ -59,6 +59,7 @@ function shuffleArray<T>(arr: T[]): T[] {
 
 export function FlashcardsMode() {
   const { sets, activeSetId, answerDirection, updateCard } = useMnemoStore();
+  const theme = useTheme();
   const activeSet = sets.find((s) => s.id === activeSetId);
   const cards = activeSet?.cards ?? [];
 
@@ -158,7 +159,7 @@ export function FlashcardsMode() {
         </p>
         <button
           onClick={() => { setIndex(0); setFlipped(false); setKnown(new Set()); setUnknown(new Set()); }}
-          style={{ background: C.cyan, color: '#0a1628', border: 'none', borderRadius: 8, padding: '10px 24px', cursor: 'pointer', fontWeight: 700, fontSize: 14 }}
+          style={{ background: theme.primary, color: '#0a1628', border: 'none', borderRadius: 8, padding: '10px 24px', cursor: 'pointer', fontWeight: 700, fontSize: 14 }}
         >
           Start Over
         </button>
@@ -209,7 +210,7 @@ export function FlashcardsMode() {
         <div style={{
           height: '100%',
           width: `${((index + 1) / order.length) * 100}%`,
-          background: C.cyan,
+          background: theme.primary,
           borderRadius: 2,
           transition: 'width 0.3s ease',
         }} />
@@ -247,7 +248,7 @@ export function FlashcardsMode() {
             boxSizing: 'border-box',
             gap: 16,
           }}>
-            <span style={{ color: C.cyan, fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase' }}>{frontLabel}</span>
+            <span style={{ color: theme.primary, fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase' }}>{frontLabel}</span>
             <p style={{ margin: 0, color: C.text, fontSize: 24, fontWeight: 600, textAlign: 'center', lineHeight: 1.4 }}>
               {front}
             </p>
@@ -262,7 +263,7 @@ export function FlashcardsMode() {
             WebkitBackfaceVisibility: 'hidden',
             transform: 'rotateY(180deg)',
             background: 'rgba(10,25,60,0.9)',
-            border: `1px solid ${C.cyan}`,
+            border: `1px solid ${theme.primary}`,
             borderRadius: 16,
             display: 'flex',
             flexDirection: 'column',

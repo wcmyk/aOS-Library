@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useTheme } from '../theme';
 import { useMnemoStore } from '../state/useMnemoStore';
 import type { Flashcard } from '../types';
 
@@ -8,7 +9,6 @@ const C = {
   border: 'rgba(148,163,184,0.2)',
   text: '#e8ebf0',
   muted: '#94a3b8',
-  cyan: '#7dd3fc',
   purple: '#a78bfa',
   green: '#34d399',
   amber: '#f59e0b',
@@ -68,6 +68,7 @@ interface CardRowProps {
 
 function CardRow({ card, index, total, setId, onDelete, onMoveUp, onMoveDown }: CardRowProps) {
   const { updateCard } = useMnemoStore();
+  const theme = useTheme();
   const [term, setTerm] = useState(card.term);
   const [definition, setDefinition] = useState(card.definition);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -129,7 +130,7 @@ function CardRow({ card, index, total, setId, onDelete, onMoveUp, onMoveDown }: 
             onChange={(e) => handleChange('term', e.target.value)}
             style={inputStyle}
             rows={2}
-            onFocus={(e) => (e.target.style.borderColor = C.cyan)}
+            onFocus={(e) => (e.target.style.borderColor = theme.primary)}
             onBlur={(e) => (e.target.style.borderColor = C.border)}
           />
         </div>
@@ -140,7 +141,7 @@ function CardRow({ card, index, total, setId, onDelete, onMoveUp, onMoveDown }: 
             onChange={(e) => handleChange('definition', e.target.value)}
             style={inputStyle}
             rows={2}
-            onFocus={(e) => (e.target.style.borderColor = C.cyan)}
+            onFocus={(e) => (e.target.style.borderColor = theme.primary)}
             onBlur={(e) => (e.target.style.borderColor = C.border)}
           />
         </div>
@@ -197,6 +198,7 @@ function CardRow({ card, index, total, setId, onDelete, onMoveUp, onMoveDown }: 
 
 export function SetEditor() {
   const { sets, activeSetId, createSet, updateSet, addCard, deleteCard, reorderCards, setActiveSet, setView, importCards } = useMnemoStore();
+  const theme = useTheme();
 
   const isCreate = !activeSetId;
   const existingSet = sets.find((s) => s.id === activeSetId);
@@ -359,7 +361,7 @@ export function SetEditor() {
           <button
             onClick={handleSaveSet}
             style={{
-              background: C.cyan,
+              background: theme.primary,
               color: '#0a1628',
               border: 'none',
               borderRadius: 8,
@@ -393,7 +395,7 @@ export function SetEditor() {
             onChange={(e) => handleTitleChange(e.target.value)}
             placeholder="e.g. Spanish Vocabulary"
             style={inputStyle}
-            onFocus={(e) => (e.target.style.borderColor = C.cyan)}
+            onFocus={(e) => (e.target.style.borderColor = theme.primary)}
             onBlur={(e) => (e.target.style.borderColor = C.border)}
           />
         </div>
@@ -404,7 +406,7 @@ export function SetEditor() {
             onChange={(e) => handleDescChange(e.target.value)}
             placeholder="Optional description..."
             style={inputStyle}
-            onFocus={(e) => (e.target.style.borderColor = C.cyan)}
+            onFocus={(e) => (e.target.style.borderColor = theme.primary)}
             onBlur={(e) => (e.target.style.borderColor = C.border)}
           />
         </div>
@@ -415,7 +417,7 @@ export function SetEditor() {
             onChange={(e) => handleTagsChange(e.target.value)}
             placeholder="e.g. language, spanish, vocabulary"
             style={inputStyle}
-            onFocus={(e) => (e.target.style.borderColor = C.cyan)}
+            onFocus={(e) => (e.target.style.borderColor = theme.primary)}
             onBlur={(e) => (e.target.style.borderColor = C.border)}
           />
         </div>
@@ -444,7 +446,7 @@ export function SetEditor() {
           <button
             onClick={handleAddCard}
             style={{
-              background: C.cyan,
+              background: theme.primary,
               color: '#0a1628',
               border: 'none',
               borderRadius: 8,
@@ -568,7 +570,7 @@ export function SetEditor() {
         onClick={handleAddCard}
         style={{
           background: 'transparent',
-          color: C.cyan,
+          color: theme.primary,
           border: `2px dashed ${C.border}`,
           borderRadius: 10,
           padding: '16px',
@@ -581,7 +583,7 @@ export function SetEditor() {
           gap: 8,
           transition: 'border-color 0.2s',
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.borderColor = C.cyan)}
+        onMouseEnter={(e) => (e.currentTarget.style.borderColor = theme.primary)}
         onMouseLeave={(e) => (e.currentTarget.style.borderColor = C.border)}
       >
         <PlusIcon /> Add another card

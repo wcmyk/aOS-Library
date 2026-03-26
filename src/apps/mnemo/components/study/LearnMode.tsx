@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTheme } from '../../theme';
 import { useMnemoStore } from '../../state/useMnemoStore';
 import type { Flashcard } from '../../types';
 
@@ -7,7 +8,6 @@ const C = {
   border: 'rgba(148,163,184,0.2)',
   text: '#e8ebf0',
   muted: '#94a3b8',
-  cyan: '#7dd3fc',
   purple: '#a78bfa',
   green: '#34d399',
   red: '#ef4444',
@@ -54,6 +54,7 @@ function getOptions(correct: string, allCards: Flashcard[], field: 'term' | 'def
 
 export function LearnMode() {
   const { sets, activeSetId, answerDirection, setAnswerDirection } = useMnemoStore();
+  const theme = useTheme();
   const activeSet = sets.find((s) => s.id === activeSetId);
   const cards = activeSet?.cards ?? [];
 
@@ -191,7 +192,7 @@ export function LearnMode() {
             setPromptCount(0);
             setDone(false);
           }}
-          style={{ background: C.cyan, color: '#0a1628', border: 'none', borderRadius: 8, padding: '12px 28px', cursor: 'pointer', fontWeight: 700, fontSize: 15 }}
+          style={{ background: theme.primary, color: '#0a1628', border: 'none', borderRadius: 8, padding: '12px 28px', cursor: 'pointer', fontWeight: 700, fontSize: 15 }}
         >
           Study Again
         </button>
@@ -225,7 +226,7 @@ export function LearnMode() {
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
           <span style={{ color: C.muted, fontSize: 13 }}>Progress</span>
-          <span style={{ color: C.cyan, fontSize: 13, fontWeight: 600 }}>{masteredCount}/{cards.length} mastered</span>
+          <span style={{ color: theme.primary, fontSize: 13, fontWeight: 600 }}>{masteredCount}/{cards.length} mastered</span>
         </div>
         <div style={{ height: 6, background: 'rgba(255,255,255,0.1)', borderRadius: 3 }}>
           <div style={{ height: '100%', width: `${progress * 100}%`, background: C.green, borderRadius: 3, transition: 'width 0.4s ease' }} />
@@ -244,7 +245,7 @@ export function LearnMode() {
             padding: '28px 32px',
             textAlign: 'center',
           }}>
-            <p style={{ margin: '0 0 8px', color: C.cyan, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 700 }}>
+            <p style={{ margin: '0 0 8px', color: theme.primary, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 700 }}>
               {answerDirection === 'term_to_definition' ? 'TERM' : 'DEFINITION'}
             </p>
             <p style={{ margin: 0, color: C.text, fontSize: 22, fontWeight: 600, lineHeight: 1.4 }}>
@@ -312,7 +313,7 @@ export function LearnMode() {
                 {!submitted && (
                   <button
                     onClick={() => handleSubmit(answer)}
-                    style={{ background: C.cyan, color: '#0a1628', border: 'none', borderRadius: 8, padding: '10px 24px', cursor: 'pointer', fontWeight: 700, fontSize: 14, alignSelf: 'flex-start' }}
+                    style={{ background: theme.primary, color: '#0a1628', border: 'none', borderRadius: 8, padding: '10px 24px', cursor: 'pointer', fontWeight: 700, fontSize: 14, alignSelf: 'flex-start' }}
                   >
                     Submit
                   </button>
@@ -398,7 +399,7 @@ export function LearnMode() {
                   onClick={handleNext}
                   style={{
                     marginTop: 10,
-                    background: C.cyan,
+                    background: theme.primary,
                     color: '#0a1628',
                     border: 'none',
                     borderRadius: 8,
