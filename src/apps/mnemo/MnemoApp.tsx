@@ -18,33 +18,28 @@ import type { AppView, StudyMode, AnswerDirection, ThemeColor } from './types';
 
 // ─── Theme System ─────────────────────────────────────────────────────────────
 
-const THEMES: Record<ThemeColor, { primary: string; primaryMuted: string; bg: string }> = {
-  blue:          { primary: '#7dd3fc', primaryMuted: 'rgba(125,211,252,0.15)', bg: '#06111f' },
-  pastel_pink:   { primary: '#f9a8d4', primaryMuted: 'rgba(249,168,212,0.15)', bg: '#1a0d14' },
-  pastel_red:    { primary: '#fca5a5', primaryMuted: 'rgba(252,165,165,0.15)', bg: '#1a0a0a' },
-  forest_green:  { primary: '#86efac', primaryMuted: 'rgba(134,239,172,0.15)', bg: '#061a0f' },
-  dark_blue:     { primary: '#818cf8', primaryMuted: 'rgba(129,140,248,0.15)', bg: '#08091f' },
-  pastel_purple: { primary: '#c4b5fd', primaryMuted: 'rgba(196,181,253,0.15)', bg: '#100d1a' },
-  pastel_yellow: { primary: '#fef08a', primaryMuted: 'rgba(254,240,138,0.15)', bg: '#1a1800' },
-  dark_yellow:   { primary: '#fcd34d', primaryMuted: 'rgba(252,211,77,0.15)', bg: '#1a1200' },
+const THEMES: Record<ThemeColor, {
+  primary: string; primaryMuted: string;
+  bg: string; sidebar: string; surface: string;
+  border: string; borderMuted: string;
+}> = {
+  blue:          { primary: '#7dd3fc', primaryMuted: 'rgba(125,211,252,0.15)', bg: '#05101e', sidebar: 'rgba(4,11,22,0.97)', surface: 'rgba(8,20,40,0.85)', border: 'rgba(125,211,252,0.22)', borderMuted: 'rgba(125,211,252,0.1)' },
+  pastel_pink:   { primary: '#f9a8d4', primaryMuted: 'rgba(249,168,212,0.15)', bg: '#190b14', sidebar: 'rgba(22,8,18,0.97)', surface: 'rgba(38,14,28,0.85)', border: 'rgba(249,168,212,0.22)', borderMuted: 'rgba(249,168,212,0.1)' },
+  pastel_red:    { primary: '#fca5a5', primaryMuted: 'rgba(252,165,165,0.15)', bg: '#1a0808', sidebar: 'rgba(20,5,5,0.97)',  surface: 'rgba(36,10,10,0.85)', border: 'rgba(252,165,165,0.22)', borderMuted: 'rgba(252,165,165,0.1)' },
+  forest_green:  { primary: '#86efac', primaryMuted: 'rgba(134,239,172,0.15)', bg: '#051509', sidebar: 'rgba(4,14,7,0.97)',  surface: 'rgba(8,26,13,0.85)',  border: 'rgba(134,239,172,0.22)', borderMuted: 'rgba(134,239,172,0.1)' },
+  dark_blue:     { primary: '#818cf8', primaryMuted: 'rgba(129,140,248,0.15)', bg: '#07071e', sidebar: 'rgba(5,5,22,0.97)',  surface: 'rgba(10,10,35,0.85)', border: 'rgba(129,140,248,0.22)', borderMuted: 'rgba(129,140,248,0.1)' },
+  pastel_purple: { primary: '#c4b5fd', primaryMuted: 'rgba(196,181,253,0.15)', bg: '#0e0a1a', sidebar: 'rgba(12,7,22,0.97)', surface: 'rgba(22,14,38,0.85)', border: 'rgba(196,181,253,0.22)', borderMuted: 'rgba(196,181,253,0.1)' },
+  pastel_yellow: { primary: '#fef08a', primaryMuted: 'rgba(254,240,138,0.15)', bg: '#181600', sidebar: 'rgba(18,16,0,0.97)', surface: 'rgba(30,27,5,0.85)',  border: 'rgba(254,240,138,0.22)', borderMuted: 'rgba(254,240,138,0.1)' },
+  dark_yellow:   { primary: '#fcd34d', primaryMuted: 'rgba(252,211,77,0.15)',  bg: '#180f00', sidebar: 'rgba(18,10,0,0.97)', surface: 'rgba(30,18,3,0.85)',  border: 'rgba(252,211,77,0.22)',  borderMuted: 'rgba(252,211,77,0.1)'  },
 };
 
 const THEME_LABELS: Record<ThemeColor, string> = {
-  blue: 'Blue',
-  pastel_pink: 'Pink',
-  pastel_red: 'Red',
-  forest_green: 'Forest',
-  dark_blue: 'Indigo',
-  pastel_purple: 'Purple',
-  pastel_yellow: 'Yellow',
-  dark_yellow: 'Amber',
+  blue: 'Blue', pastel_pink: 'Pink', pastel_red: 'Red', forest_green: 'Forest',
+  dark_blue: 'Indigo', pastel_purple: 'Purple', pastel_yellow: 'Yellow', dark_yellow: 'Amber',
 };
 
+// Static colors that never change with theme
 const C = {
-  sidebar: 'rgba(6,17,31,0.95)',
-  sidebarBorder: 'rgba(148,163,184,0.12)',
-  surface: 'rgba(10,25,47,0.8)',
-  border: 'rgba(148,163,184,0.2)',
   text: '#e8ebf0',
   muted: '#94a3b8',
   purple: '#a78bfa',
@@ -158,7 +153,7 @@ function SettingsPanel() {
 
   const inputStyle: React.CSSProperties = {
     background: 'rgba(255,255,255,0.04)',
-    border: `1px solid ${C.border}`,
+    border: `1px solid ${theme.border}`,
     borderRadius: 8,
     padding: '8px 12px',
     color: C.text,
@@ -170,11 +165,11 @@ function SettingsPanel() {
   };
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '24px', gap: 24, overflowY: 'auto' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '24px', gap: 24, overflowY: 'auto', background: theme.bg }}>
       <h2 style={{ margin: 0, color: C.text, fontSize: 20, fontWeight: 700 }}>Settings</h2>
 
       {/* Theme Color */}
-      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <h3 style={{ margin: 0, color: C.text, fontSize: 15, fontWeight: 600 }}>Theme Color</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
           {(Object.keys(THEMES) as ThemeColor[]).map((key) => {
@@ -223,7 +218,7 @@ function SettingsPanel() {
       </div>
 
       {/* Study Defaults */}
-      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <h3 style={{ margin: 0, color: C.text, fontSize: 15, fontWeight: 600 }}>Study Defaults</h3>
         <div>
           <label style={{ display: 'block', color: C.muted, fontSize: 12, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Default Answer Direction</label>
@@ -233,8 +228,8 @@ function SettingsPanel() {
                 key={dir}
                 onClick={() => setAnswerDirection(dir)}
                 style={{
-                  background: answerDirection === dir ? theme.primaryMuted : C.surface,
-                  border: `1px solid ${answerDirection === dir ? theme.primary : C.border}`,
+                  background: answerDirection === dir ? theme.primaryMuted : theme.surface,
+                  border: `1px solid ${answerDirection === dir ? theme.primary : theme.border}`,
                   borderRadius: 8,
                   padding: '8px 16px',
                   cursor: 'pointer',
@@ -251,7 +246,7 @@ function SettingsPanel() {
       </div>
 
       {/* Desktop Widgets */}
-      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 style={{ margin: 0, color: C.text, fontSize: 15, fontWeight: 600 }}>Desktop Widgets</h3>
           <button
@@ -277,7 +272,7 @@ function SettingsPanel() {
         {/* Widget Modal */}
         {showWidgetModal && (
           <div style={{
-            background: 'rgba(6,17,31,0.98)',
+            background: 'theme.sidebar',
             border: `1px solid ${theme.primary}`,
             borderRadius: 12,
             padding: '20px',
@@ -331,7 +326,7 @@ function SettingsPanel() {
                 onClick={() => setShowWidgetModal(false)}
                 style={{
                   background: 'transparent',
-                  border: `1px solid ${C.border}`,
+                  border: `1px solid ${theme.border}`,
                   borderRadius: 8,
                   padding: '8px 16px',
                   cursor: 'pointer',
@@ -377,7 +372,7 @@ function SettingsPanel() {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     background: 'rgba(255,255,255,0.03)',
-                    border: `1px solid ${C.border}`,
+                    border: `1px solid ${theme.border}`,
                     borderRadius: 8,
                     padding: '8px 12px',
                   }}
@@ -410,7 +405,7 @@ function SettingsPanel() {
       </div>
 
       {/* About */}
-      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: '20px' }}>
+      <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 12, padding: '20px' }}>
         <h3 style={{ margin: '0 0 8px', color: C.text, fontSize: 15, fontWeight: 600 }}>About Thoth</h3>
         <p style={{ margin: 0, color: C.muted, fontSize: 13, lineHeight: 1.6 }}>
           Thoth is a study application built for the aOS framework, named after the Egyptian god of knowledge.
@@ -465,8 +460,8 @@ function StudyHub() {
         display: 'flex',
         gap: 0,
         padding: '0 20px',
-        borderBottom: `1px solid rgba(148,163,184,0.12)`,
-        background: 'rgba(6,17,31,0.5)',
+        borderBottom: `1px solid theme.borderMuted`,
+        background: 'theme.sidebar',
         flexShrink: 0,
         overflowX: 'auto',
       }}>
@@ -535,8 +530,8 @@ function GamesHub() {
           display: 'flex',
           gap: 0,
           padding: '0 16px',
-          borderBottom: `1px solid rgba(148,163,184,0.12)`,
-          background: 'rgba(6,17,31,0.5)',
+          borderBottom: `1px solid theme.borderMuted`,
+          background: 'theme.sidebar',
           flexShrink: 0,
           overflowX: 'auto',
           alignItems: 'center',
@@ -594,8 +589,8 @@ function GamesHub() {
               }
             }}
             style={{
-              background: C.surface,
-              border: `1px solid ${activeSet ? color + '44' : C.border}`,
+              background: theme.surface,
+              border: `1px solid ${activeSet ? color + '44' : theme.border}`,
               borderRadius: 14,
               padding: '20px',
               cursor: activeSet ? 'pointer' : 'default',
@@ -606,7 +601,7 @@ function GamesHub() {
               transition: 'border-color 0.2s, transform 0.1s',
             }}
             onMouseEnter={(e) => { if (activeSet) { e.currentTarget.style.borderColor = color; e.currentTarget.style.transform = 'translateY(-2px)'; } }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = activeSet ? color + '44' : C.border; e.currentTarget.style.transform = 'translateY(0)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = activeSet ? color + '44' : theme.border; e.currentTarget.style.transform = 'translateY(0)'; }}
           >
             <div style={{ color, display: 'flex', alignItems: 'center', gap: 8 }}>
               {icon}
@@ -647,15 +642,15 @@ function Sidebar() {
   return (
     <div style={{
       width: 200,
-      background: C.sidebar,
-      borderRight: `1px solid rgba(148,163,184,0.12)`,
+      background: theme.sidebar,
+      borderRight: `1px solid theme.borderMuted`,
       display: 'flex',
       flexDirection: 'column',
       flexShrink: 0,
       overflow: 'hidden',
     }}>
       {/* Brand */}
-      <div style={{ padding: '20px 16px 16px', borderBottom: `1px solid rgba(148,163,184,0.12)` }}>
+      <div style={{ padding: '20px 16px 16px', borderBottom: `1px solid theme.borderMuted` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
             <rect x="2" y="2" width="24" height="24" rx="6" fill={theme.primaryMuted} stroke={theme.primary} strokeWidth="1.5"/>
@@ -669,7 +664,7 @@ function Sidebar() {
       {activeSet && (
         <div style={{
           padding: '10px 14px',
-          borderBottom: `1px solid rgba(148,163,184,0.12)`,
+          borderBottom: `1px solid theme.borderMuted`,
           background: theme.primaryMuted,
         }}>
           <p style={{ margin: 0, color: C.muted, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 3 }}>Active Set</p>
@@ -739,8 +734,8 @@ function TopBar() {
   return (
     <div style={{
       height: 48,
-      background: C.sidebar,
-      borderBottom: `1px solid rgba(148,163,184,0.12)`,
+      background: theme.sidebar,
+      borderBottom: `1px solid theme.borderMuted`,
       display: 'flex',
       alignItems: 'center',
       padding: '0 20px',
