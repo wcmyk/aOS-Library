@@ -90,20 +90,20 @@ export function SpeedMatch() {
   }
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: bgFlash, transition: 'background 0.2s' }}>
-      <div style={{ padding: '12px 20px', borderBottom: '1px solid rgba(148,163,184,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontFamily: 'monospace', fontSize: 20, fontWeight: 700, color: timeLeft <= 10 ? '#ef4444' : '#7dd3fc' }}>{timeLeft}s</span>
-        <span style={{ fontSize: 14, color: '#64748b' }}>Score: <strong style={{ color: '#e2e8f0' }}>{score}</strong></span>
-        <span style={{ fontSize: 14, color: streak >= 3 ? '#f59e0b' : '#475569' }}>Streak ×{streak}</span>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', height: '100%', background: bgFlash, transition: 'background 0.2s', overflow: 'hidden' }}>
+      <div style={{ padding: '12px 20px', borderBottom: '1px solid rgba(148,163,184,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+        <span style={{ fontFamily: 'monospace', fontSize: 22, fontWeight: 700, color: timeLeft <= 10 ? '#ef4444' : '#7dd3fc' }}>{timeLeft}s</span>
+        <span style={{ fontSize: 15, color: '#64748b' }}>Score: <strong style={{ color: '#e2e8f0' }}>{score}</strong></span>
+        <span style={{ fontSize: 15, color: streak >= 3 ? '#f59e0b' : '#475569' }}>Streak ×{streak}</span>
       </div>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20, padding: 32 }}>
-        <div style={{ fontSize: 11, fontWeight: 600, color: '#475569', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Term</div>
-        <div style={{ fontSize: 20, fontWeight: 700, color: '#e2e8f0', textAlign: 'center', maxWidth: 480 }}>{term}</div>
-        <div style={{ fontSize: 11, fontWeight: 600, color: '#475569', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Definition shown</div>
-        <div style={{ fontSize: 16, color: '#94a3b8', textAlign: 'center', maxWidth: 480, padding: '14px 20px', background: 'rgba(15,30,55,0.8)', borderRadius: 10, border: '1px solid rgba(148,163,184,0.12)' }}>{shown}</div>
-        <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
-          <button style={{ padding: '12px 32px', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', border: 'none', background: 'rgba(52,211,153,0.2)', color: '#34d399', border2: '2px solid #34d399' } as React.CSSProperties} onClick={() => answer(true)}>Same (Y)</button>
-          <button style={{ padding: '12px 32px', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', border: 'none', background: 'rgba(239,68,68,0.15)', color: '#ef4444' }} onClick={() => answer(false)}>Different (N)</button>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24, padding: '32px 48px' }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: '#475569', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Term</div>
+        <div style={{ fontSize: 32, fontWeight: 700, color: '#e2e8f0', textAlign: 'center', maxWidth: 600, lineHeight: 1.3 }}>{term}</div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: '#475569', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Definition shown</div>
+        <div style={{ fontSize: 24, color: '#94a3b8', textAlign: 'center', maxWidth: 600, padding: '18px 28px', background: 'rgba(15,30,55,0.8)', borderRadius: 12, border: '1px solid rgba(148,163,184,0.12)', lineHeight: 1.4 }}>{shown}</div>
+        <div style={{ display: 'flex', gap: 20, marginTop: 8 }}>
+          <button style={{ padding: '14px 40px', borderRadius: 12, fontSize: 17, fontWeight: 700, cursor: 'pointer', border: '2px solid #34d399', background: 'rgba(52,211,153,0.15)', color: '#34d399' }} onClick={() => answer(true)}>Same (Y)</button>
+          <button style={{ padding: '14px 40px', borderRadius: 12, fontSize: 17, fontWeight: 700, cursor: 'pointer', border: '2px solid #ef4444', background: 'rgba(239,68,68,0.15)', color: '#ef4444' }} onClick={() => answer(false)}>Different (N)</button>
         </div>
       </div>
     </div>
