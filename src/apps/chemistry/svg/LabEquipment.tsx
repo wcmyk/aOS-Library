@@ -6,7 +6,7 @@
  * Colors, precipitate, and gas effects are controlled via props.
  */
 
-import React from 'react';
+import React, { useId } from 'react';
 
 // ─── Shared Helpers ───────────────────────────────────────────────────────────
 
@@ -45,6 +45,7 @@ export function BeakerSVG({
   isSelected = false,
   label,
 }: BeakerProps) {
+  const uid = useId();
   const lw = width;
   const lh = height;
   const rim = 10;
@@ -55,13 +56,13 @@ export function BeakerSVG({
   const liquidY = lh - wall - liquidH;
 
   return (
-    <svg width={lw} height={lh + 16} viewBox={`0 0 ${lw} ${lh + 16}`} style={{ overflow: 'visible' }}>
+    <svg width={lw} height={lh + 16} viewBox={`0 0 ${lw} ${lh + 16}`}>
       <defs>
-        <clipPath id={`beaker-clip-${label}`}>
+        <clipPath id={`beaker-clip-${uid}`}>
           <path d={`M ${wall} ${rim} L ${(lw - topW) / 2} ${rim} L ${(lw - botW) / 2} ${lh - wall} L ${(lw + botW) / 2} ${lh - wall} L ${(lw + topW) / 2} ${rim} Z`} />
         </clipPath>
         {gasEvolved && (
-          <radialGradient id="bubble-grad" cx="50%" cy="50%" r="50%">
+          <radialGradient id={`bubble-grad-${uid}`} cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="rgba(255,255,255,0.7)" />
             <stop offset="100%" stopColor="rgba(255,255,255,0.1)" />
           </radialGradient>
@@ -70,7 +71,7 @@ export function BeakerSVG({
 
       {/* Liquid fill */}
       {fill > 0 && (
-        <g clipPath={`url(#beaker-clip-${label})`}>
+        <g clipPath={`url(#beaker-clip-${uid})`}>
           <rect
             x={(lw - botW) / 2}
             y={liquidY}
@@ -97,7 +98,7 @@ export function BeakerSVG({
               cx={lw * bx}
               cy={liquidY + liquidH * 0.5}
               r={2.5}
-              fill="url(#bubble-grad)"
+              fill={`url(#bubble-grad-${uid})`}
               style={{
                 animation: `rise ${0.8 + i * 0.3}s ease-in infinite`,
                 opacity: 0.75,
@@ -193,6 +194,7 @@ export function ErlenmeyerSVG({
   isSelected = false,
   label,
 }: ErlenmeyerProps) {
+  const uid = useId();
   const cx = width / 2;
   const neckTop = 12;
   const neckBot = 38;
@@ -216,15 +218,15 @@ export function ErlenmeyerSVG({
   ].join(' ');
 
   return (
-    <svg width={width} height={height + 16} viewBox={`0 0 ${width} ${height + 16}`} style={{ overflow: 'visible' }}>
+    <svg width={width} height={height + 16} viewBox={`0 0 ${width} ${height + 16}`}>
       <defs>
-        <clipPath id={`erl-clip-${label}`}>
+        <clipPath id={`erl-clip-${uid}`}>
           <path d={path} />
         </clipPath>
       </defs>
 
       {fill > 0 && (
-        <g clipPath={`url(#erl-clip-${label})`}>
+        <g clipPath={`url(#erl-clip-${uid})`}>
           <rect
             x={cx - bodyW / 2}
             y={fillY}
@@ -288,6 +290,7 @@ export function TestTubeSVG({
   precipitateColor?: string; hasPrecipitate?: boolean; gasEvolved?: boolean;
   isSelected?: boolean; label?: string;
 }) {
+  const uid = useId();
   const cx = width / 2;
   const tubeW = width - 4;
   const tubeTop = 8;
@@ -296,14 +299,14 @@ export function TestTubeSVG({
   const fillY = tubeBot - fillH;
 
   return (
-    <svg width={width} height={height + 16} viewBox={`0 0 ${width} ${height + 16}`} style={{ overflow: 'visible' }}>
+    <svg width={width} height={height + 16} viewBox={`0 0 ${width} ${height + 16}`}>
       <defs>
-        <clipPath id={`tt-clip-${label}`}>
+        <clipPath id={`tt-clip-${uid}`}>
           <path d={`M ${cx - tubeW / 2} ${tubeTop} L ${cx - tubeW / 2} ${tubeBot - 5} Q ${cx} ${tubeBot + 5} ${cx + tubeW / 2} ${tubeBot - 5} L ${cx + tubeW / 2} ${tubeTop}`} />
         </clipPath>
       </defs>
       {fill > 0 && (
-        <g clipPath={`url(#tt-clip-${label})`}>
+        <g clipPath={`url(#tt-clip-${uid})`}>
           <rect x={cx - tubeW / 2} y={fillY} width={tubeW} height={fillH + 10} fill={color} style={liquidStyle} />
           {hasPrecipitate && <rect x={cx - tubeW / 2} y={tubeBot - 8} width={tubeW} height={8} fill={precipitateColor} opacity={0.85} />}
           {gasEvolved && <circle cx={cx} cy={fillY + 4} r={2} fill="rgba(255,255,255,0.6)" style={{ animation: 'rise 0.8s ease-in infinite' }} />}
@@ -328,6 +331,7 @@ export function GradCylinderSVG({
   width?: number; height?: number; fill?: number; color?: string;
   isSelected?: boolean; label?: string;
 }) {
+  const uid = useId();
   const cx = width / 2;
   const cylW = width - 10;
   const baseW = width - 4;
@@ -338,10 +342,10 @@ export function GradCylinderSVG({
   const fillY = bot - fillH;
 
   return (
-    <svg width={width} height={height + 16} viewBox={`0 0 ${width} ${height + 16}`} style={{ overflow: 'visible' }}>
-      <defs><clipPath id={`gc-clip-${label}`}><rect x={cx - cylW / 2} y={top} width={cylW} height={bot - top} /></clipPath></defs>
+    <svg width={width} height={height + 16} viewBox={`0 0 ${width} ${height + 16}`}>
+      <defs><clipPath id={`gc-clip-${uid}`}><rect x={cx - cylW / 2} y={top} width={cylW} height={bot - top} /></clipPath></defs>
       {fill > 0 && (
-        <g clipPath={`url(#gc-clip-${label})`}>
+        <g clipPath={`url(#gc-clip-${uid})`}>
           <rect x={cx - cylW / 2} y={fillY} width={cylW} height={fillH} fill={color} style={liquidStyle} />
         </g>
       )}
@@ -375,6 +379,7 @@ export function BuretteSVG({
   width?: number; height?: number; fill?: number; color?: string;
   isSelected?: boolean; label?: string;
 }) {
+  const uid = useId();
   const cx = width / 2;
   const tubeW = 12;
   const top = 12;
@@ -384,10 +389,10 @@ export function BuretteSVG({
   const fillY = valveY - fillH;
 
   return (
-    <svg width={width} height={height + 16} viewBox={`0 0 ${width} ${height + 16}`} style={{ overflow: 'visible' }}>
-      <defs><clipPath id={`bur-clip-${label}`}><rect x={cx - tubeW / 2} y={top} width={tubeW} height={valveY - top} /></clipPath></defs>
+    <svg width={width} height={height + 16} viewBox={`0 0 ${width} ${height + 16}`}>
+      <defs><clipPath id={`bur-clip-${uid}`}><rect x={cx - tubeW / 2} y={top} width={tubeW} height={valveY - top} /></clipPath></defs>
       {fill > 0 && (
-        <g clipPath={`url(#bur-clip-${label})`}>
+        <g clipPath={`url(#bur-clip-${uid})`}>
           <rect x={cx - tubeW / 2} y={fillY} width={tubeW} height={fillH} fill={color} style={liquidStyle} />
         </g>
       )}
@@ -427,6 +432,7 @@ export function ReagentBottleSVG({
   width?: number; height?: number; color?: string; fill?: number;
   isSelected?: boolean; label?: string;
 }) {
+  const uid = useId();
   const cx = width / 2;
   const neckW = 16;
   const neckH = 18;
@@ -437,15 +443,15 @@ export function ReagentBottleSVG({
   const fillY = bodyY + bodyH - fillH;
 
   return (
-    <svg width={width} height={height + 16} viewBox={`0 0 ${width} ${height + 16}`} style={{ overflow: 'visible' }}>
+    <svg width={width} height={height + 16} viewBox={`0 0 ${width} ${height + 16}`}>
       <defs>
-        <clipPath id={`rb-clip-${label}`}>
+        <clipPath id={`rb-clip-${uid}`}>
           <rect x={cx - bodyW / 2} y={bodyY} width={bodyW} height={bodyH} />
         </clipPath>
       </defs>
       {/* Bottle body */}
       {fill > 0 && (
-        <g clipPath={`url(#rb-clip-${label})`}>
+        <g clipPath={`url(#rb-clip-${uid})`}>
           <rect x={cx - bodyW / 2} y={fillY} width={bodyW} height={fillH} fill={color} style={liquidStyle} rx={3} />
         </g>
       )}

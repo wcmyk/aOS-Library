@@ -5,3 +5,4 @@ export { SanctumApp } from './sanctum/SanctumApp';
 export { SpotifyApp } from './spotify/SpotifyApp';
 export { SafariApp } from './safari/SafariApp';
 export { CircuitApp } from './circuit/CircuitApp';
+export { MnemoApp } from './mnemo/MnemoApp';
