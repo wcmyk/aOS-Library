@@ -96,29 +96,30 @@ export function MemoryFlip() {
   }
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#06111f' }}>
-      <div style={{ padding: '12px 20px', borderBottom: '1px solid rgba(148,163,184,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ color: '#a78bfa', fontSize: 13, fontWeight: 600 }}>Memory Flip</span>
-        <span style={{ fontSize: 12, color: '#64748b' }}>Moves: {moves}</span>
-        <span style={{ fontFamily: 'monospace', fontSize: 13, color: '#94a3b8' }}>{mins}:{secs}</span>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', height: '100%', background: '#06111f', overflow: 'hidden' }}>
+      <div style={{ padding: '12px 20px', borderBottom: '1px solid rgba(148,163,184,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+        <span style={{ color: '#a78bfa', fontSize: 14, fontWeight: 600 }}>Memory Flip</span>
+        <span style={{ fontSize: 13, color: '#64748b' }}>Moves: {moves}</span>
+        <span style={{ fontFamily: 'monospace', fontSize: 14, color: '#94a3b8' }}>{mins}:{secs}</span>
       </div>
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, maxWidth: 600 }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, width: '100%', maxWidth: 700 }}>
           {cards.map((card) => (
             <button
               key={card.id}
               onClick={() => flip(card.id)}
               style={{
-                width: 130, height: 90, borderRadius: 10, cursor: card.isMatched ? 'default' : 'pointer', fontSize: 12, fontWeight: 500, textAlign: 'center', border: '1px solid', padding: 10,
+                minWidth: 100, minHeight: 100, borderRadius: 12, cursor: card.isMatched ? 'default' : 'pointer', fontSize: 13, fontWeight: 500, textAlign: 'center', border: '1px solid', padding: 12,
                 background: card.isMatched ? 'rgba(167,139,250,0.1)' : card.isFlipped ? 'rgba(15,30,55,0.95)' : 'rgba(10,20,40,0.9)',
                 borderColor: card.isMatched ? '#a78bfa' : card.isFlipped ? 'rgba(167,139,250,0.4)' : 'rgba(148,163,184,0.15)',
                 color: card.isMatched ? '#a78bfa' : '#cbd5e1',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s',
                 opacity: card.isMatched ? 0.6 : 1,
+                lineHeight: 1.3,
               }}
             >
               {card.isFlipped || card.isMatched ? card.text : (
-                <svg width="24" height="24" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="4" fill="rgba(167,139,250,0.2)" stroke="rgba(167,139,250,0.4)" strokeWidth="1.5" /><path d="M12 7v5l3 3" stroke="rgba(167,139,250,0.6)" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                <svg width="28" height="28" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="4" fill="rgba(167,139,250,0.2)" stroke="rgba(167,139,250,0.4)" strokeWidth="1.5" /><path d="M12 7v5l3 3" stroke="rgba(167,139,250,0.6)" strokeWidth="1.5" strokeLinecap="round" /></svg>
               )}
             </button>
           ))}

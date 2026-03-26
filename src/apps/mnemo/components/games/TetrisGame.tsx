@@ -3,7 +3,7 @@ import { useMnemoStore } from '../../state/useMnemoStore';
 import type { Flashcard } from '../../types';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const COLS = 10, ROWS = 20, CELL = 24;
+const COLS = 10, ROWS = 20;
 const COLORS: Record<string, string> = { I: '#7dd3fc', O: '#f59e0b', T: '#a78bfa', S: '#34d399', Z: '#ef4444', J: '#818cf8', L: '#fb923c' };
 const PIECES: Record<string, number[][]> = {
   I: [[1,1,1,1]],
@@ -61,6 +61,24 @@ export function TetrisGame() {
   const { sets, activeSetId, startSession, recordResult, endSession, setView } = useMnemoStore();
   const activeSet = sets.find((s) => s.id === activeSetId);
   const cards = activeSet?.cards ?? [];
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerHeight, setContainerHeight] = useState(480);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerHeight(entry.contentRect.height);
+      }
+    });
+    ro.observe(el);
+    setContainerHeight(el.clientHeight);
+    return () => ro.disconnect();
+  }, []);
+
+  const cellSize = Math.max(20, Math.min(32, Math.floor(containerHeight * 0.85 / ROWS)));
 
   const [board, setBoard] = useState<Board>(emptyBoard);
   const [piece, setPiece] = useState<Piece>(randPiece);
@@ -170,7 +188,7 @@ export function TetrisGame() {
 
   if (!started || gameOver) {
     return (
-      <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20, background: '#06111f', color: '#e2e8f0' }}>
+      <div ref={containerRef} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20, background: '#06111f', color: '#e2e8f0', width: '100%', height: '100%' }}>
         {gameOver && (
           <div style={{ textAlign: 'center', marginBottom: 8 }}>
             <div style={{ fontSize: 22, fontWeight: 700, color: '#ef4444', marginBottom: 6 }}>Game Over</div>
@@ -194,14 +212,14 @@ export function TetrisGame() {
   }
 
   return (
-    <div style={{ height: '100%', display: 'flex', background: '#06111f', gap: 0 }}>
+    <div ref={containerRef} style={{ flex: 1, display: 'flex', background: '#06111f', gap: 0, width: '100%', height: '100%', overflow: 'hidden' }}>
       {/* Board */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: 16 }}>
         <div style={{ position: 'relative' }}>
-          <svg width={COLS * CELL} height={ROWS * CELL} style={{ border: '1px solid rgba(148,163,184,0.15)', borderRadius: 4, display: 'block' }}>
+          <svg width={COLS * cellSize} height={ROWS * cellSize} style={{ border: '1px solid rgba(148,163,184,0.15)', borderRadius: 4, display: 'block' }}>
             {/* Background grid */}
             {Array.from({ length: ROWS }).map((_, r) => Array.from({ length: COLS }).map((__, c) => (
-              <rect key={`${r}-${c}`} x={c * CELL} y={r * CELL} width={CELL} height={CELL} fill="rgba(10,25,47,0.8)" stroke="rgba(148,163,184,0.06)" strokeWidth="0.5" />
+              <rect key={`${r}-${c}`} x={c * cellSize} y={r * cellSize} width={cellSize} height={cellSize} fill="rgba(10,25,47,0.8)" stroke="rgba(148,163,184,0.06)" strokeWidth="0.5" />
             )))}
             {/* Cells */}
             {display.map((row, r) => row.map((cell, c) => {
@@ -209,7 +227,7 @@ export function TetrisGame() {
               const isGhost = cell.startsWith('ghost_');
               const color = isGhost ? cell.replace('ghost_', '') : cell;
               return (
-                <rect key={`c${r}-${c}`} x={c * CELL + 1} y={r * CELL + 1} width={CELL - 2} height={CELL - 2} rx={2}
+                <rect key={`c${r}-${c}`} x={c * cellSize + 1} y={r * cellSize + 1} width={cellSize - 2} height={cellSize - 2} rx={2}
                   fill={isGhost ? 'none' : color} stroke={color} strokeWidth={isGhost ? 1 : 0}
                   opacity={isGhost ? 0.3 : 1} />
               );
@@ -251,8 +269,8 @@ export function TetrisGame() {
         </div>
         <div>
           <div style={{ fontSize: 10, color: '#475569', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>Next</div>
-          <svg width={4 * CELL} height={4 * CELL} style={{ background: 'rgba(10,25,47,0.8)', borderRadius: 4 }}>
-            {next.shape.map((row, r) => row.map((v, c) => v ? <rect key={`n${r}${c}`} x={c * CELL + 2} y={r * CELL + 8} width={CELL - 3} height={CELL - 3} rx={2} fill={COLORS[next.type]} /> : null))}
+          <svg width={4 * cellSize} height={4 * cellSize} style={{ background: 'rgba(10,25,47,0.8)', borderRadius: 4 }}>
+            {next.shape.map((row, r) => row.map((v, c) => v ? <rect key={`n${r}${c}`} x={c * cellSize + 2} y={r * cellSize + 8} width={cellSize - 3} height={cellSize - 3} rx={2} fill={COLORS[next.type]} /> : null))}
           </svg>
         </div>
         <button style={{ marginTop: 'auto', padding: '7px', borderRadius: 7, fontSize: 11, cursor: 'pointer', border: '1px solid rgba(239,68,68,0.3)', background: 'transparent', color: '#ef4444' }} onClick={() => { setGameOver(true); endSession(); }}>

@@ -103,14 +103,14 @@ export function BlastGame() {
   }
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: screenFlash === 'green' ? 'rgba(52,211,153,0.08)' : screenFlash === 'red' ? 'rgba(239,68,68,0.08)' : '#06111f', transition: 'background 0.2s', position: 'relative', overflow: 'hidden' }}>
-      <div style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(148,163,184,0.1)', flexShrink: 0 }}>
-        <div style={{ display: 'flex', gap: 6 }}>{Array.from({ length: 3 }).map((_, i) => <svg key={i} width="18" height="18" viewBox="0 0 18 18"><path d="M9 15S2 10.5 2 6a4 4 0 0 1 7-2.65A4 4 0 0 1 16 6c0 4.5-7 9-7 9Z" fill={i < hearts ? '#ef4444' : 'rgba(239,68,68,0.2)'} /></svg>)}</div>
-        <span style={{ fontSize: 14, fontWeight: 700, color: '#e2e8f0', fontFamily: 'monospace' }}>{score}</span>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', height: '100%', background: screenFlash === 'green' ? 'rgba(52,211,153,0.08)' : screenFlash === 'red' ? 'rgba(239,68,68,0.08)' : '#06111f', transition: 'background 0.2s', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(148,163,184,0.1)', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: 8 }}>{Array.from({ length: 3 }).map((_, i) => <svg key={i} width="22" height="22" viewBox="0 0 18 18"><path d="M9 15S2 10.5 2 6a4 4 0 0 1 7-2.65A4 4 0 0 1 16 6c0 4.5-7 9-7 9Z" fill={i < hearts ? '#ef4444' : 'rgba(239,68,68,0.2)'} /></svg>)}</div>
+        <span style={{ fontSize: 18, fontWeight: 700, color: '#e2e8f0', fontFamily: 'monospace' }}>{score}</span>
       </div>
-      <div style={{ padding: '14px 20px', textAlign: 'center', borderBottom: '1px solid rgba(148,163,184,0.08)', flexShrink: 0 }}>
-        <div style={{ fontSize: 11, color: '#475569', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>Blast the correct answer for:</div>
-        <div style={{ fontSize: 18, fontWeight: 700, color: '#e2e8f0' }}>{prompt}</div>
+      <div style={{ padding: '16px 24px', textAlign: 'center', borderBottom: '1px solid rgba(148,163,184,0.08)', flexShrink: 0 }}>
+        <div style={{ fontSize: 11, color: '#475569', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>Blast the correct answer for:</div>
+        <div style={{ fontSize: 26, fontWeight: 700, color: '#e2e8f0', lineHeight: 1.3 }}>{prompt}</div>
       </div>
       <div style={{ flex: 1, position: 'relative' }}>
         {bubbles.map((b) => (
@@ -118,13 +118,14 @@ export function BlastGame() {
             key={b.id}
             onClick={() => blast(b.id)}
             style={{
-              position: 'absolute', left: `${Math.min(Math.max(b.x, 2), 80)}%`, top: `${Math.min(b.y, 85)}%`,
-              padding: '10px 16px', borderRadius: 20, fontSize: 12, fontWeight: 500, cursor: b.blasted || b.wrong ? 'default' : 'pointer',
-              border: '1px solid', maxWidth: 180, textAlign: 'center', transition: 'opacity 0.3s',
+              position: 'absolute', left: `${Math.min(Math.max(b.x, 2), 75)}%`, top: `${Math.min(b.y, 80)}%`,
+              padding: '14px 22px', borderRadius: 24, fontSize: 15, fontWeight: 500, cursor: b.blasted || b.wrong ? 'default' : 'pointer',
+              border: '2px solid', maxWidth: 240, textAlign: 'center', transition: 'opacity 0.3s',
               background: b.blasted ? 'rgba(52,211,153,0.15)' : b.wrong ? 'rgba(239,68,68,0.15)' : 'rgba(15,30,55,0.92)',
               borderColor: b.blasted ? '#34d399' : b.wrong ? '#ef4444' : 'rgba(148,163,184,0.2)',
               color: b.blasted ? '#34d399' : b.wrong ? '#ef4444' : '#cbd5e1',
               opacity: b.blasted ? 0.4 : 1,
+              lineHeight: 1.3,
             }}
           >{b.text}</button>
         ))}
