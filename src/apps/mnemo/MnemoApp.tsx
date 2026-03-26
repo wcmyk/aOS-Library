@@ -143,7 +143,7 @@ function SettingsPanel() {
     border: `1px solid ${theme.border}`,
     borderRadius: 8,
     padding: '8px 12px',
-    color: C.text,
+    color: theme.text,
     fontSize: 13,
     outline: 'none',
     fontFamily: 'inherit',
@@ -153,11 +153,11 @@ function SettingsPanel() {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '24px', gap: 24, overflowY: 'auto', background: theme.bg }}>
-      <h2 style={{ margin: 0, color: C.text, fontSize: 20, fontWeight: 700 }}>Settings</h2>
+      <h2 style={{ margin: 0, color: theme.text, fontSize: 20, fontWeight: 700 }}>Settings</h2>
 
       {/* Theme Color */}
       <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <h3 style={{ margin: 0, color: C.text, fontSize: 15, fontWeight: 600 }}>Theme Color</h3>
+        <h3 style={{ margin: 0, color: theme.text, fontSize: 15, fontWeight: 600 }}>Theme Color</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
           {(Object.keys(THEMES) as ThemeColor[]).map((key) => {
             const t = THEMES[key];
@@ -195,7 +195,7 @@ function SettingsPanel() {
                     </svg>
                   )}
                 </div>
-                <span style={{ fontSize: 10, color: isSelected ? t.primary : C.muted, fontWeight: isSelected ? 600 : 400 }}>
+                <span style={{ fontSize: 10, color: isSelected ? t.primary : theme.textMuted, fontWeight: isSelected ? 600 : 400 }}>
                   {THEME_LABELS[key]}
                 </span>
               </button>
@@ -206,9 +206,9 @@ function SettingsPanel() {
 
       {/* Study Defaults */}
       <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <h3 style={{ margin: 0, color: C.text, fontSize: 15, fontWeight: 600 }}>Study Defaults</h3>
+        <h3 style={{ margin: 0, color: theme.text, fontSize: 15, fontWeight: 600 }}>Study Defaults</h3>
         <div>
-          <label style={{ display: 'block', color: C.muted, fontSize: 12, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Default Answer Direction</label>
+          <label style={{ display: 'block', color: theme.textMuted, fontSize: 12, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Default Answer Direction</label>
           <div style={{ display: 'flex', gap: 10 }}>
             {(['term_to_definition', 'definition_to_term'] as AnswerDirection[]).map((dir) => (
               <button
@@ -220,7 +220,7 @@ function SettingsPanel() {
                   borderRadius: 8,
                   padding: '8px 16px',
                   cursor: 'pointer',
-                  color: answerDirection === dir ? theme.primary : C.muted,
+                  color: answerDirection === dir ? theme.primary : theme.textMuted,
                   fontSize: 13,
                   fontWeight: answerDirection === dir ? 600 : 400,
                 }}
@@ -235,7 +235,7 @@ function SettingsPanel() {
       {/* Desktop Widgets */}
       <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ margin: 0, color: C.text, fontSize: 15, fontWeight: 600 }}>Desktop Widgets</h3>
+          <h3 style={{ margin: 0, color: theme.text, fontSize: 15, fontWeight: 600 }}>Desktop Widgets</h3>
           <button
             onClick={() => { setShowWidgetModal(true); if (sets.length > 0) setWidgetSetId(sets[0].id); }}
             style={{
@@ -252,14 +252,14 @@ function SettingsPanel() {
             + Add Widget
           </button>
         </div>
-        <p style={{ margin: 0, color: C.muted, fontSize: 13, lineHeight: 1.5 }}>
+        <p style={{ margin: 0, color: theme.textMuted, fontSize: 13, lineHeight: 1.5 }}>
           Place a flashcard widget on your desktop. Cards auto-flip after 10 seconds.
         </p>
 
         {/* Widget Modal */}
         {showWidgetModal && (
           <div style={{
-            background: 'theme.sidebar',
+            background: theme.sidebar,
             border: `1px solid ${theme.primary}`,
             borderRadius: 12,
             padding: '20px',
@@ -267,10 +267,10 @@ function SettingsPanel() {
             flexDirection: 'column',
             gap: 14,
           }}>
-            <h4 style={{ margin: 0, color: C.text, fontSize: 14, fontWeight: 600 }}>Configure Widget</h4>
+            <h4 style={{ margin: 0, color: theme.text, fontSize: 14, fontWeight: 600 }}>Configure Widget</h4>
 
             <div>
-              <label style={{ display: 'block', color: C.muted, fontSize: 12, marginBottom: 6 }}>Study Set</label>
+              <label style={{ display: 'block', color: theme.textMuted, fontSize: 12, marginBottom: 6 }}>Study Set</label>
               <select
                 value={widgetSetId}
                 onChange={(e) => { setWidgetSetId(e.target.value); setWidgetPhaseId(''); }}
@@ -283,7 +283,7 @@ function SettingsPanel() {
             </div>
 
             <div>
-              <label style={{ display: 'block', color: C.muted, fontSize: 12, marginBottom: 6 }}>Phase</label>
+              <label style={{ display: 'block', color: theme.textMuted, fontSize: 12, marginBottom: 6 }}>Phase</label>
               <select
                 value={widgetPhaseId}
                 onChange={(e) => setWidgetPhaseId(e.target.value)}
@@ -297,7 +297,7 @@ function SettingsPanel() {
             </div>
 
             <div>
-              <label style={{ display: 'block', color: C.muted, fontSize: 12, marginBottom: 6 }}>Direction</label>
+              <label style={{ display: 'block', color: theme.textMuted, fontSize: 12, marginBottom: 6 }}>Direction</label>
               <select
                 value={widgetDirection}
                 onChange={(e) => setWidgetDirection(e.target.value as AnswerDirection)}
@@ -317,7 +317,7 @@ function SettingsPanel() {
                   borderRadius: 8,
                   padding: '8px 16px',
                   cursor: 'pointer',
-                  color: C.muted,
+                  color: theme.textMuted,
                   fontSize: 13,
                 }}
               >
@@ -332,7 +332,7 @@ function SettingsPanel() {
                   borderRadius: 8,
                   padding: '8px 16px',
                   cursor: widgetSetId && sets.length > 0 ? 'pointer' : 'default',
-                  color: '#0a1628',
+                  color: theme.isDark ? '#0a1628' : '#fff',
                   fontSize: 13,
                   fontWeight: 700,
                   opacity: widgetSetId && sets.length > 0 ? 1 : 0.5,
@@ -347,7 +347,7 @@ function SettingsPanel() {
         {/* Active Widgets List */}
         {widgets.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <label style={{ color: C.muted, fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>Active Widgets</label>
+            <label style={{ color: theme.textMuted, fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>Active Widgets</label>
             {widgets.map((w) => {
               const wSet = sets.find((s) => s.id === w.setId);
               const wPhase = wSet?.phases.find((p) => p.id === w.phaseId);
@@ -365,8 +365,8 @@ function SettingsPanel() {
                   }}
                 >
                   <div>
-                    <div style={{ color: C.text, fontSize: 13, fontWeight: 500 }}>{wSet?.title ?? 'Unknown Set'}</div>
-                    <div style={{ color: C.muted, fontSize: 11 }}>
+                    <div style={{ color: theme.text, fontSize: 13, fontWeight: 500 }}>{wSet?.title ?? 'Unknown Set'}</div>
+                    <div style={{ color: theme.textMuted, fontSize: 11 }}>
                       {wPhase ? wPhase.name : 'All Cards'} · {w.direction === 'term_to_definition' ? 'Term → Def' : 'Def → Term'}
                     </div>
                   </div>
@@ -378,7 +378,7 @@ function SettingsPanel() {
                       borderRadius: 6,
                       padding: '4px 10px',
                       cursor: 'pointer',
-                      color: C.red,
+                      color: '#ef4444',
                       fontSize: 12,
                     }}
                   >
@@ -393,8 +393,8 @@ function SettingsPanel() {
 
       {/* About */}
       <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 12, padding: '20px' }}>
-        <h3 style={{ margin: '0 0 8px', color: C.text, fontSize: 15, fontWeight: 600 }}>About Thoth</h3>
-        <p style={{ margin: 0, color: C.muted, fontSize: 13, lineHeight: 1.6 }}>
+        <h3 style={{ margin: '0 0 8px', color: theme.text, fontSize: 15, fontWeight: 600 }}>About Thoth</h3>
+        <p style={{ margin: 0, color: theme.textMuted, fontSize: 13, lineHeight: 1.6 }}>
           Thoth is a study application built for the aOS framework, named after the Egyptian god of knowledge.
           It supports flashcards, adaptive learning, tests, matching games, and more.
         </p>
@@ -420,8 +420,8 @@ function StudyHub() {
 
   if (!activeSet) {
     return (
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16, color: C.muted }}>
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="1.5">
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16, color: theme.textMuted }}>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={theme.textMuted} strokeWidth="1.5">
           <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
         </svg>
         <p style={{ margin: 0, fontSize: 16 }}>Select a study set from the Library first.</p>
@@ -447,8 +447,8 @@ function StudyHub() {
         display: 'flex',
         gap: 0,
         padding: '0 20px',
-        borderBottom: `1px solid theme.borderMuted`,
-        background: 'theme.sidebar',
+        borderBottom: `1px solid ${theme.borderMuted}`,
+        background: theme.sidebar,
         flexShrink: 0,
         overflowX: 'auto',
       }}>
@@ -460,7 +460,7 @@ function StudyHub() {
               background: 'none',
               border: 'none',
               borderBottom: studyMode === mode ? `2px solid ${color}` : '2px solid transparent',
-              color: studyMode === mode ? color : C.muted,
+              color: studyMode === mode ? color : theme.textMuted,
               padding: '12px 16px',
               cursor: 'pointer',
               fontWeight: studyMode === mode ? 600 : 400,
@@ -517,8 +517,8 @@ function GamesHub() {
           display: 'flex',
           gap: 0,
           padding: '0 16px',
-          borderBottom: `1px solid theme.borderMuted`,
-          background: 'theme.sidebar',
+          borderBottom: `1px solid ${theme.borderMuted}`,
+          background: theme.sidebar,
           flexShrink: 0,
           overflowX: 'auto',
           alignItems: 'center',
@@ -531,7 +531,7 @@ function GamesHub() {
                 background: 'none',
                 border: 'none',
                 borderBottom: studyMode === mode ? `2px solid ${color}` : '2px solid transparent',
-                color: studyMode === mode ? color : C.muted,
+                color: studyMode === mode ? color : theme.textMuted,
                 padding: '11px 14px',
                 cursor: 'pointer',
                 fontWeight: studyMode === mode ? 600 : 400,
@@ -553,7 +553,7 @@ function GamesHub() {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '24px', gap: 20, overflowY: 'auto' }}>
-      <h2 style={{ margin: 0, color: C.text, fontSize: 20, fontWeight: 700 }}>Games</h2>
+      <h2 style={{ margin: 0, color: theme.text, fontSize: 20, fontWeight: 700 }}>Games</h2>
       {!activeSet && (
         <div style={{
           background: 'rgba(245,158,11,0.08)',
@@ -594,7 +594,7 @@ function GamesHub() {
               {icon}
               <span style={{ fontSize: 15, fontWeight: 700 }}>{label}</span>
             </div>
-            <p style={{ margin: 0, color: C.muted, fontSize: 13, lineHeight: 1.5 }}>{desc}</p>
+            <p style={{ margin: 0, color: theme.textMuted, fontSize: 13, lineHeight: 1.5 }}>{desc}</p>
           </div>
         ))}
       </div>
@@ -628,33 +628,54 @@ function Sidebar() {
 
   return (
     <div style={{
-      width: 200,
+      width: 210,
       background: theme.sidebar,
-      borderRight: `1px solid theme.borderMuted`,
+      borderRight: `1px solid ${theme.borderMuted}`,
       display: 'flex',
       flexDirection: 'column',
       flexShrink: 0,
       overflow: 'hidden',
     }}>
       {/* Brand */}
-      <div style={{ padding: '20px 16px 16px', borderBottom: `1px solid theme.borderMuted` }}>
+      <div style={{ padding: '18px 16px 14px', borderBottom: `1px solid ${theme.borderMuted}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-            <rect x="2" y="2" width="24" height="24" rx="6" fill={theme.primaryMuted} stroke={theme.primary} strokeWidth="1.5"/>
-            <path d="M7 20 L10 8 L14 16 L18 10 L21 20" stroke={theme.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-          </svg>
-          <span style={{ color: C.text, fontWeight: 800, fontSize: 18, letterSpacing: -0.5 }}>Thoth</span>
+          <div style={{
+            width: 34,
+            height: 34,
+            borderRadius: 10,
+            background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.primary}bb 100%)`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: `0 4px 12px ${theme.shadow}`,
+            flexShrink: 0,
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              {/* Cute owl/cat face */}
+              <circle cx="12" cy="13" r="7" fill="rgba(255,255,255,0.25)" />
+              <circle cx="9" cy="11" r="2" fill="white" />
+              <circle cx="15" cy="11" r="2" fill="white" />
+              <circle cx="9.5" cy="11" r="1" fill="rgba(0,0,0,0.5)" />
+              <circle cx="15.5" cy="11" r="1" fill="rgba(0,0,0,0.5)" />
+              <path d="M10 15 Q12 16.5 14 15" stroke="white" strokeWidth="1.2" strokeLinecap="round" fill="none" />
+              <path d="M7 6 L9 9" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="M17 6 L15 9" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </div>
+          <span style={{ color: theme.text, fontWeight: 800, fontSize: 18, letterSpacing: -0.5 }}>Thoth</span>
         </div>
       </div>
 
       {/* Active set indicator */}
       {activeSet && (
         <div style={{
-          padding: '10px 14px',
-          borderBottom: `1px solid theme.borderMuted`,
+          margin: '10px 10px 0',
+          padding: '8px 12px',
           background: theme.primaryMuted,
+          borderRadius: 12,
+          border: `1px solid ${theme.border}`,
         }}>
-          <p style={{ margin: 0, color: C.muted, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 3 }}>Active Set</p>
+          <p style={{ margin: 0, color: theme.textMuted, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 3 }}>Active Set</p>
           <p style={{ margin: 0, color: theme.primary, fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {activeSet.title}
           </p>
@@ -662,7 +683,7 @@ function Sidebar() {
       )}
 
       {/* Nav */}
-      <nav style={{ flex: 1, padding: '8px 0', overflowY: 'auto' }}>
+      <nav style={{ flex: 1, padding: '10px 10px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
         {NAV_ITEMS.map(({ view, label, icon, color }) => {
           const isActive = activeView === view;
           const accentColor = color ?? theme.primary;
@@ -674,21 +695,32 @@ function Sidebar() {
                 width: '100%',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 10,
-                padding: '9px 16px',
-                background: isActive ? theme.primaryMuted : 'none',
+                gap: 9,
+                padding: '9px 12px',
+                background: isActive ? theme.primaryMuted : 'transparent',
                 border: 'none',
-                borderLeft: isActive ? `2px solid ${accentColor}` : '2px solid transparent',
-                color: isActive ? accentColor : C.muted,
+                borderRadius: 12,
+                color: isActive ? accentColor : theme.textMuted,
                 cursor: 'pointer',
                 fontSize: 13,
                 fontWeight: isActive ? 600 : 400,
                 textAlign: 'left',
-                transition: 'all 0.15s',
+                transition: 'background 0.15s, color 0.15s',
                 fontFamily: 'inherit',
+                boxSizing: 'border-box',
               }}
-              onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = C.text; }}
-              onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.color = C.muted; }}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.background = theme.borderMuted;
+                  e.currentTarget.style.color = theme.text;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.color = theme.textMuted;
+                }
+              }}
             >
               {icon}
               {label}
@@ -720,19 +752,19 @@ function TopBar() {
 
   return (
     <div style={{
-      height: 48,
+      height: 46,
       background: theme.sidebar,
-      borderBottom: `1px solid theme.borderMuted`,
+      borderBottom: `1px solid ${theme.borderMuted}`,
       display: 'flex',
       alignItems: 'center',
       padding: '0 20px',
       gap: 16,
       flexShrink: 0,
     }}>
-      <h1 style={{ margin: 0, color: C.text, fontSize: 14, fontWeight: 600, flex: 1 }}>
+      <h1 style={{ margin: 0, color: theme.text, fontSize: 14, fontWeight: 600, flex: 1 }}>
         {viewLabels[activeView]}
         {activeSet && (activeView === 'study' || activeView === 'games') && (
-          <span style={{ color: C.muted, fontWeight: 400, marginLeft: 8 }}>· {activeSet.title}</span>
+          <span style={{ color: theme.textMuted, fontWeight: 400, marginLeft: 8 }}>· {activeSet.title}</span>
         )}
       </h1>
 
@@ -740,14 +772,15 @@ function TopBar() {
         <button
           onClick={() => setAnswerDirection(answerDirection === 'term_to_definition' ? 'definition_to_term' : 'term_to_definition')}
           style={{
-            background: 'rgba(167,139,250,0.1)',
-            border: `1px solid rgba(167,139,250,0.4)`,
-            borderRadius: 6,
-            padding: '4px 12px',
+            background: 'rgba(167,139,250,0.12)',
+            border: `1px solid rgba(167,139,250,0.35)`,
+            borderRadius: 20,
+            padding: '4px 14px',
             cursor: 'pointer',
             color: C.purple,
             fontSize: 12,
             fontWeight: 600,
+            fontFamily: 'inherit',
           }}
         >
           {answerDirection === 'term_to_definition' ? 'Term → Def' : 'Def → Term'}
@@ -789,7 +822,7 @@ export function MnemoApp() {
       flexDirection: 'column',
       background: theme.bg,
       fontFamily: "'SF Pro Display', Inter, system-ui, -apple-system, sans-serif",
-      color: C.text,
+      color: theme.text,
       overflow: 'hidden',
     }}>
       <TopBar />
