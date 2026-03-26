@@ -28,6 +28,7 @@ const RentCafeApp = lazy(() => import('./apps/rentcafe/RentCafeApp').then((m) =>
 const PyCharmApp = lazy(() => import('./apps/pycharm/PyCharmApp').then((m) => ({ default: m.PyCharmApp })));
 const CalculatorApp = lazy(() => import('./apps/calculator/CalculatorApp').then((m) => ({ default: m.CalculatorApp })));
 const CircuitApp = lazy(() => import('./apps/circuit/CircuitApp').then((m) => ({ default: m.CircuitApp })));
+const ChemistryApp = lazy(() => import('./apps/chemistry/ChemistryApp').then((m) => ({ default: m.ChemistryApp })));
 const InventoryApp = lazy(() => import('./apps/inventory/InventoryApp').then((m) => ({ default: m.InventoryApp })));
 const NotepadApp = lazy(() => import('./apps/notepad/NotepadApp').then((m) => ({ default: m.NotepadApp })));
 const EdenGardenApp = lazy(() => import('./apps/eden/EdenGardenApp').then((m) => ({ default: m.EdenGardenApp })));
@@ -131,6 +132,7 @@ function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDoc
   if (window.appId === 'pycharm') return <Suspense fallback={null}><PyCharmApp /></Suspense>;
   if (window.appId === 'calculator') return <Suspense fallback={null}><CalculatorApp /></Suspense>;
   if (window.appId === 'circuit') return <Suspense fallback={null}><CircuitApp /></Suspense>;
+  if (window.appId === 'chemistry') return <Suspense fallback={null}><ChemistryApp /></Suspense>;
   if (window.appId === 'inventory') return <Suspense fallback={null}><InventoryApp /></Suspense>;
   if (window.appId === 'notepad') return <Suspense fallback={null}><NotepadApp /></Suspense>;
   if (window.appId === 'eden') return <Suspense fallback={null}><EdenGardenApp /></Suspense>;

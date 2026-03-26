@@ -218,6 +218,14 @@ export const apps: ShellApp[] = [
     defaultSize: { width: 780, height: 540 },
   },
   {
+    id: 'chemistry',
+    name: 'Chem Lab',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a1628'/%3E%3Cpath d='M24 8L24 28L10 50L54 50L40 28L40 8Z' fill='none' stroke='%237dd3fc' stroke-width='2.2' stroke-linejoin='round'/%3E%3Cline x1='22' y1='8' x2='42' y2='8' stroke='%237dd3fc' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='22' cy='38' r='3.5' fill='%23a78bfa'/%3E%3Ccircle cx='34' cy='42' r='2.5' fill='%2334d399'/%3E%3Ccircle cx='28' cy='33' r='1.8' fill='%237dd3fc'/%3E%3Crect x='8' y='46' width='48' height='8' rx='3' fill='%230e2040'/%3E%3C/svg%3E`,
+    description: 'Virtual chemistry lab simulator with SVG equipment, reaction engine, stoichiometry, and guided experiments',
+    accent: '#7dd3fc',
+    defaultSize: { width: 1360, height: 820 },
+  },
+  {
     id: 'circuit',
     name: 'aOS Circuits',
     icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2306111f'/%3E%3Ccircle cx='12' cy='32' r='5' fill='none' stroke='%237dd3fc' stroke-width='2.5'/%3E%3Ccircle cx='52' cy='32' r='5' fill='none' stroke='%237dd3fc' stroke-width='2.5'/%3E%3Crect x='24' y='26' width='16' height='12' rx='3' fill='none' stroke='%23a78bfa' stroke-width='2.5'/%3E%3Cline x1='17' y1='32' x2='24' y2='32' stroke='%237dd3fc' stroke-width='2.5'/%3E%3Cline x1='40' y1='32' x2='47' y2='32' stroke='%237dd3fc' stroke-width='2.5'/%3E%3Ccircle cx='32' cy='14' r='4' fill='%2334d399'/%3E%3Cline x1='32' y1='18' x2='32' y2='26' stroke='%2334d399' stroke-width='2' stroke-dasharray='3 2'/%3E%3C/svg%3E`,
