@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTheme } from '../../theme';
 import { useMnemoStore } from '../../state/useMnemoStore';
 
 function shuffle<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
@@ -7,6 +8,7 @@ interface MemCard { id: string; text: string; pairId: string; isFlipped: boolean
 
 export function MemoryFlip() {
   const { sets, activeSetId, startSession, recordResult, endSession, setView } = useMnemoStore();
+  const theme = useTheme();
   const activeSet = sets.find((s) => s.id === activeSetId);
   const [cards, setCards] = useState<MemCard[]>([]);
   const [flipped, setFlipped] = useState<string[]>([]);

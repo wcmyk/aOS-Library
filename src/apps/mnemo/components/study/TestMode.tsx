@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTheme } from '../../theme';
 import { useMnemoStore } from '../../state/useMnemoStore';
 import type { Flashcard } from '../../types';
 
@@ -23,6 +24,7 @@ interface TestQ { card: Flashcard; type: 'mc' | 'typed'; choices: string[]; answ
 
 export function TestMode() {
   const { sets, activeSetId, answerDirection, startSession, recordResult, endSession, setView } = useMnemoStore();
+  const theme = useTheme();
   const activeSet = sets.find((s) => s.id === activeSetId);
   const [configured, setConfigured] = useState(false);
   const [qCount, setQCount] = useState(10);
@@ -67,7 +69,7 @@ export function TestMode() {
   if (!configured) {
     return (
       <div style={S.root}>
-        <div style={S.hdr}><span style={{ color: '#7dd3fc', fontSize: 13, fontWeight: 600 }}>Test Mode — {activeSet.title}</span></div>
+        <div style={S.hdr}><span style={{ color: theme.primary, fontSize: 13, fontWeight: 600 }}>Test Mode — {activeSet.title}</span></div>
         <div style={S.cfg}>
           <svg width="48" height="48" viewBox="0 0 48 48"><rect x="6" y="6" width="36" height="36" rx="6" fill="none" stroke="#7dd3fc" strokeWidth="2" /><line x1="13" y1="16" x2="35" y2="16" stroke="#7dd3fc" strokeWidth="1.5" /><line x1="13" y1="24" x2="35" y2="24" stroke="#7dd3fc" strokeWidth="1.5" /><line x1="13" y1="32" x2="26" y2="32" stroke="#7dd3fc" strokeWidth="1.5" /></svg>
           <div style={{ fontSize: 18, fontWeight: 600, color: '#e2e8f0' }}>Configure Test</div>
@@ -85,7 +87,7 @@ export function TestMode() {
   return (
     <div style={S.root}>
       <div style={S.hdr}>
-        <span style={{ color: '#7dd3fc', fontSize: 13, fontWeight: 600 }}>Test — {activeSet.title}</span>
+        <span style={{ color: theme.primary, fontSize: 13, fontWeight: 600 }}>Test — {activeSet.title}</span>
         {submitted && <span style={{ fontSize: 13, color: score / questions.length >= 0.7 ? '#34d399' : '#ef4444', fontWeight: 700 }}>{score}/{questions.length} correct ({Math.round(score / questions.length * 100)}%)</span>}
       </div>
       <div style={S.body}>
@@ -116,7 +118,7 @@ export function TestMode() {
         ) : (
           <div style={{ textAlign: 'center', paddingTop: 8, display: 'flex', gap: 12, justifyContent: 'center' }}>
             <button style={S.btn} onClick={() => { setConfigured(false); }}>New Test</button>
-            <button style={{ ...S.btn, background: 'rgba(15,30,55,0.9)', color: '#7dd3fc', border: '1px solid rgba(125,211,252,0.3)' }} onClick={() => setView('library')}>Back to Library</button>
+            <button style={{ ...S.btn, background: 'rgba(15,30,55,0.9)', color: theme.primary, border: '1px solid theme.primaryMuted' }} onClick={() => setView('library')}>Back to Library</button>
           </div>
         )}
       </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTheme } from '../../theme';
 import { useMnemoStore } from '../../state/useMnemoStore';
 import type { Flashcard } from '../../types';
 
@@ -12,6 +13,7 @@ const GRID_SIZE = 6;
 
 export function MatchMode() {
   const { sets, activeSetId, answerDirection, startSession, recordResult, endSession, setView } = useMnemoStore();
+  const theme = useTheme();
   const activeSet = sets.find((s) => s.id === activeSetId);
   const [tiles, setTiles] = useState<Tile[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
@@ -90,7 +92,7 @@ export function MatchMode() {
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#06111f' }}>
       <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(148,163,184,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ color: '#7dd3fc', fontSize: 13, fontWeight: 600 }}>Match — {activeSet.title}</span>
+        <span style={{ color: theme.primary, fontSize: 13, fontWeight: 600 }}>Match — {activeSet.title}</span>
         <div style={{ display: 'flex', gap: 16, fontSize: 13, color: '#64748b' }}>
           <span>{matched}/{total} matched</span>
           <span style={{ fontFamily: 'monospace', color: '#94a3b8' }}>{mins}:{secs}</span>
@@ -102,7 +104,7 @@ export function MatchMode() {
           <svg width="52" height="52" viewBox="0 0 52 52"><rect x="4" y="14" width="18" height="26" rx="4" fill="none" stroke="#7dd3fc" strokeWidth="2" /><rect x="30" y="14" width="18" height="26" rx="4" fill="none" stroke="#a78bfa" strokeWidth="2" /><line x1="22" y1="27" x2="30" y2="27" stroke="#34d399" strokeWidth="1.5" strokeDasharray="3 2" /></svg>
           <div style={{ fontSize: 18, fontWeight: 600, color: '#e2e8f0' }}>Match Mode</div>
           <div style={{ fontSize: 13, color: '#64748b' }}>Click a term, then its matching definition</div>
-          <button style={{ padding: '10px 28px', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', border: 'none', background: '#7dd3fc', color: '#06111f' }} onClick={start}>Start</button>
+          <button style={{ padding: '10px 28px', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', border: 'none', background: theme.primary, color: '#06111f' }} onClick={start}>Start</button>
         </div>
       ) : done ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
@@ -110,8 +112,8 @@ export function MatchMode() {
           <div style={{ fontSize: 22, fontWeight: 700, color: '#34d399' }}>All matched!</div>
           <div style={{ fontSize: 14, color: '#64748b' }}>Time: {mins}:{secs}</div>
           <div style={{ display: 'flex', gap: 12 }}>
-            <button style={{ padding: '10px 28px', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', border: 'none', background: '#7dd3fc', color: '#06111f' }} onClick={start}>Play Again</button>
-            <button style={{ padding: '10px 28px', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', border: '1px solid rgba(125,211,252,0.3)', background: 'transparent', color: '#7dd3fc' }} onClick={() => setView('library')}>Done</button>
+            <button style={{ padding: '10px 28px', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', border: 'none', background: theme.primary, color: '#06111f' }} onClick={start}>Play Again</button>
+            <button style={{ padding: '10px 28px', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', border: '1px solid theme.primaryMuted', background: 'transparent', color: theme.primary }} onClick={() => setView('library')}>Done</button>
           </div>
         </div>
       ) : (
@@ -125,7 +127,7 @@ export function MatchMode() {
                   padding: '14px 12px', borderRadius: 10, cursor: tile.matched ? 'default' : 'pointer',
                   fontSize: 13, fontWeight: 500, textAlign: 'center',
                   border: '1px solid', transition: 'all 0.15s',
-                  background: tile.matched ? 'rgba(52,211,153,0.1)' : tile.selected ? 'rgba(125,211,252,0.15)' : 'rgba(15,30,55,0.9)',
+                  background: tile.matched ? 'rgba(52,211,153,0.1)' : tile.selected ? 'theme.primaryMuted' : 'rgba(15,30,55,0.9)',
                   borderColor: tile.matched ? '#34d399' : tile.selected ? '#7dd3fc' : 'rgba(148,163,184,0.15)',
                   color: tile.matched ? '#34d399' : tile.selected ? '#7dd3fc' : '#cbd5e1',
                   opacity: tile.matched ? 0.5 : 1,

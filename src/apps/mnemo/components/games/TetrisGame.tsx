@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useTheme } from '../../theme';
 import { useMnemoStore } from '../../state/useMnemoStore';
 import type { Flashcard } from '../../types';
 
@@ -59,6 +60,7 @@ function shuffle<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.length -
 
 export function TetrisGame() {
   const { sets, activeSetId, startSession, recordResult, endSession, setView } = useMnemoStore();
+  const theme = useTheme();
   const activeSet = sets.find((s) => s.id === activeSetId);
   const cards = activeSet?.cards ?? [];
 
@@ -203,10 +205,10 @@ export function TetrisGame() {
             <div style={{ fontSize: 12, color: '#475569' }}>Arrow keys to move · ↑ to rotate · Space to drop hard</div>
           </>
         )}
-        <button style={{ padding: '10px 28px', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', border: 'none', background: '#7dd3fc', color: '#06111f' }} onClick={startGame}>
+        <button style={{ padding: '10px 28px', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', border: 'none', background: theme.primary, color: '#06111f' }} onClick={startGame}>
           {gameOver ? 'Play Again' : 'Start'}
         </button>
-        {gameOver && <button style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, cursor: 'pointer', border: '1px solid rgba(125,211,252,0.3)', background: 'transparent', color: '#7dd3fc' }} onClick={() => setView('library')}>Back</button>}
+        {gameOver && <button style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13, cursor: 'pointer', border: `1px solid ${theme.primaryMuted}`, background: 'transparent', color: theme.primary }} onClick={() => setView('library')}>Back</button>}
       </div>
     );
   }
@@ -255,7 +257,7 @@ export function TetrisGame() {
       <div style={{ width: 140, padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: 16, borderLeft: '1px solid rgba(148,163,184,0.1)', flexShrink: 0 }}>
         <div>
           <div style={{ fontSize: 10, color: '#475569', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>Score</div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#7dd3fc', fontFamily: 'monospace' }}>{score}</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: theme.primary, fontFamily: 'monospace' }}>{score}</div>
         </div>
         <div>
           <div style={{ fontSize: 10, color: '#475569', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>Lines</div>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTheme } from '../../theme';
 import { useMnemoStore } from '../../state/useMnemoStore';
 import type { Phase, Flashcard } from '../../types';
 
@@ -12,12 +13,13 @@ const S = {
   phaseHdr: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   phaseName: { fontSize: 14, fontWeight: 600, color: '#7dd3fc' },
   cardChip: { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 6, background: 'rgba(15,30,55,0.9)', border: '1px solid rgba(148,163,184,0.15)', fontSize: 12, color: '#94a3b8', margin: '3px', cursor: 'grab' },
-  btn: (variant = 'primary'): React.CSSProperties => ({ padding: '7px 16px', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: variant === 'primary' ? 'none' : '1px solid rgba(125,211,252,0.3)', background: variant === 'primary' ? '#7dd3fc' : 'transparent', color: variant === 'primary' ? '#06111f' : '#7dd3fc' }),
+  btn: (variant = 'primary'): React.CSSProperties => ({ padding: '7px 16px', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: 'none', background: variant === 'primary' ? '#7dd3fc' : 'transparent', color: variant === 'primary' ? '#06111f' : '#7dd3fc' }),
   unassigned: { background: 'rgba(10,25,47,0.5)', border: '1px dashed rgba(148,163,184,0.2)', borderRadius: 12, padding: 16, marginBottom: 14 },
 };
 
 export function SplitLearning() {
   const { sets, activeSetId, updateSet } = useMnemoStore();
+  const theme = useTheme();
   const activeSet = sets.find((s) => s.id === activeSetId);
   const [dragging, setDragging] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<string | null>(null);
@@ -72,7 +74,7 @@ export function SplitLearning() {
   return (
     <div style={S.root}>
       <div style={S.hdr}>
-        <span style={{ color: '#7dd3fc', fontSize: 13, fontWeight: 600 }}>Split Learning — {activeSet.title}</span>
+        <span style={{ color: theme.primary, fontSize: 13, fontWeight: 600 }}>Split Learning — {activeSet.title}</span>
         <div style={{ display: 'flex', gap: 8 }}>
           <select onChange={(e) => autoDistribute(Number(e.target.value))} style={{ background: 'rgba(15,30,55,0.9)', border: '1px solid rgba(148,163,184,0.2)', color: '#94a3b8', borderRadius: 6, padding: '5px 8px', fontSize: 12, cursor: 'pointer' }} defaultValue="">
             <option value="" disabled>Auto-distribute</option>
@@ -100,7 +102,7 @@ export function SplitLearning() {
               onDragLeave={() => setDragOver(null)}
               onDrop={() => { if (dragging) dropCardOnPhase(dragging, phase.id); setDragOver(null); setDragging(null); }}>
               <div style={S.phaseHdr}>
-                <input value={phase.name} onChange={(e) => renamePhase(phase.id, e.target.value)} style={{ background: 'none', border: 'none', fontSize: 14, fontWeight: 600, color: '#7dd3fc', outline: 'none', flex: 1 }} />
+                <input value={phase.name} onChange={(e) => renamePhase(phase.id, e.target.value)} style={{ background: 'none', border: 'none', fontSize: 14, fontWeight: 600, color: theme.primary, outline: 'none', flex: 1 }} />
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <span style={{ fontSize: 12, color: '#475569' }}>{phaseCards.length} cards</span>
                   <button style={{ ...S.btn('ghost'), padding: '4px 8px', fontSize: 11, color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }} onClick={() => deletePhase(phase.id)}>Remove</button>

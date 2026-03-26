@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { useTheme } from '../theme';
 import { useMnemoStore } from '../state/useMnemoStore';
 
 const C = {
@@ -7,7 +8,6 @@ const C = {
   border: 'rgba(148,163,184,0.2)',
   text: '#e8ebf0',
   muted: '#94a3b8',
-  cyan: '#7dd3fc',
   purple: '#a78bfa',
   green: '#34d399',
   amber: '#f59e0b',
@@ -83,6 +83,7 @@ function UploadIcon() {
 
 export function ImportFlow() {
   const { bulkImportSet, setActiveSet, setView } = useMnemoStore();
+  const theme = useTheme();
   const [tab, setTab] = useState<'text' | 'csv'>('text');
   const [text, setText] = useState('');
   const [csvText, setCsvText] = useState('');
@@ -180,7 +181,7 @@ export function ImportFlow() {
           onChange={(e) => setSetTitle(e.target.value)}
           style={{ ...inputStyle, width: '100%', boxSizing: 'border-box', fontSize: 15 }}
           placeholder="Name your set..."
-          onFocus={(e) => (e.target.style.borderColor = C.cyan)}
+          onFocus={(e) => (e.target.style.borderColor = theme.primary)}
           onBlur={(e) => (e.target.style.borderColor = C.border)}
         />
       </div>
@@ -194,8 +195,8 @@ export function ImportFlow() {
             style={{
               background: 'none',
               border: 'none',
-              borderBottom: tab === t ? `2px solid ${C.cyan}` : '2px solid transparent',
-              color: tab === t ? C.cyan : C.muted,
+              borderBottom: tab === t ? `2px solid ${theme.primary}` : '2px solid transparent',
+              color: tab === t ? theme.primary : C.muted,
               padding: '10px 20px',
               cursor: 'pointer',
               fontWeight: tab === t ? 600 : 400,
@@ -271,7 +272,7 @@ export function ImportFlow() {
               fontSize: 13,
               fontFamily: 'monospace',
             }}
-            onFocus={(e) => (e.target.style.borderColor = C.cyan)}
+            onFocus={(e) => (e.target.style.borderColor = theme.primary)}
             onBlur={(e) => (e.target.style.borderColor = C.border)}
           />
         </div>
@@ -290,7 +291,7 @@ export function ImportFlow() {
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               style={{
-                border: `2px dashed ${dragOver ? C.cyan : C.border}`,
+                border: `2px dashed ${dragOver ? theme.primary : C.border}`,
                 borderRadius: 12,
                 padding: '40px',
                 textAlign: 'center',
@@ -311,11 +312,11 @@ export function ImportFlow() {
                 onClick={() => fileRef.current?.click()}
                 style={{
                   background: 'rgba(125,211,252,0.1)',
-                  border: `1px solid ${C.cyan}`,
+                  border: `1px solid ${theme.primary}`,
                   borderRadius: 8,
                   padding: '8px 20px',
                   cursor: 'pointer',
-                  color: C.cyan,
+                  color: theme.primary,
                   fontSize: 13,
                   fontWeight: 600,
                   marginTop: 4,
@@ -413,7 +414,7 @@ export function ImportFlow() {
         onClick={handleImport}
         disabled={finalPairs.length === 0}
         style={{
-          background: finalPairs.length > 0 ? C.cyan : 'rgba(125,211,252,0.3)',
+          background: finalPairs.length > 0 ? theme.primary : 'theme.primaryMuted',
           color: finalPairs.length > 0 ? '#0a1628' : C.muted,
           border: 'none',
           borderRadius: 10,

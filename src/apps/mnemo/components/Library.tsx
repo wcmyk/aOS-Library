@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTheme } from '../theme';
 import { useMnemoStore } from '../state/useMnemoStore';
 import type { StudySet } from '../types';
 
@@ -8,7 +9,6 @@ const C = {
   border: 'rgba(148,163,184,0.2)',
   text: '#e8ebf0',
   muted: '#94a3b8',
-  cyan: '#7dd3fc',
   purple: '#a78bfa',
   green: '#34d399',
   amber: '#f59e0b',
@@ -89,6 +89,7 @@ function formatDate(d: Date | string): string {
 
 function SetCard({ studySet, lastStudied }: { studySet: StudySet; lastStudied?: Date }) {
   const { setActiveSet, setView, setStudyMode, deleteSet } = useMnemoStore();
+  const theme = useTheme();
 
   const handleStudy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -124,7 +125,7 @@ function SetCard({ studySet, lastStudied }: { studySet: StudySet; lastStudied?: 
         gap: 12,
       }}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLDivElement).style.borderColor = C.cyan;
+        (e.currentTarget as HTMLDivElement).style.borderColor = theme.primary;
         (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)';
       }}
       onMouseLeave={(e) => {
@@ -174,7 +175,7 @@ function SetCard({ studySet, lastStudied }: { studySet: StudySet; lastStudied?: 
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ color: C.cyan, fontSize: 13, fontWeight: 600 }}>
+        <span style={{ color: theme.primary, fontSize: 13, fontWeight: 600 }}>
           {studySet.cards.length} card{studySet.cards.length !== 1 ? 's' : ''}
         </span>
         {lastStudied && (
@@ -214,7 +215,7 @@ function SetCard({ studySet, lastStudied }: { studySet: StudySet; lastStudied?: 
       <button
         onClick={handleStudy}
         style={{
-          background: C.cyan,
+          background: theme.primary,
           color: '#0a1628',
           border: 'none',
           borderRadius: 8,
@@ -239,6 +240,7 @@ type SortKey = 'recent' | 'alpha' | 'most-studied';
 
 export function Library() {
   const { sets, sessions, setView, setActiveSet, setStudyMode } = useMnemoStore();
+  const theme = useTheme();
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortKey>('recent');
 
@@ -315,7 +317,7 @@ export function Library() {
           <button
             onClick={handleCreate}
             style={{
-              background: C.cyan,
+              background: theme.primary,
               color: '#0a1628',
               border: 'none',
               borderRadius: 8,
@@ -334,8 +336,8 @@ export function Library() {
             onClick={handleImport}
             style={{
               background: 'transparent',
-              color: C.cyan,
-              border: `1px solid ${C.cyan}`,
+              color: theme.primary,
+              border: `1px solid ${theme.primary}`,
               borderRadius: 8,
               padding: '10px 20px',
               cursor: 'pointer',
@@ -367,8 +369,8 @@ export function Library() {
             onClick={handleImport}
             style={{
               background: 'transparent',
-              color: C.cyan,
-              border: `1px solid ${C.cyan}`,
+              color: theme.primary,
+              border: `1px solid ${theme.primary}`,
               borderRadius: 8,
               padding: '8px 16px',
               cursor: 'pointer',
@@ -384,7 +386,7 @@ export function Library() {
           <button
             onClick={handleCreate}
             style={{
-              background: C.cyan,
+              background: theme.primary,
               color: '#0a1628',
               border: 'none',
               borderRadius: 8,
