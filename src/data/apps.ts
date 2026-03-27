@@ -241,4 +241,12 @@ export const apps: ShellApp[] = [
     accent: '#7dd3fc',
     defaultSize: { width: 1280, height: 820 },
   },
+  {
+    id: 'chess',
+    name: 'aOS Chess',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d111a'/%3E%3Crect x='12' y='12' width='40' height='40' rx='6' fill='%23e2e8f0'/%3E%3Cpath d='M12 24h40M12 36h40M24 12v40M36 12v40' stroke='%2394a3b8' stroke-width='2'/%3E%3Cpath d='M45 18h-6l2-4h-4l-2 4h-4v4h14z' fill='%23b91c1c'/%3E%3Ccircle cx='21' cy='43' r='5' fill='%231e293b'/%3E%3C/svg%3E`,
+    description: 'Competitive online chess platform with separated site/FIDE ratings, bot fallback, tournaments, and title badges',
+    accent: '#ef4444',
+    defaultSize: { width: 1320, height: 860 },
+  },
 ];

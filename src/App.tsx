@@ -35,6 +35,7 @@ const ThothWidget = lazy(() => import('./apps/mnemo/ThothWidget').then((m) => ({
 const InventoryApp = lazy(() => import('./apps/inventory/InventoryApp').then((m) => ({ default: m.InventoryApp })));
 const NotepadApp = lazy(() => import('./apps/notepad/NotepadApp').then((m) => ({ default: m.NotepadApp })));
 const EdenGardenApp = lazy(() => import('./apps/eden/EdenGardenApp').then((m) => ({ default: m.EdenGardenApp })));
+const ChessApp = lazy(() => import('./apps/chess/ChessApp').then((m) => ({ default: m.ChessApp })));
 
 const artifacts = [
   { title: 'Roadmap.md', kind: 'Report', updated: '2h ago', detail: 'Phase 1 delivery outline', accent: '#7c8cff' },
@@ -140,6 +141,7 @@ function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDoc
   if (window.appId === 'inventory') return <Suspense fallback={null}><InventoryApp /></Suspense>;
   if (window.appId === 'notepad') return <Suspense fallback={null}><NotepadApp /></Suspense>;
   if (window.appId === 'eden') return <Suspense fallback={null}><EdenGardenApp /></Suspense>;
+  if (window.appId === 'chess') return <Suspense fallback={null}><ChessApp /></Suspense>;
 
   if (window.appId === 'archive') return <Suspense fallback={null}><AccelApp /></Suspense>;
   if (window.appId === 'oracle') return <Suspense fallback={null}><OracleApp /></Suspense>;
