@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useMailStore, type JobMeta } from '../../../state/useMailStore';
 import { useProfileStore } from '../../../state/useProfileStore';
+import { CompanyLogo, getCompanyBanner, getBrandColor } from '../../../data/brands';
+import './linkedin.css';
 
 // ── Seeded random ─────────────────────────────────────────────────────────────
 
@@ -47,7 +49,7 @@ function makeName(rng: () => number) {
 // ── Company name algorithm ────────────────────────────────────────────────────
 
 const COMPANY_POOL = [
-  '3M Company','AbbVie Inc.','Activision Publishing, Inc.','Adobe Inc.','AECOM','Airbnb, Inc.','Alcoa Corp.','Amgen Inc.','Applied Materials, Inc.','Arrow Electronics, Inc.','Assurant, Inc.','AT&T, Services Inc.','Bank of America, N.A.','Becton, Dickinson and Company','Biogen MA Inc.','BlackRock, Inc.','Booz Allen Hamilton, Inc.','BorgWarner Inc.','Bristol-Myers Squibb Company','Cardinal Health, Inc.','CarMax Enterprise Services, LLC','Caterpillar Inc.','Charles Schwab & Co., Inc.','Chevron U.S.A. Inc.','Citibank, N.A.','Cognizant Worldwide Limited','Comcast Cable Communications Management, LLC','ConocoPhillips Company','DaVita Inc.','Dell USA L.P.','Disney Worldwide Services, Inc.','DXC Technology Services LLC','eBay Inc.','Equinix, Inc.','ExxonMobil Global Services Company','Federal National Mortgage Association','FedEx Corporate Services, Inc.','Fiserv Solutions, LLC','General Electric Company','Hewlett Packard Enterprise Company','Home Depot Store Support, Inc.','HP Inc.','Humana, Inc.','International Business Machines Corporation','Intuit Inc.','IQVIA Inc.','JP Morgan','Jabil, Inc.','KeyBank N.A.','Leidos, Inc.','LPL Financial LLC','M&T Bank','Marathon Petroleum Company LP','Marsh & McLennan Companies, Inc.','META','Google','Anthropic','OpenAI','Morgan Stanley','Netflix','NVIDIA','APPLE','SAMSUNG','BMW Group','Mercedes-Benz Group','Ford Motor Company','General Motors','Tesla, Inc.',
+  '3M Company','AbbVie Inc.','Activision Publishing, Inc.','Adobe Inc.','AECOM','Airbnb, Inc.','Alcoa Corp.','Amgen Inc.','Applied Materials, Inc.','Arrow Electronics, Inc.','Assurant, Inc.','AT&T, Services Inc.','Bank of America, N.A.','Becton, Dickinson and Company','Biogen MA Inc.','BlackRock, Inc.','Booz Allen Hamilton, Inc.','BorgWarner Inc.','Bristol-Myers Squibb Company','Cardinal Health, Inc.','CarMax Enterprise Services, LLC','Caterpillar Inc.','Charles Schwab & Co., Inc.','Chevron U.S.A. Inc.','Citibank, N.A.','Cognizant Worldwide Limited','Comcast Cable Communications Management, LLC','ConocoPhillips Company','DaVita Inc.','Dell USA L.P.','Disney Worldwide Services, Inc.','DXC Technology Services LLC','eBay Inc.','Equinix, Inc.','ExxonMobil Global Services Company','Federal National Mortgage Association','FedEx Corporate Services, Inc.','Fiserv Solutions, LLC','General Electric Company','Hewlett Packard Enterprise Company','Home Depot Store Support, Inc.','HP Inc.','Humana, Inc.','International Business Machines Corporation','Intuit Inc.','IQVIA Inc.','JP Morgan','Jabil, Inc.','KeyBank N.A.','Leidos, Inc.','LPL Financial LLC','M&T Bank','Marathon Petroleum Company LP','Marsh & McLennan Companies, Inc.','META','Google','Anthropic','OpenAI','Morgan Stanley','Netflix','NVIDIA','Apple','SAMSUNG','BMW Group','Mercedes-Benz Group','Ford Motor Company','General Motors','Tesla, Inc.','Amazon','Amazon Web Services (AWS)','McKinsey & Company','Bain & Company','Boston Consulting Group (BCG)','Microsoft','Deloitte',
 ];
 
 function makeCompany(rng: () => number): string {
@@ -57,8 +59,8 @@ function makeCompany(rng: () => number): string {
 function getCompanyType(company: string): string {
   const c = company.toLowerCase();
   if (/bank|capital|financial|morgan|blackrock|schwab|citibank/.test(c)) return 'Capital';
-  if (/consult|booz allen|aec/.test(c)) return 'Consulting';
-  if (/inc|technology|google|meta|openai|anthropic|nvidia|apple|samsung|ibm|adobe/.test(c)) return 'Technologies';
+  if (/consult|booz allen|aec|mckinsey|bain|boston consulting|deloitte/.test(c)) return 'Consulting';
+  if (/inc|technology|google|meta|openai|anthropic|nvidia|apple|samsung|ibm|adobe|amazon|microsoft/.test(c)) return 'Technologies';
   return 'Group';
 }
 
@@ -118,7 +120,6 @@ function meetingToolLabel(tool: MeetingTool): string {
 // ── Compensation extraction ───────────────────────────────────────────────────
 
 function extractCompensation(salary: string): number {
-  // e.g. "$110K–$145K" → average of 110000 and 145000
   const matches = salary.match(/\$(\d+)K/g) ?? [];
   if (matches.length === 0) return 120000;
   const values = matches.map((m) => parseInt(m.replace(/\$|K/g, ''), 10) * 1000);
@@ -457,6 +458,8 @@ type Job = {
   meetingTool: MeetingTool;
   meetingLink: string;
   compensation: number;
+  applicants: number;
+  easyApply: boolean;
 };
 
 function generateJobs(count: number, start = 0): Job[] {
@@ -490,6 +493,8 @@ function generateJobs(count: number, start = 0): Job[] {
       meetingTool,
       meetingLink: generateMeetingLink(company, meetingTool),
       compensation: extractCompensation(salary),
+      applicants: Math.floor(rng() * 180) + 12,
+      easyApply: rng() > 0.25,
     });
   }
   return jobs;
@@ -507,11 +512,40 @@ function generateManagerName(jobId: string): string {
 
 // ── Feed posts ────────────────────────────────────────────────────────────────
 
-const FEED_POSTS = [
-  { id: 1, author: 'Priya Hartwell', headline: 'ML Engineer at Neurova IO', time: '2h', text: 'Spent the last month migrating our inference stack from Flask to a gRPC-based service. Latency dropped 40% and P99 improved significantly. Incremental refactoring with feature flags made this zero-downtime.' },
-  { id: 2, author: 'Marcus Thornton', headline: 'Quantitative Researcher at Stratexus Capital', time: '5h', text: 'Published a note on our internal wiki about the practical differences between LASSO and Ridge regularization in factor model construction. The L1/L2 penalty choice matters more than most practitioners realize in regime-shift environments.' },
-  { id: 3, author: 'Elena Vasquez', headline: 'Senior Software Engineer at Axenic Solutions', time: '1d', text: 'We shipped a new query planner for our internal analytics engine this week. The key insight was treating selectivity estimation as a learned problem rather than relying on static histograms. Postgres paper from 1994 still holds up remarkably well.' },
-  { id: 4, author: 'Darius Chen', headline: 'DevOps Engineer at Dynexus Systems', time: '2d', text: 'Reminder that observability is not the same as monitoring. Monitoring tells you something is broken. Observability lets you understand why — even for failure modes you have never seen before. Cardinality in your metrics matters.' },
+type FeedPost = {
+  id: number;
+  author: string;
+  headline?: string;
+  time: string;
+  text: string;
+  company?: string;        // if set, post is by a company page — logo tile shown
+  banner?: boolean;        // show the company hero banner as post media
+  promoted?: boolean;
+  followers?: string;
+  reactions: number;
+  comments: number;
+  reposts: number;
+};
+
+const REAL_FEED_POSTS: FeedPost[] = [
+  { id: 1, author: 'Google', company: 'Google', banner: true, followers: '35,882,401 followers', promoted: true, time: '4h', reactions: 14832, comments: 512, reposts: 1204,
+    text: 'Life at Google means working on products that reach billions. Our university graduate roles for Software Engineering, Data Science, and Product are now open across Mountain View, NYC, and Seattle. Explore #LifeAtGoogle and apply through the Jobs tab.' },
+  { id: 2, author: 'Priya Hartwell', headline: 'ML Engineer at Google', time: '2h', reactions: 341, comments: 28, reposts: 12,
+    text: 'Spent the last month migrating our inference stack from Flask to a gRPC-based service. Latency dropped 40% and P99 improved significantly. Incremental refactoring with feature flags made this zero-downtime. Happy to share the design doc template we used — DM me.' },
+  { id: 3, author: 'McKinsey & Company', company: 'McKinsey & Company', banner: true, followers: '5,204,977 followers', time: '6h', reactions: 8210, comments: 194, reposts: 967,
+    text: 'What distinguishes the leaders of the next decade? Our latest research on organizational resilience draws on interviews with 1,200 executives across 17 industries. Business Analyst and Associate roles for the class of 2026 are open now — application deadline is approaching.' },
+  { id: 4, author: 'Marcus Thornton', headline: 'Quantitative Researcher at JP Morgan', time: '5h', reactions: 187, comments: 41, reposts: 8,
+    text: 'Published a note on our internal wiki about the practical differences between LASSO and Ridge regularization in factor model construction. The L1/L2 penalty choice matters more than most practitioners realize in regime-shift environments.' },
+  { id: 5, author: 'Apple', company: 'Apple', banner: true, followers: '18,553,220 followers', time: '1d', reactions: 22409, comments: 831, reposts: 2650,
+    text: 'At Apple, we believe the best work happens when brilliant people are given the space to do the best work of their lives. Hardware, software, services, and silicon — explore engineering opportunities across Cupertino and Austin.' },
+  { id: 6, author: 'Elena Vasquez', headline: 'Senior Software Engineer at Amazon Web Services (AWS)', time: '1d', reactions: 529, comments: 63, reposts: 21,
+    text: 'We shipped a new query planner for our internal analytics engine this week. The key insight was treating selectivity estimation as a learned problem rather than relying on static histograms. The Postgres paper from 1994 still holds up remarkably well.' },
+  { id: 7, author: 'Amazon', company: 'Amazon', banner: true, followers: '31,027,554 followers', promoted: true, time: '2d', reactions: 10233, comments: 402, reposts: 780,
+    text: "Day 1 thinking never stops. Amazon and AWS are hiring Software Development Engineers, Solutions Architects, and Operations leaders across 40+ US locations. Bring your builder mindset." },
+  { id: 8, author: 'Darius Chen', headline: 'DevOps Engineer at Boston Consulting Group (BCG)', time: '2d', reactions: 264, comments: 19, reposts: 6,
+    text: 'Reminder that observability is not the same as monitoring. Monitoring tells you something is broken. Observability lets you understand why — even for failure modes you have never seen before. Cardinality in your metrics matters.' },
+  { id: 9, author: 'Bain & Company', company: 'Bain & Company', banner: true, followers: '2,881,730 followers', time: '3d', reactions: 5107, comments: 156, reposts: 433,
+    text: 'Results, not reports. For the 21st consecutive year, Bain has been ranked one of the best places to work. Our Associate Consultant Intern and full-time ACI applications are now open — join a team that measures success by client outcomes.' },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -519,7 +553,18 @@ const FEED_POSTS = [
 function formatPosted(days: number): string {
   if (days === 0) return 'Today';
   if (days === 1) return '1 day ago';
-  return `${days} days ago`;
+  if (days < 7) return `${days} days ago`;
+  const weeks = Math.floor(days / 7);
+  return `${weeks} week${weeks > 1 ? 's' : ''} ago`;
+}
+
+function formatCount(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(1).replace(/\.0$/, '')}K`;
+  return String(n);
+}
+
+function salaryPerYear(salary: string): string {
+  return salary.replace(/\$(\d+)K/g, '$$$1K/yr').replace('–', ' - ');
 }
 
 // ── Company about blurbs ──────────────────────────────────────────────────────
@@ -530,8 +575,8 @@ const COMPANY_ABOUT: Record<Archetype, string[]> = {
     'Founded on a commitment to disciplined investment and rigorous risk management, we serve pension funds, sovereign wealth funds, and family offices. Our culture values intellectual honesty, quantitative precision, and long-term thinking.',
   ],
   tech: [
-    'A high-growth technology company building the infrastructure layer for the next generation of digital experiences. We are backed by top-tier venture capital and serve millions of users across 40+ countries.',
-    'We develop cloud-native software solutions that help enterprise teams collaborate, ship faster, and scale securely. Our engineering culture prioritizes technical excellence, autonomy, and continuous learning.',
+    'A high-growth technology company building the infrastructure layer for the next generation of digital experiences. We serve millions of users worldwide and hold a high bar for engineering craft, autonomy, and impact.',
+    'We develop software platforms that help people and enterprise teams collaborate, ship faster, and scale securely. Our engineering culture prioritizes technical excellence, autonomy, and continuous learning.',
   ],
   consulting: [
     'A global management consulting firm advising Fortune 500 companies, governments, and nonprofits on their most critical strategic challenges. We combine deep industry expertise with rigorous analytical frameworks.',
@@ -549,18 +594,104 @@ function getCompanyAbout(archetype: Archetype, jobId: string): string {
   return pick(pool, rng);
 }
 
+function companyFollowers(company: string): string {
+  const h = strHash(company);
+  const n = 80000 + (h % 12000000);
+  return `${n.toLocaleString()} followers`;
+}
+
+// ── SVG icons (LinkedIn glyph set) ────────────────────────────────────────────
+
+function IconHome({ active }: { active?: boolean }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? '#191919' : '#666'}>
+      <path d="M23 9v2h-2v7a3 3 0 0 1-3 3h-4v-6h-4v6H6a3 3 0 0 1-3-3v-7H1V9l11-7 5 3.18V2h3v5.09z" />
+    </svg>
+  );
+}
+function IconNetwork({ active }: { active?: boolean }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? '#191919' : '#666'}>
+      <path d="M12 16v6H3v-6a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3zm5.5-3A3.5 3.5 0 1 0 14 9.5a3.5 3.5 0 0 0 3.5 3.5zm1 2h-2a2.5 2.5 0 0 0-2.5 2.5V22h7v-4.5a2.5 2.5 0 0 0-2.5-2.5zM7.5 2A4.5 4.5 0 1 0 12 6.5 4.49 4.49 0 0 0 7.5 2z" />
+    </svg>
+  );
+}
+function IconJobs({ active }: { active?: boolean }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? '#191919' : '#666'}>
+      <path d="M17 6V5a3 3 0 0 0-3-3h-4a3 3 0 0 0-3 3v1H2v4a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V6zM9 5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1H9zm10 9a4 4 0 0 0 3-1.38V17a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3v-4.38A4 4 0 0 0 5 14z" />
+    </svg>
+  );
+}
+function IconMessaging({ active }: { active?: boolean }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? '#191919' : '#666'}>
+      <path d="M16 4H8a7 7 0 0 0 0 14h4v4l8.16-5.39A6.78 6.78 0 0 0 23 11a7 7 0 0 0-7-7zm-8 8.25A1.25 1.25 0 1 1 9.25 11 1.25 1.25 0 0 1 8 12.25zm4 0A1.25 1.25 0 1 1 13.25 11 1.25 1.25 0 0 1 12 12.25zm4 0A1.25 1.25 0 1 1 17.25 11 1.25 1.25 0 0 1 16 12.25z" />
+    </svg>
+  );
+}
+function IconBell({ active }: { active?: boolean }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? '#191919' : '#666'}>
+      <path d="M22 19h-8.28a2 2 0 1 1-3.44 0H2v-1a4.52 4.52 0 0 1 1.17-2.83l1-1.17h15.7l1 1.17A4.42 4.42 0 0 1 22 18zM18.21 7.44A6.27 6.27 0 0 0 12 2a6.27 6.27 0 0 0-6.21 5.44L5 13h14z" />
+    </svg>
+  );
+}
+function IconSearch() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="#666">
+      <path d="M21.41 18.59l-5.27-5.28A6.83 6.83 0 0 0 17 10a7 7 0 1 0-7 7 6.83 6.83 0 0 0 3.31-.86l5.28 5.27a2 2 0 0 0 2.82-2.82zM5 10a5 5 0 1 1 5 5 5 5 0 0 1-5-5z" />
+    </svg>
+  );
+}
+function LinkedInBug({ size = 34 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 34 34">
+      <rect width="34" height="34" rx="3.4" fill="#0a66c2" />
+      <path d="M8.4 13.3h3.7V26H8.4zM10.2 7.5a2.15 2.15 0 1 1 0 4.3 2.15 2.15 0 0 1 0-4.3zM14.6 13.3h3.55v1.74h.05c.5-.94 1.7-1.93 3.51-1.93 3.76 0 4.45 2.47 4.45 5.69V26h-3.7v-6.4c0-1.53-.03-3.5-2.13-3.5-2.13 0-2.46 1.66-2.46 3.38V26h-3.7z" fill="#fff" />
+    </svg>
+  );
+}
+function VerifiedShield() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" style={{ marginLeft: 4, verticalAlign: -2 }}>
+      <path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5z" fill="#0a66c2" />
+      <path d="M10.5 15.6 7.4 12.5l1.4-1.4 1.7 1.7 4.7-4.7 1.4 1.4z" fill="#fff" />
+    </svg>
+  );
+}
+
+const REACTION_LIKE = (
+  <svg width="16" height="16" viewBox="0 0 16 16">
+    <circle cx="8" cy="8" r="8" fill="#378fe9" />
+    <path d="M11.9 7.07a.9.9 0 0 0-.9-.9H8.98l.3-1.45a1.05 1.05 0 0 0-.79-1.25 1 1 0 0 0-1.13.52L5.9 6.62H4.6v4.78h5.5a.9.9 0 0 0 .88-.72l.9-3.2a.9.9 0 0 0 .02-.41z" fill="#fff" transform="translate(0.4,0.3) scale(0.98)" />
+  </svg>
+);
+const REACTION_HEART = (
+  <svg width="16" height="16" viewBox="0 0 16 16">
+    <circle cx="8" cy="8" r="8" fill="#df704d" />
+    <path d="M8 12.5S3.5 9.6 3.5 6.8A2.3 2.3 0 0 1 8 6a2.3 2.3 0 0 1 4.5.8C12.5 9.6 8 12.5 8 12.5z" fill="#fff" />
+  </svg>
+);
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
-const JOBS_PER_PAGE = 8;
+type LinkedInTab = 'feed' | 'network' | 'jobs' | 'messaging' | 'notifications' | 'profile';
 
-type LinkedInTab = 'feed' | 'jobs' | 'network' | 'profile';
+const NAV_ITEMS: Array<{ key: LinkedInTab; label: string; icon: (a: boolean) => JSX.Element }> = [
+  { key: 'feed', label: 'Home', icon: (a) => <IconHome active={a} /> },
+  { key: 'network', label: 'My Network', icon: (a) => <IconNetwork active={a} /> },
+  { key: 'jobs', label: 'Jobs', icon: (a) => <IconJobs active={a} /> },
+  { key: 'messaging', label: 'Messaging', icon: (a) => <IconMessaging active={a} /> },
+  { key: 'notifications', label: 'Notifications', icon: (a) => <IconBell active={a} /> },
+];
 
 export function LinkedInSite() {
   const { sendEmail } = useMailStore();
   const { fullName, preferredEmail, roleHeadline, location } = useProfileStore();
   const emails = useMailStore((s) => s.emails);
   const acceptedJob = useMemo(() => emails.find((e) => e.jobMeta?.stage === 'onboarding')?.jobMeta, [emails]);
-  const [tab, setTab] = useState<LinkedInTab>('jobs');
+  const [tab, setTab] = useState<LinkedInTab>('feed');
   const [jobs, setJobs] = useState<Job[]>(() => generateJobs(INITIAL_JOB_BATCH));
   const [selectedJobId, setSelectedJobId] = useState<string>('job-0');
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -571,11 +702,11 @@ export function LinkedInSite() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [page, setPage] = useState<number>(0);
   const [connectState, setConnectState] = useState<Record<number, 'idle' | 'pending' | 'connected'>>({});
   const [messageTarget, setMessageTarget] = useState<number | null>(null);
   const [messageText, setMessageText] = useState<string>('');
   const [sentMessages, setSentMessages] = useState<Record<number, string[]>>({});
+  const [likedPosts, setLikedPosts] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     localStorage.setItem('li_apply_state', JSON.stringify(applyState));
@@ -596,7 +727,6 @@ export function LinkedInSite() {
     }
     return true;
   }), [jobs, categoryFilter, typeFilter, searchQuery]);
-
 
   const totalPages = Math.max(1, Math.ceil(filteredJobs.length / PAGE_SIZE));
 
@@ -668,357 +798,557 @@ Talent Acquisition, ${job.company}<br>
     }, 900);
   };
 
-  return (
-    <div className="li-shell">
-      {/* Header */}
-      <header className="li-header">
-        <div className="li-logo">
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-            <rect width="22" height="22" rx="4" fill="#0a66c2" />
-            <rect x="4" y="8" width="3" height="10" fill="white" />
-            <circle cx="5.5" cy="5.5" r="2" fill="white" />
-            <path d="M10 8h3v1.8c.6-1.1 2-1.8 3-1.8 2.5 0 4 1.5 4 4.5V18h-3v-5.2c0-1.4-.5-2.3-1.8-2.3-1.4 0-2.2.9-2.2 2.3V18h-3V8z" fill="white" />
-          </svg>
-          <span className="li-brand-name">LinkedIn</span>
-        </div>
-        <input
-          className="li-search"
-          placeholder="Search jobs, companies, roles…"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <nav className="li-nav">
-          {(['feed','jobs','network','profile'] as LinkedInTab[]).map((t) => (
-            <button
-              key={t}
-              type="button"
-              className={`li-nav-btn${tab === t ? ' active' : ''}`}
-              onClick={() => setTab(t)}
-            >
-              {t.charAt(0).toUpperCase() + t.slice(1)}
-            </button>
-          ))}
-        </nav>
-        <div className="li-header-right">
-          <span className="li-user-chip">user@workspace.aos</span>
-        </div>
-      </header>
+  const initials = (fullName[0] ?? 'U').toUpperCase();
+  const myHeadline = acceptedJob ? `${acceptedJob.role} at ${acceptedJob.company}` : roleHeadline;
 
-      <div className="li-body">
-        {/* ── Feed ── */}
-        {tab === 'feed' && (
-          <div className="li-feed">
-            {FEED_POSTS.map((post) => (
-              <div key={post.id} className="li-post">
-                <div className="li-post-avatar">{post.author.charAt(0)}</div>
-                <div className="li-post-content">
-                  <div className="li-post-author">{post.author}</div>
-                  <div className="li-post-headline">{post.headline}</div>
-                  <div className="li-post-time">{post.time}</div>
-                  <p className="li-post-text">{post.text}</p>
-                  <div className="li-post-actions">
-                    <button type="button" className="li-post-action-btn">Like</button>
-                    <button type="button" className="li-post-action-btn">Comment</button>
-                    <button type="button" className="li-post-action-btn">Share</button>
-                  </div>
-                </div>
-              </div>
-            ))}
+  // ── Sub-renders ─────────────────────────────────────────────────────────────
+
+  const renderIdentityCard = () => (
+    <div className="lk-card lk-identity-card">
+      <div className="lk-identity-banner" style={acceptedJob && getCompanyBanner(acceptedJob.company) ? { backgroundImage: `url(${getCompanyBanner(acceptedJob.company)})` } : undefined} />
+      <div className="lk-identity-avatar">{initials}</div>
+      <div className="lk-identity-name">{fullName}<VerifiedShield /></div>
+      <div className="lk-identity-headline">{myHeadline}</div>
+      <div className="lk-identity-location">{location}</div>
+      {acceptedJob && (
+        <div className="lk-identity-company">
+          <CompanyLogo company={acceptedJob.company} size={18} /> {acceptedJob.company}
+        </div>
+      )}
+      <div className="lk-identity-divider" />
+      <button type="button" className="lk-identity-stat"><span>Profile viewers</span><strong>127</strong></button>
+      <button type="button" className="lk-identity-stat"><span>Post impressions</span><strong>1,438</strong></button>
+      <div className="lk-identity-divider" />
+      <button type="button" className="lk-identity-premium"><span className="lk-premium-square" /> Try Premium for $0</button>
+      <div className="lk-identity-divider" />
+      <button type="button" className="lk-identity-link">🔖 Saved items</button>
+      <button type="button" className="lk-identity-link">👥 Groups</button>
+      <button type="button" className="lk-identity-link">📰 Newsletters</button>
+      <button type="button" className="lk-identity-link">📅 Events</button>
+    </div>
+  );
+
+  const renderFeed = () => (
+    <div className="lk-page lk-feed-layout">
+      <aside className="lk-rail-left">{renderIdentityCard()}</aside>
+
+      <main className="lk-feed-main">
+        <div className="lk-card lk-composer">
+          <div className="lk-composer-row">
+            <div className="lk-avatar-circle lk-avatar-40">{initials}</div>
+            <button type="button" className="lk-composer-input">Start a post</button>
           </div>
-        )}
+          <div className="lk-composer-actions">
+            <button type="button"><span className="lk-media-ic" style={{ color: '#378fe9' }}>▣</span> Media</button>
+            <button type="button"><span className="lk-media-ic" style={{ color: '#c37d16' }}>📅</span> Event</button>
+            <button type="button"><span className="lk-media-ic" style={{ color: '#e06847' }}>✍</span> Write article</button>
+          </div>
+        </div>
 
-        {/* ── Jobs ── */}
-        {tab === 'jobs' && (
-          <div className="li-jobs-layout">
-            {/* Filters */}
-            <aside className="li-filters">
-              <div className="li-filter-group">
-                <label className="li-filter-label">Category</label>
-                <select className="li-filter-select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
-                  <option value="all">All Categories</option>
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="li-filter-group">
-                <label className="li-filter-label">Job Type</label>
-                <select className="li-filter-select" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
-                  <option value="all">All Types</option>
-                  <option value="Full-time">Full-time</option>
-                  <option value="Remote">Remote</option>
-                  <option value="Hybrid">Hybrid</option>
-                  <option value="Contract">Contract</option>
-                </select>
-              </div>
-              <div className="li-filter-count">{filteredJobs.length} results · {PAGE_SIZE} per page</div>
-            </aside>
+        <div className="lk-feed-sort"><span className="lk-feed-sort-line" /><span>Sort by: <strong>Top ▾</strong></span></div>
 
-            {/* Job list column: list + pagination stacked vertically */}
-            <div className="li-job-list-column">
-              <div className="li-job-list">
-                {pagedJobs.length === 0 ? (
-                  <div className="li-empty">No jobs match your filters.</div>
+        {REAL_FEED_POSTS.map((post) => {
+          const liked = likedPosts[post.id];
+          const banner = post.company ? getCompanyBanner(post.company) : undefined;
+          return (
+            <article key={post.id} className="lk-card lk-post">
+              <div className="lk-post-header">
+                {post.company ? (
+                  <CompanyLogo company={post.company} size={48} />
                 ) : (
-                  pagedJobs.map((job) => {
-                    const state = applyState[job.id] ?? 'idle';
-                    return (
-                      <button
-                        key={job.id}
-                        type="button"
-                        className={`li-job-card${selectedJobId === job.id ? ' active' : ''}`}
-                        onClick={() => setSelectedJobId(job.id)}
-                      >
-                        <div className="li-job-card-top">
-                          <span className="li-job-role">{job.role}</span>
-                          {state === 'applied' && <span className="li-applied-badge">Applied</span>}
-                        </div>
-                        <div className="li-job-company">{job.company}</div>
-                        <div className="li-job-meta">
-                          <span>{job.location}</span>
-                          <span className="li-job-sep">·</span>
-                          <span>{job.type}</span>
-                        </div>
-                        <div className="li-job-salary">{job.salary}</div>
-                        <div className="li-job-posted">{formatPosted(job.postedDays)}</div>
-                      </button>
-                    );
-                  })
+                  <div className="lk-avatar-circle lk-avatar-48" style={{ background: getBrandColor(post.author) }}>{post.author.charAt(0)}</div>
                 )}
-              </div>
-
-              {/* Pagination at the bottom of the job list column */}
-              <div className="li-pagination">
-                <button type="button" disabled={currentPage === 1} onClick={() => { const p = Math.max(1, currentPage - 1); setCurrentPage(p); }}>
-                  Previous
-                </button>
-                {Array.from({ length: Math.min(totalPages, 8) }, (_, idx) => {
-                  const pageNum = idx + 1;
-                  return (
-                    <button
-                      key={pageNum}
-                      type="button"
-                      className={pageNum === currentPage ? 'active' : ''}
-                      onClick={() => {
-                        ensureJobsForPage(pageNum);
-                        setCurrentPage(pageNum);
-                      }}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const next = currentPage + 1;
-                    ensureJobsForPage(next);
-                    setCurrentPage(next);
-                  }}
-                >
-                  Next
-                </button>
-                <span className="li-page-meta">Page {currentPage} / {totalPages}</span>
-              </div>
-            </div>
-
-            {/* Job detail panel: to the right of the job list column */}
-            <div className="li-job-detail">
-              {(() => {
-                const job = selectedJob;
-                if (!job) return <div className="li-empty">No job selected.</div>;
-                const state = applyState[job.id] ?? 'idle';
-                return (
-                  <>
-                    <div className="li-detail-header">
-                      <div className="li-detail-role">{job.role}</div>
-                      <div className="li-detail-company">{job.company}</div>
-                      <div className="li-detail-meta-row">
-                        <span>{job.location}</span>
-                        <span className="li-job-sep">·</span>
-                        <span>{job.type}</span>
-                        <span className="li-job-sep">·</span>
-                        <span>{job.salary}</span>
-                      </div>
-                      <div className="li-detail-category">{job.categoryLabel} · {job.companyType}</div>
-                      <div className="li-detail-posted">{formatPosted(job.postedDays)}</div>
-                      <button
-                        type="button"
-                        className={`li-apply-btn${state === 'applying' ? ' loading' : ''}${state === 'applied' ? ' applied' : ''}`}
-                        onClick={() => state === 'idle' && applyToJob(job)}
-                        disabled={state !== 'idle'}
-                      >
-                        {state === 'idle' ? 'Apply Now' : state === 'applying' ? 'Submitting…' : 'Applied'}
-                      </button>
-                      {state === 'applied' && (
-                        <p className="li-apply-note">A confirmation email has been sent to your Outlook inbox.</p>
-                      )}
-                    </div>
-                    <div className="li-detail-section">
-                      <div className="li-detail-section-title">Job description</div>
-                      <p className="li-detail-text">{job.description}</p>
-                      <div className="li-detail-section-title" style={{ marginTop: 12 }}>About this company</div>
-                      <p className="li-detail-text">{getCompanyAbout(job.archetype, job.id)}</p>
-                    </div>
-                    <div className="li-detail-section">
-                      <div className="li-detail-section-title">Requirements</div>
-                      <ul className="li-req-list">
-                        {job.requirements.map((r, i) => <li key={i}>{r}</li>)}
-                      </ul>
-                    </div>
-                    <div className="li-detail-section">
-                      <div className="li-detail-section-title">About {job.company}</div>
-                      <p className="li-detail-text">{getCompanyAbout(job.archetype, job.id)}</p>
-                      <div className="li-company-meta">
-                        <span className="li-company-tag">{job.categoryLabel}</span>
-                        <span className="li-company-tag">{job.companyType}</span>
-                        <span className="li-company-tag">{job.domain}</span>
-                      </div>
-                    </div>
-                    <div className="li-detail-section">
-                      <div className="li-detail-section-title">Recruiter</div>
-                      <div className="li-recruiter">
-                        <span className="li-recruiter-avatar">{job.recruiter.charAt(0)}</span>
-                        <div>
-                          <div className="li-recruiter-name">{job.recruiter}</div>
-                          <div className="li-recruiter-title">Talent Acquisition, {job.company}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
-          </div>
-        )}
-
-        {/* ── Network ── */}
-        {tab === 'network' && (
-          <div className="li-network">
-            <div className="li-network-header">
-              <div className="li-network-title">People You May Know</div>
-              <div className="li-network-stats">
-                <span className="li-network-stat">{Object.values(connectState).filter(s => s === 'connected').length} connections</span>
-                <span className="li-network-stat">{Object.values(connectState).filter(s => s === 'pending').length} pending</span>
-              </div>
-            </div>
-            <div className="li-network-grid">
-              {Array.from({ length: 9 }, (_, i) => {
-                const rng = seeded(i * 4211 + 9973);
-                const name = makeName(rng);
-                const company = makeCompany(rng);
-                const cat = pick(CATEGORIES, rng);
-                const role = pick([...ROLE_MAP[cat]], rng);
-                const cs = connectState[i] ?? 'idle';
-                const mutuals = Math.floor(seeded(i * 11 + 7)() * 12) + 1;
-                return (
-                  <div key={i} className="li-person-card">
-                    <div className="li-person-avatar" style={{background: `hsl(${(i * 47 + 200) % 360}deg 55% 38%)`}}>{name.charAt(0)}</div>
-                    <div className="li-person-name">{name}</div>
-                    <div className="li-person-role">{role}</div>
-                    <div className="li-person-company">{company}</div>
-                    <div className="li-person-mutual">{mutuals} mutual connection{mutuals !== 1 ? 's' : ''}</div>
-                    <div className="li-person-actions">
-                      {cs === 'idle' && (
-                        <button type="button" className="li-connect-btn" onClick={() => setConnectState((p) => ({ ...p, [i]: 'pending' }))}>Connect</button>
-                      )}
-                      {cs === 'pending' && (
-                        <button type="button" className="li-connect-btn li-connect-pending" onClick={() => setConnectState((p) => ({ ...p, [i]: 'idle' }))}>Pending ✓</button>
-                      )}
-                      {cs === 'connected' && (
-                        <button type="button" className="li-connect-btn li-connect-done" onClick={() => setMessageTarget(i)}>Message</button>
-                      )}
-                      {cs !== 'connected' && cs !== 'idle' && (
-                        <button type="button" className="li-follow-btn" onClick={() => setConnectState((p) => ({ ...p, [i]: 'connected' }))}>Accept</button>
-                      )}
-                      {cs === 'idle' && (
-                        <button type="button" className="li-follow-btn" onClick={() => setConnectState((p) => ({ ...p, [i]: 'pending' }))}>Follow</button>
-                      )}
-                    </div>
-                    {messageTarget === i && (
-                      <div className="li-message-box">
-                        <textarea
-                          className="li-message-input"
-                          placeholder={`Message ${name.split(' ')[0]}…`}
-                          value={messageText}
-                          onChange={(e) => setMessageText(e.target.value)}
-                          rows={3}
-                        />
-                        <div className="li-message-actions">
-                          <button type="button" className="li-msg-send-btn" onClick={() => {
-                            if (messageText.trim()) {
-                              setSentMessages((p) => ({ ...p, [i]: [...(p[i] ?? []), messageText.trim()] }));
-                              setMessageText('');
-                              setMessageTarget(null);
-                            }
-                          }}>Send</button>
-                          <button type="button" className="li-msg-cancel-btn" onClick={() => setMessageTarget(null)}>Cancel</button>
-                        </div>
-                      </div>
-                    )}
-                    {(sentMessages[i] ?? []).length > 0 && (
-                      <div className="li-sent-badge">✓ Message sent</div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ── Profile ── */}
-        {tab === 'profile' && (
-          <div className="li-profile">
-            <div className="li-profile-card">
-              <div className="li-profile-banner" />
-              <div className="li-profile-main">
-                <div className="li-profile-avatar">{(fullName[0] ?? "U").toUpperCase()}</div>
-                <div className="li-profile-info">
-                  <div className="li-profile-name">{fullName}</div>
-                  <div className="li-profile-headline">{roleHeadline}</div>
-                  <div className="li-profile-location">{location}</div>
-                  <div className="li-profile-email">{preferredEmail}</div>
+                <div className="lk-post-id">
+                  <div className="lk-post-author">{post.author}{post.company && <VerifiedShield />} {!post.company && <span className="lk-post-degree">· 3rd+</span>}</div>
+                  <div className="lk-post-headline">{post.company ? post.followers : post.headline}</div>
+                  <div className="lk-post-time">{post.promoted ? 'Promoted' : `${post.time} · `}{!post.promoted && <span title="Public">🌐</span>}</div>
                 </div>
+                <button type="button" className="lk-post-more">⋯</button>
+                {post.company && <button type="button" className="lk-post-follow">+ Follow</button>}
               </div>
-              <div className="li-profile-connections">
-                <span className="li-profile-conn-count">{Object.values(connectState).filter(s => s === 'connected').length}</span>
-                <span className="li-profile-conn-label"> connections</span>
-              </div>
-            </div>
-            <div className="li-profile-section">
-              <div className="li-profile-section-title">About</div>
-              <p className="li-profile-about">Experienced professional working across software engineering, data, and analytical domains.{acceptedJob ? ` Currently ${acceptedJob.role} at ${acceptedJob.company}.` : ' Open to new opportunities in high-impact, fast-paced environments.'}</p>
-            </div>
-            <div className="li-profile-section">
-              <div className="li-profile-section-title">Experience</div>
-              {acceptedJob ? (
-                <div className="li-exp-item li-exp-current">
-                  <div className="li-exp-role">{acceptedJob.role}</div>
-                  <div className="li-exp-company">{acceptedJob.company} · Full-time</div>
-                  <div className="li-exp-location">{acceptedJob.location}</div>
-                  <div className="li-exp-date">{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} — Present</div>
-                  <div className="li-exp-salary">{acceptedJob.salary}</div>
-                </div>
-              ) : (
-                <div className="li-exp-item">
-                  <div className="li-exp-role">Software Engineer</div>
-                  <div className="li-exp-company">aOS Workspace · Full-time</div>
-                  <div className="li-exp-date">Jan 2023 — Present</div>
+              <p className="lk-post-text">{post.text}</p>
+              {banner && post.banner && (
+                <div className="lk-post-media" style={{ backgroundImage: `url(${banner})` }}>
+                  <div className="lk-post-media-logo"><CompanyLogo company={post.company!} size={64} /></div>
                 </div>
               )}
+              <div className="lk-post-social">
+                <span className="lk-post-reactions">{REACTION_LIKE}{REACTION_HEART}<span>{formatCount(post.reactions + (liked ? 1 : 0))}</span></span>
+                <span className="lk-post-counts">{post.comments} comments · {post.reposts} reposts</span>
+              </div>
+              <div className="lk-post-actions">
+                <button type="button" className={liked ? 'lk-liked' : ''} onClick={() => setLikedPosts((p) => ({ ...p, [post.id]: !p[post.id] }))}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill={liked ? '#0a66c2' : '#666'}><path d="M19.46 11l-3.91-3.91a7 7 0 0 1-1.69-2.74l-.49-1.47A2.76 2.76 0 0 0 10.76 1 2.75 2.75 0 0 0 8 3.74v1.12a9.19 9.19 0 0 0 .46 2.85L8.89 9H4.12A2.12 2.12 0 0 0 2 11.12a2.16 2.16 0 0 0 .92 1.76A2.11 2.11 0 0 0 2 14.62a2.14 2.14 0 0 0 1.28 2 2 2 0 0 0-.32 1.11 2.12 2.12 0 0 0 1.83 2.1 2.1 2.1 0 0 0 0 .41A2.12 2.12 0 0 0 6.9 22h7.28a7.49 7.49 0 0 0 7.31-5.76l.5-2.16A4.24 4.24 0 0 0 19.46 11z" /></svg>
+                  Like
+                </button>
+                <button type="button">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#666"><path d="M7 9h10v1H7zm0 4h7v-1H7zm16-2a6.78 6.78 0 0 1-2.84 5.61L12 22v-4H8A7 7 0 0 1 8 4h8a7 7 0 0 1 7 7z" /></svg>
+                  Comment
+                </button>
+                <button type="button">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#666"><path d="M13.96 5H6c-.55 0-1 .45-1 1v10H3V6c0-1.66 1.34-3 3-3h7.96L12 .91 13.41-.5 18.9 5l-5.49 5.5L12 9.09zM10.04 19H18c.55 0 1-.45 1-1V8h2v10c0 1.66-1.34 3-3 3h-7.96L12 23.09 10.59 24.5 5.1 19l5.49-5.5L12 14.91z" /></svg>
+                  Repost
+                </button>
+                <button type="button">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#666"><path d="M21 3L0 10l7.66 4.26L16 8l-6.26 8.34L14 24l7-21z" /></svg>
+                  Send
+                </button>
+              </div>
+            </article>
+          );
+        })}
+      </main>
+
+      <aside className="lk-rail-right">
+        <div className="lk-card lk-news">
+          <div className="lk-news-title">LinkedIn News <span>ⓘ</span></div>
+          <ul className="lk-news-list">
+            <li><strong>Tech hiring rebounds in Q3</strong><span>5h ago · 12,847 readers</span></li>
+            <li><strong>Consulting giants expand AI arms</strong><span>7h ago · 8,112 readers</span></li>
+            <li><strong>New grads: skills over pedigree</strong><span>1d ago · 24,631 readers</span></li>
+            <li><strong>Return-to-office reaches steady state</strong><span>1d ago · 6,904 readers</span></li>
+            <li><strong>The rise of the AI engineer</strong><span>2d ago · 31,552 readers</span></li>
+          </ul>
+          <button type="button" className="lk-news-more">Show more ▾</button>
+        </div>
+        <div className="lk-card lk-promo">
+          <div className="lk-promo-label">Ad ···</div>
+          <div className="lk-promo-body">
+            <div className="lk-promo-logos">
+              <div className="lk-avatar-circle lk-avatar-48">{initials}</div>
+              <CompanyLogo company="Google" size={48} />
             </div>
-            {acceptedJob && (
-              <div className="li-profile-section">
-                <div className="li-profile-section-title">Skills</div>
-                <div className="li-skills-list">
-                  {['Problem Solving','Communication','Collaboration','Leadership','Adaptability'].map((s) => (
-                    <span key={s} className="li-skill-tag">{s}</span>
-                  ))}
+            <p>{fullName.split(' ')[0]}, you're following Google. See their open roles.</p>
+            <button type="button" className="lk-btn-outline" onClick={() => { setSearchQuery('Google'); setTab('jobs'); }}>See jobs</button>
+          </div>
+        </div>
+        <footer className="lk-footer">
+          <nav>About · Accessibility · Help Center · Privacy &amp; Terms · Ad Choices · Advertising · Business Services · Get the LinkedIn app</nav>
+          <div className="lk-footer-brand"><LinkedInBug size={14} /> LinkedIn Corporation © {new Date().getFullYear()}</div>
+        </footer>
+      </aside>
+    </div>
+  );
+
+  const renderJobs = () => (
+    <div className="lk-page lk-jobs-page">
+      <div className="lk-jobs-filterbar">
+        <select className="lk-pill-select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+          <option value="all">All categories</option>
+          {CATEGORIES.map((c) => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
+        </select>
+        <select className="lk-pill-select" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+          <option value="all">Job type</option>
+          <option value="Full-time">Full-time</option>
+          <option value="Remote">Remote</option>
+          <option value="Hybrid">Hybrid</option>
+          <option value="Contract">Contract</option>
+        </select>
+        <span className="lk-pill-static">Easy Apply</span>
+        <span className="lk-pill-static">Experience level</span>
+        <span className="lk-pill-static">Date posted</span>
+        <span className="lk-jobs-result-count">{filteredJobs.length} results</span>
+      </div>
+
+      <div className="lk-jobs-split">
+        <div className="lk-jobs-listcol">
+          <div className="lk-jobs-listhead">
+            <strong>Top job picks for you</strong>
+            <span>Based on your profile, preferences, and activity like applies, searches, and saves</span>
+          </div>
+          <div className="lk-jobs-list">
+            {pagedJobs.length === 0 && <div className="lk-empty">No jobs match your filters.</div>}
+            {pagedJobs.map((job) => {
+              const state = applyState[job.id] ?? 'idle';
+              return (
+                <button key={job.id} type="button" className={`lk-job-row${selectedJobId === job.id ? ' active' : ''}`} onClick={() => setSelectedJobId(job.id)}>
+                  <CompanyLogo company={job.company} size={48} />
+                  <div className="lk-job-row-body">
+                    <div className="lk-job-row-title">{job.role}</div>
+                    <div className="lk-job-row-company">{job.company}</div>
+                    <div className="lk-job-row-loc">{job.location} ({job.type})</div>
+                    <div className="lk-job-row-foot">
+                      {state === 'applied'
+                        ? <span className="lk-job-applied">✓ Applied</span>
+                        : job.easyApply
+                          ? <span className="lk-easy-apply"><LinkedInBug size={14} /> Easy Apply</span>
+                          : <span className="lk-job-posted">{formatPosted(job.postedDays)}</span>}
+                    </div>
+                  </div>
+                  <span className="lk-job-row-x">✕</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="lk-pagination">
+            <button type="button" disabled={currentPage === 1} onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}>‹</button>
+            {Array.from({ length: Math.min(totalPages, 8) }, (_, idx) => {
+              const pageNum = idx + 1;
+              return (
+                <button key={pageNum} type="button" className={pageNum === currentPage ? 'active' : ''}
+                  onClick={() => { ensureJobsForPage(pageNum); setCurrentPage(pageNum); }}>
+                  {pageNum}
+                </button>
+              );
+            })}
+            <button type="button" onClick={() => { const next = currentPage + 1; ensureJobsForPage(next); setCurrentPage(next); }}>›</button>
+          </div>
+        </div>
+
+        <div className="lk-jobs-detail">
+          {(() => {
+            const job = selectedJob;
+            if (!job) return <div className="lk-empty">No job selected.</div>;
+            const state = applyState[job.id] ?? 'idle';
+            const banner = getCompanyBanner(job.company);
+            return (
+              <>
+                {banner && (
+                  <div className="lk-detail-banner" style={{ backgroundImage: `url(${banner})` }} />
+                )}
+                <div className="lk-detail-inner">
+                  <div className="lk-detail-companyrow">
+                    <CompanyLogo company={job.company} size={32} />
+                    <span className="lk-detail-companyname">{job.company}</span>
+                  </div>
+                  <h1 className="lk-detail-title">{job.role}</h1>
+                  <div className="lk-detail-meta">
+                    {job.location} · {formatPosted(job.postedDays)} · <span className="lk-detail-applicants">{job.applicants} applicants</span>
+                  </div>
+                  <div className="lk-detail-attrs">
+                    <span className="lk-detail-attr">💼 {job.type} · {salaryPerYear(job.salary)}</span>
+                    <span className="lk-detail-attr">🏢 {job.categoryLabel}</span>
+                  </div>
+                  <div className="lk-detail-actionrow">
+                    <button type="button"
+                      className={`lk-btn-primary${state !== 'idle' ? ' disabled' : ''}`}
+                      onClick={() => state === 'idle' && applyToJob(job)}
+                      disabled={state !== 'idle'}>
+                      {state === 'idle' ? (job.easyApply ? <><LinkedInBug size={16} /> Easy Apply</> : 'Apply') : state === 'applying' ? 'Submitting…' : '✓ Applied'}
+                    </button>
+                    <button type="button" className="lk-btn-outline">Save</button>
+                  </div>
+                  {state === 'applied' && (
+                    <div className="lk-applied-note">Application sent — a confirmation email is in your Outlook inbox. Reply <strong>ATS100</strong> to it to advance.</div>
+                  )}
+
+                  <section className="lk-detail-section">
+                    <h2>About the job</h2>
+                    <p>{job.description}</p>
+                    <h3>Requirements</h3>
+                    <ul>{job.requirements.map((r, i) => <li key={i}>{r}</li>)}</ul>
+                  </section>
+
+                  <section className="lk-detail-section lk-detail-companycard">
+                    <div className="lk-detail-companyhead">
+                      <CompanyLogo company={job.company} size={48} />
+                      <div>
+                        <div className="lk-detail-companyname">{job.company}</div>
+                        <div className="lk-detail-followers">{companyFollowers(job.company)}</div>
+                      </div>
+                      <button type="button" className="lk-btn-outline">+ Follow</button>
+                    </div>
+                    <p>{getCompanyAbout(job.archetype, job.id)}</p>
+                  </section>
+
+                  <section className="lk-detail-section">
+                    <h2>Meet the hiring team</h2>
+                    <div className="lk-recruiter-row">
+                      <div className="lk-avatar-circle lk-avatar-48" style={{ background: getBrandColor(job.recruiter) }}>{job.recruiter.charAt(0)}</div>
+                      <div>
+                        <div className="lk-recruiter-name">{job.recruiter} <span className="lk-post-degree">· 3rd</span></div>
+                        <div className="lk-recruiter-title">Talent Acquisition at {job.company}</div>
+                      </div>
+                      <button type="button" className="lk-btn-outline">Message</button>
+                    </div>
+                  </section>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderNetwork = () => (
+    <div className="lk-page lk-network-layout">
+      <aside className="lk-rail-left">
+        <div className="lk-card lk-manage-net">
+          <div className="lk-manage-title">Manage my network</div>
+          {[['👥','Connections', String(Object.values(connectState).filter((s) => s === 'connected').length + 512)],
+            ['👤','Following & followers','1,204'],
+            ['📇','Groups','6'],
+            ['📅','Events','2'],
+            ['📰','Newsletters','9'],
+          ].map(([ic, label, count]) => (
+            <button key={label} type="button" className="lk-manage-row"><span>{ic} {label}</span><span className="lk-manage-count">{count}</span></button>
+          ))}
+        </div>
+      </aside>
+      <main className="lk-network-main">
+        <div className="lk-card lk-invites">
+          <div className="lk-invites-head"><span>Invitations ({Object.values(connectState).filter((s) => s === 'pending').length})</span><button type="button">See all</button></div>
+        </div>
+        <div className="lk-card lk-pymk">
+          <div className="lk-pymk-head">People you may know from your industry</div>
+          <div className="lk-pymk-grid">
+            {Array.from({ length: 12 }, (_, i) => {
+              const rng = seeded(i * 4211 + 9973);
+              const name = makeName(rng);
+              const company = makeCompany(rng);
+              const cat = pick(CATEGORIES, rng);
+              const role = pick([...ROLE_MAP[cat]], rng);
+              const cs = connectState[i] ?? 'idle';
+              const mutuals = Math.floor(seeded(i * 11 + 7)() * 12) + 1;
+              const banner = getCompanyBanner(company);
+              return (
+                <div key={i} className="lk-person-card">
+                  <div className="lk-person-cover" style={banner ? { backgroundImage: `url(${banner})` } : { background: `linear-gradient(135deg, hsl(${(i * 47 + 200) % 360}deg 45% 55%), hsl(${(i * 47 + 260) % 360}deg 45% 40%))` }} />
+                  <div className="lk-person-avatar" style={{ background: `hsl(${(i * 47 + 200) % 360}deg 55% 38%)` }}>{name.charAt(0)}</div>
+                  <div className="lk-person-name">{name}</div>
+                  <div className="lk-person-role">{role}</div>
+                  <div className="lk-person-companyrow"><CompanyLogo company={company} size={16} /><span>{company}</span></div>
+                  <div className="lk-person-mutual">👥 {mutuals} mutual connection{mutuals !== 1 ? 's' : ''}</div>
+                  {cs === 'idle' && <button type="button" className="lk-connect-pill" onClick={() => setConnectState((p) => ({ ...p, [i]: 'pending' }))}>Connect</button>}
+                  {cs === 'pending' && <button type="button" className="lk-connect-pill lk-pending" onClick={() => setConnectState((p) => ({ ...p, [i]: 'connected' }))}>Pending</button>}
+                  {cs === 'connected' && <button type="button" className="lk-connect-pill lk-done" onClick={() => setMessageTarget(i)}>Message</button>}
+                  {messageTarget === i && (
+                    <div className="lk-msg-box">
+                      <textarea rows={3} placeholder={`Message ${name.split(' ')[0]}…`} value={messageText} onChange={(e) => setMessageText(e.target.value)} />
+                      <div className="lk-msg-actions">
+                        <button type="button" className="lk-btn-primary" onClick={() => {
+                          if (messageText.trim()) {
+                            setSentMessages((p) => ({ ...p, [i]: [...(p[i] ?? []), messageText.trim()] }));
+                            setMessageText('');
+                            setMessageTarget(null);
+                          }
+                        }}>Send</button>
+                        <button type="button" className="lk-btn-outline" onClick={() => setMessageTarget(null)}>Cancel</button>
+                      </div>
+                    </div>
+                  )}
+                  {(sentMessages[i] ?? []).length > 0 && <div className="lk-sent-note">✓ Message sent</div>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+
+  const renderNotifications = () => (
+    <div className="lk-page lk-notif-layout">
+      <aside className="lk-rail-left">{renderIdentityCard()}</aside>
+      <main className="lk-notif-main">
+        <div className="lk-card">
+          <div className="lk-notif-tabs">
+            {['All', 'Jobs', 'My posts', 'Mentions'].map((t, i) => (
+              <button key={t} type="button" className={i === 0 ? 'active' : ''}>{t}</button>
+            ))}
+          </div>
+          {emails.filter((e) => e.jobMeta).slice(0, 8).map((e) => (
+            <div key={e.id} className="lk-notif-row">
+              <CompanyLogo company={e.jobMeta!.company} size={48} />
+              <div className="lk-notif-body">
+                <span><strong>{e.jobMeta!.company}</strong> — {e.subject}</span>
+                <span className="lk-notif-time">{new Date(e.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+              </div>
+            </div>
+          ))}
+          {emails.filter((e) => e.jobMeta).length === 0 && (
+            <div className="lk-notif-row">
+              <div className="lk-avatar-circle lk-avatar-48" style={{ background: '#0a66c2' }}>in</div>
+              <div className="lk-notif-body">
+                <span>Welcome to LinkedIn. Apply to a job to start receiving recruiter updates here.</span>
+                <span className="lk-notif-time">now</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+
+  const renderMessaging = () => (
+    <div className="lk-page lk-messaging-layout">
+      <div className="lk-card lk-messaging-shell">
+        <div className="lk-messaging-list">
+          <div className="lk-messaging-head">Messaging</div>
+          {Object.entries(sentMessages).length === 0 && (
+            <div className="lk-messaging-empty">No conversations yet.<br />Connect with people in My Network and send a message.</div>
+          )}
+          {Object.entries(sentMessages).map(([idx, msgs]) => {
+            const i = Number(idx);
+            const rng = seeded(i * 4211 + 9973);
+            const name = makeName(rng);
+            return (
+              <div key={idx} className="lk-conv-row">
+                <div className="lk-avatar-circle lk-avatar-48" style={{ background: `hsl(${(i * 47 + 200) % 360}deg 55% 38%)` }}>{name.charAt(0)}</div>
+                <div className="lk-conv-body">
+                  <div className="lk-conv-name">{name}</div>
+                  <div className="lk-conv-preview">You: {msgs[msgs.length - 1]}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="lk-messaging-detail">
+          <div className="lk-messaging-placeholder">
+            <IconMessaging />
+            <p>Select a conversation to read messages.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderProfile = () => {
+    const profileBanner = acceptedJob ? getCompanyBanner(acceptedJob.company) : undefined;
+    return (
+      <div className="lk-page lk-profile-layout">
+        <main className="lk-profile-main">
+          <div className="lk-card lk-profile-hero">
+            <div className="lk-profile-banner" style={profileBanner ? { backgroundImage: `url(${profileBanner})` } : undefined} />
+            <div className="lk-profile-avatar">{initials}</div>
+            <div className="lk-profile-body">
+              <div className="lk-profile-toprow">
+                <div>
+                  <h1 className="lk-profile-name">{fullName}<VerifiedShield /></h1>
+                  <div className="lk-profile-headline">{myHeadline}</div>
+                  <div className="lk-profile-loc">{location} · <button type="button" className="lk-linklike">Contact info</button></div>
+                  <button type="button" className="lk-linklike lk-profile-conns">500+ connections</button>
+                </div>
+                {acceptedJob && (
+                  <div className="lk-profile-orgs">
+                    <div className="lk-profile-org"><CompanyLogo company={acceptedJob.company} size={24} /><span>{acceptedJob.company}</span></div>
+                  </div>
+                )}
+              </div>
+              <div className="lk-profile-btns">
+                <button type="button" className="lk-btn-primary">Open to</button>
+                <button type="button" className="lk-btn-outline">Add profile section</button>
+                <button type="button" className="lk-btn-outline">Enhance profile</button>
+                <button type="button" className="lk-btn-ghost">More</button>
+              </div>
+            </div>
+          </div>
+
+          <div className="lk-card lk-profile-section">
+            <h2>Analytics</h2>
+            <div className="lk-analytics-row">
+              <div><strong>127</strong> profile views</div>
+              <div><strong>1,438</strong> post impressions</div>
+              <div><strong>36</strong> search appearances</div>
+            </div>
+          </div>
+
+          <div className="lk-card lk-profile-section">
+            <h2>About</h2>
+            <p>Experienced professional working across software engineering, data, and analytical domains.{acceptedJob ? ` Currently ${acceptedJob.role} at ${acceptedJob.company}.` : ' Open to new opportunities in high-impact, fast-paced environments.'}</p>
+          </div>
+
+          <div className="lk-card lk-profile-section">
+            <h2>Experience</h2>
+            {acceptedJob ? (
+              <div className="lk-exp-row">
+                <CompanyLogo company={acceptedJob.company} size={48} />
+                <div>
+                  <div className="lk-exp-role">{acceptedJob.role}</div>
+                  <div className="lk-exp-company">{acceptedJob.company} · Full-time</div>
+                  <div className="lk-exp-dates">{new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} – Present</div>
+                  <div className="lk-exp-loc">{acceptedJob.location}</div>
+                </div>
+              </div>
+            ) : (
+              <div className="lk-exp-row">
+                <CompanyLogo company="aOS Workspace" size={48} />
+                <div>
+                  <div className="lk-exp-role">Software Engineer</div>
+                  <div className="lk-exp-company">aOS Workspace · Full-time</div>
+                  <div className="lk-exp-dates">Jan 2023 – Present</div>
                 </div>
               </div>
             )}
           </div>
-        )}
+
+          <div className="lk-card lk-profile-section">
+            <h2>Skills</h2>
+            <div className="lk-skills">
+              {['Problem Solving','Communication','Python','SQL','Collaboration','Leadership','Adaptability'].map((s) => (
+                <span key={s} className="lk-skill-pill">{s}</span>
+              ))}
+            </div>
+          </div>
+        </main>
+        <aside className="lk-rail-right">
+          <div className="lk-card lk-news">
+            <div className="lk-news-title">People also viewed</div>
+            <ul className="lk-people-viewed">
+              {Array.from({ length: 5 }, (_, i) => {
+                const rng = seeded(i * 631 + 41);
+                const name = makeName(rng);
+                const company = makeCompany(rng);
+                return (
+                  <li key={i}>
+                    <div className="lk-avatar-circle lk-avatar-40" style={{ background: `hsl(${(i * 67 + 180) % 360}deg 50% 40%)` }}>{name.charAt(0)}</div>
+                    <div>
+                      <strong>{name}</strong>
+                      <span>{pick([...ROLE_MAP.swe], rng)} at {company}</span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </aside>
+      </div>
+    );
+  };
+
+  // ── Shell ───────────────────────────────────────────────────────────────────
+
+  return (
+    <div className="lk-shell">
+      <header className="lk-header">
+        <div className="lk-header-inner">
+          <div className="lk-header-left">
+            <LinkedInBug />
+            <div className="lk-searchwrap">
+              <IconSearch />
+              <input className="lk-search" placeholder="Search" value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setTab('jobs')} />
+            </div>
+          </div>
+          <nav className="lk-nav">
+            {NAV_ITEMS.map((item) => (
+              <button key={item.key} type="button" className={`lk-nav-item${tab === item.key ? ' active' : ''}`} onClick={() => setTab(item.key)}>
+                <span className="lk-nav-icwrap">
+                  {item.icon(tab === item.key)}
+                  {item.key === 'notifications' && emails.filter((e) => e.jobMeta && !e.read).length > 0 && (
+                    <span className="lk-nav-badge">{emails.filter((e) => e.jobMeta && !e.read).length}</span>
+                  )}
+                </span>
+                <span className="lk-nav-label">{item.label}</span>
+              </button>
+            ))}
+            <button type="button" className={`lk-nav-item${tab === 'profile' ? ' active' : ''}`} onClick={() => setTab('profile')}>
+              <span className="lk-nav-icwrap"><span className="lk-avatar-circle lk-avatar-24">{initials}</span></span>
+              <span className="lk-nav-label">Me ▾</span>
+            </button>
+          </nav>
+        </div>
+      </header>
+
+      <div className="lk-body">
+        {tab === 'feed' && renderFeed()}
+        {tab === 'jobs' && renderJobs()}
+        {tab === 'network' && renderNetwork()}
+        {tab === 'notifications' && renderNotifications()}
+        {tab === 'messaging' && renderMessaging()}
+        {tab === 'profile' && renderProfile()}
       </div>
     </div>
   );

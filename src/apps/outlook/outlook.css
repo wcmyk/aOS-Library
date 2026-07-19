@@ -1,0 +1,347 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   OUTLOOK — Microsoft 365 web replica (owa- namespace)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.owa-shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #f5f5f5;
+  color: #242424;
+  font-family: 'Segoe UI', -apple-system, system-ui, Roboto, sans-serif;
+  font-size: 14px;
+  overflow: hidden;
+  position: relative;
+}
+.owa-shell button { font-family: inherit; }
+
+/* ── Suite header ── */
+.owa-topbar {
+  height: 48px;
+  background: #0f6cbd;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.owa-waffle {
+  width: 40px; height: 40px;
+  background: none; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; border-radius: 4px;
+}
+.owa-waffle:hover { background: rgba(255,255,255,0.15); }
+.owa-wordmark { color: #fff; font-size: 16px; font-weight: 600; margin-right: 20px; }
+.owa-searchwrap {
+  flex: 1; max-width: 468px;
+  height: 32px; background: #fff; border-radius: 4px;
+  display: flex; align-items: center; gap: 8px; padding: 0 10px;
+  margin: 0 auto;
+}
+.owa-searchwrap input { border: none; outline: none; font-size: 14px; width: 100%; background: transparent; color: #242424; }
+.owa-topbar-actions { display: flex; align-items: center; gap: 2px; margin-left: auto; position: relative; }
+.owa-topbar-ic {
+  width: 40px; height: 40px; border-radius: 4px;
+  background: none; border: none; cursor: pointer;
+  color: #fff; font-size: 15px;
+}
+.owa-topbar-ic:hover { background: rgba(255,255,255,0.15); }
+.owa-me { background: none; border: none; cursor: pointer; padding: 4px; border-radius: 50%; }
+.owa-avatar {
+  border-radius: 50%; color: #fff; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; user-select: none;
+}
+.owa-avatar-me { width: 32px; height: 32px; font-size: 12px; border: 1.5px solid rgba(255,255,255,0.8); }
+.owa-avatar-lg { width: 64px; height: 64px; font-size: 22px; }
+.owa-avatar-sm { width: 28px; height: 28px; font-size: 11px; }
+
+/* Account dropdown */
+.owa-account-menu {
+  position: absolute; top: 46px; right: 0;
+  width: 320px; background: #fff; border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.24);
+  z-index: 200; overflow: hidden; color: #242424;
+}
+.owa-account-top { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px 4px; }
+.owa-account-signout { background: none; border: none; font-size: 13px; cursor: pointer; color: #242424; }
+.owa-account-signout:hover { text-decoration: underline; }
+.owa-account-id { display: flex; gap: 14px; padding: 12px 16px 16px; align-items: center; }
+.owa-account-name { font-size: 16px; font-weight: 700; }
+.owa-account-email { font-size: 12px; color: #616161; }
+.owa-account-link { background: none; border: none; color: #0f6cbd; font-size: 12px; cursor: pointer; padding: 2px 0; }
+.owa-account-others { border-top: 1px solid #f0f0f0; padding: 8px 0; }
+.owa-account-others-title { font-size: 12px; color: #616161; padding: 4px 16px; }
+.owa-account-other {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 8px 16px; background: none; border: none; cursor: pointer;
+  font-size: 13px; text-align: left;
+}
+.owa-account-other:hover { background: #f5f5f5; }
+.owa-account-add {
+  width: 100%; text-align: left; padding: 12px 16px;
+  background: none; border: none; border-top: 1px solid #f0f0f0;
+  font-size: 13px; cursor: pointer; color: #242424;
+}
+.owa-account-add:hover { background: #f5f5f5; }
+
+/* ── Ribbon ── */
+.owa-ribbon { background: #ffffff; border-bottom: 1px solid #e0e0e0; flex-shrink: 0; padding: 0 12px; }
+.owa-ribbon-tabs { display: flex; gap: 4px; padding-top: 4px; }
+.owa-ribbon-tabs button {
+  background: none; border: none; cursor: pointer;
+  font-size: 14px; padding: 6px 12px; color: #424242;
+  border-bottom: 2px solid transparent; border-radius: 4px 4px 0 0;
+}
+.owa-ribbon-tabs button.active { font-weight: 600; border-bottom-color: #0f6cbd; color: #0f6cbd; }
+.owa-ribbon-tabs button:hover { background: #f5f5f5; }
+.owa-ribbon-row { display: flex; align-items: center; gap: 2px; padding: 6px 0 8px; flex-wrap: nowrap; overflow: hidden; }
+.owa-newmail {
+  display: flex; align-items: center; gap: 8px;
+  background: #0f6cbd; color: #fff;
+  border: none; border-radius: 4px;
+  padding: 6px 14px; font-size: 14px; font-weight: 600; cursor: pointer;
+  flex-shrink: 0;
+}
+.owa-newmail:hover { background: #115ea3; }
+.owa-newmail-caret { border-left: 1px solid rgba(255,255,255,0.4); padding-left: 8px; font-size: 10px; }
+.owa-ribbon-sep { width: 1px; height: 24px; background: #e0e0e0; margin: 0 8px; flex-shrink: 0; }
+.owa-rbtn {
+  display: flex; align-items: center; gap: 6px;
+  background: none; border: none; cursor: pointer;
+  padding: 6px 8px; border-radius: 4px;
+  font-size: 13px; color: #424242; white-space: nowrap;
+}
+.owa-rbtn:hover { background: #f0f0f0; }
+
+/* ── Main layout ── */
+.owa-main { flex: 1; display: flex; min-height: 0; background: #f5f5f5; }
+
+/* App rail */
+.owa-rail {
+  width: 48px; background: #f5f5f5; border-right: 1px solid #e8e8e8;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding-top: 8px; flex-shrink: 0;
+}
+.owa-rail-btn {
+  width: 40px; height: 40px; border-radius: 6px;
+  background: none; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: #616161; position: relative; font-size: 16px;
+}
+.owa-rail-btn:hover { background: #ebebeb; }
+.owa-rail-btn.active { background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+.owa-rail-dot {
+  position: absolute; left: -1px; top: 10px; bottom: 10px; width: 3px;
+  background: #0f6cbd; border-radius: 2px;
+}
+
+/* Folder pane */
+.owa-folders {
+  width: 220px; flex-shrink: 0; overflow-y: auto;
+  padding: 8px 4px; background: #f5f5f5;
+}
+.owa-folders-section { margin-bottom: 12px; }
+.owa-folders-group {
+  display: block; width: 100%; text-align: left;
+  background: none; border: none; cursor: pointer;
+  font-size: 13px; font-weight: 600; color: #242424;
+  padding: 6px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.owa-folder {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; background: none; border: none; cursor: pointer;
+  padding: 5px 10px 5px 26px; border-radius: 4px;
+  font-size: 14px; color: #424242; position: relative;
+}
+.owa-folder:hover { background: #ebebeb; }
+.owa-folder.active { background: #cfe4fa; font-weight: 600; color: #242424; }
+.owa-folder-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.owa-folder-count { font-size: 12px; color: #0f6cbd; font-weight: 600; }
+
+/* Message list */
+.owa-list {
+  width: 340px; flex-shrink: 0; background: #fff;
+  border: 1px solid #e0e0e0; border-radius: 8px 8px 0 0;
+  margin: 0 8px 0 0; display: flex; flex-direction: column; min-height: 0;
+}
+.owa-list-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px; border-bottom: 1px solid #f0f0f0; flex-shrink: 0;
+}
+.owa-pivots { display: flex; gap: 4px; }
+.owa-pivots button {
+  background: none; border: none; cursor: pointer;
+  font-size: 14px; padding: 6px 10px; color: #616161;
+  border-bottom: 2px solid transparent; font-weight: 600;
+}
+.owa-pivots button.active { color: #0f6cbd; border-bottom-color: #0f6cbd; }
+.owa-list-title { font-size: 14px; font-weight: 600; padding: 6px 0; }
+.owa-list-filter { background: none; border: none; cursor: pointer; font-size: 13px; color: #424242; padding: 4px 8px; border-radius: 4px; }
+.owa-list-filter:hover { background: #f0f0f0; }
+.owa-list-items { flex: 1; overflow-y: auto; }
+.owa-list-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 60px 20px; color: #616161; text-align: center; }
+.owa-list-empty-art { font-size: 44px; }
+.owa-list-empty strong { color: #242424; }
+.owa-list-empty span { font-size: 13px; }
+
+.owa-row {
+  display: flex; gap: 10px; width: 100%; text-align: left;
+  background: none; border: none; cursor: pointer;
+  padding: 10px 12px 10px 6px; border-bottom: 1px solid #f0f0f0;
+  position: relative; align-items: flex-start;
+}
+.owa-row:hover { background: #f5f5f5; }
+.owa-row.selected { background: #cfe4fa; }
+.owa-row-selbar { width: 3px; align-self: stretch; border-radius: 2px; flex-shrink: 0; }
+.owa-row.unread .owa-row-selbar { background: #0f6cbd; }
+.owa-row-content { flex: 1; min-width: 0; }
+.owa-row-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.owa-row-from { font-size: 14px; color: #242424; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.owa-row.unread .owa-row-from { font-weight: 700; }
+.owa-row-date { font-size: 12px; color: #616161; flex-shrink: 0; }
+.owa-row.unread .owa-row-date { color: #0f6cbd; font-weight: 600; }
+.owa-row-subject { font-size: 13px; color: #424242; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.owa-row.unread .owa-row-subject { color: #0f6cbd; font-weight: 600; }
+.owa-row-preview { font-size: 12px; color: #616161; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Reading pane */
+.owa-reading {
+  flex: 1; min-width: 0; display: flex; flex-direction: column;
+  background: #fff; border: 1px solid #e0e0e0; border-radius: 8px 8px 0 0;
+  margin-right: 8px; overflow-y: auto;
+}
+.owa-reading-subjectrow {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px 8px; gap: 12px;
+}
+.owa-reading-subjectrow h1 { font-size: 20px; font-weight: 700; margin: 0; line-height: 1.3; }
+.owa-reading-subjectactions button {
+  background: linear-gradient(90deg, #f3f0ff, #e8f4ff);
+  border: 1px solid #d0c8f0; border-radius: 6px;
+  font-size: 12px; padding: 5px 10px; cursor: pointer; color: #5b5fc7; white-space: nowrap;
+}
+.owa-reading-card { padding: 0 24px 24px; }
+.owa-reading-meta {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 12px 0; border-bottom: 1px solid #f0f0f0;
+}
+.owa-reading-names { flex: 1; min-width: 0; }
+.owa-reading-from { font-size: 14px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.owa-reading-addr { font-size: 12px; color: #616161; }
+.owa-reading-to { font-size: 12px; color: #616161; margin-top: 2px; }
+.owa-reading-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.owa-reading-date { font-size: 12px; color: #616161; }
+.owa-reading-quick { display: flex; gap: 2px; }
+.owa-reading-quick button {
+  background: none; border: none; cursor: pointer;
+  font-size: 14px; color: #424242; padding: 4px 6px; border-radius: 4px;
+}
+.owa-reading-quick button:hover { background: #f0f0f0; color: #0f6cbd; }
+.owa-reading-body { padding: 16px 0; font-size: 14px; line-height: 1.6; color: #242424; }
+.owa-reading-body p { margin: 0 0 12px; }
+.owa-reading-body a { color: #0f6cbd; }
+.owa-reading-body table { max-width: 100%; }
+.owa-reading-replyrow { display: flex; gap: 8px; padding-top: 8px; }
+.owa-reading-replyrow button {
+  border: 1px solid #d1d1d1; background: #fff; border-radius: 4px;
+  padding: 6px 16px; font-size: 13px; font-weight: 600; cursor: pointer; color: #424242;
+}
+.owa-reading-replyrow button:hover { background: #f5f5f5; }
+.owa-reading-empty {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; color: #616161;
+}
+.owa-reading-empty-art { font-size: 56px; opacity: 0.4; }
+
+/* ── Compose window ── */
+.owa-compose-overlay {
+  position: absolute; inset: 0; z-index: 300;
+  background: rgba(0,0,0,0.18);
+  display: flex; align-items: flex-end; justify-content: flex-end;
+  padding: 24px;
+}
+.owa-compose {
+  width: min(640px, 92%); height: min(520px, 88%);
+  background: #fff; border-radius: 8px 8px 0 0;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.owa-compose-titlebar {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #0f6cbd; color: #fff;
+  padding: 8px 12px; font-size: 13px; font-weight: 600;
+}
+.owa-compose-titlebar button { background: none; border: none; color: #fff; cursor: pointer; font-size: 13px; padding: 2px 8px; }
+.owa-compose-titlebar button:hover { background: rgba(255,255,255,0.2); border-radius: 3px; }
+.owa-compose-field {
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid #f0f0f0; padding: 6px 14px;
+}
+.owa-compose-tobtn {
+  border: 1px solid #d1d1d1; background: #fff; border-radius: 4px;
+  padding: 3px 12px; font-size: 13px; cursor: pointer; color: #424242;
+}
+.owa-compose-field input { flex: 1; border: none; outline: none; font-size: 14px; padding: 4px 0; color: #242424; }
+.owa-compose-ccbcc { font-size: 13px; color: #0f6cbd; cursor: pointer; }
+.owa-compose-subject { font-weight: 600; }
+.owa-compose-body { flex: 1; border: none; outline: none; resize: none; padding: 14px; font-size: 14px; font-family: inherit; color: #242424; line-height: 1.5; }
+.owa-compose-toolbar {
+  display: flex; align-items: center; gap: 14px;
+  border-top: 1px solid #f0f0f0; padding: 10px 14px;
+}
+.owa-compose-send {
+  display: flex; align-items: center; gap: 8px;
+  background: #0f6cbd; color: #fff;
+  border: none; border-radius: 4px;
+  padding: 7px 18px; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.owa-compose-send:hover { background: #115ea3; }
+.owa-compose-send span { border-left: 1px solid rgba(255,255,255,0.4); padding-left: 8px; font-size: 10px; }
+.owa-compose-tools { color: #616161; font-size: 15px; }
+.owa-compose-discard { margin-left: auto; background: none; border: none; cursor: pointer; font-size: 15px; color: #616161; }
+
+/* ── Sign-in ── */
+.owa-login-bg {
+  height: 100%;
+  background: linear-gradient(135deg, #e8f0fe 0%, #f3e8ff 50%, #e0f7fa 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-family: 'Segoe UI', -apple-system, system-ui, sans-serif;
+  position: relative;
+}
+.owa-login-card {
+  width: 400px; max-width: calc(100% - 48px);
+  background: #fff; padding: 44px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  border-radius: 8px;
+}
+.owa-login-mslogo { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+.owa-login-mslogo span { font-size: 16px; font-weight: 600; color: #5e5e5e; letter-spacing: -0.01em; }
+.owa-login-card h1 { font-size: 24px; font-weight: 600; margin: 0 0 4px; color: #1b1b1b; }
+.owa-login-sub { font-size: 15px; margin: 0 0 16px; color: #1b1b1b; }
+.owa-login-idrow { font-size: 14px; margin-bottom: 12px; color: #1b1b1b; }
+.owa-login-input {
+  width: 100%; border: none; border-bottom: 1px solid #666;
+  outline: none; font-size: 15px; padding: 8px 0; margin: 8px 0 4px;
+  background: transparent; color: #1b1b1b; box-sizing: border-box;
+}
+.owa-login-input:focus { border-bottom: 2px solid #0f6cbd; }
+.owa-login-links { display: flex; flex-direction: column; gap: 8px; font-size: 13px; margin: 14px 0 22px; }
+.owa-login-links a { color: #0f6cbd; text-decoration: none; }
+.owa-login-links a:hover { text-decoration: underline; }
+.owa-login-error { color: #e50000; font-size: 13px; margin-bottom: 12px; }
+.owa-login-btnrow { display: flex; justify-content: flex-end; gap: 8px; }
+.owa-login-back {
+  background: #e5e5e5; border: none; color: #1b1b1b;
+  padding: 8px 24px; font-size: 14px; cursor: pointer;
+}
+.owa-login-back:disabled { opacity: 0.5; cursor: default; }
+.owa-login-next {
+  background: #0f6cbd; border: none; color: #fff;
+  padding: 8px 32px; font-size: 14px; cursor: pointer;
+}
+.owa-login-next:hover { background: #115ea3; }
+.owa-login-footer {
+  position: absolute; bottom: 16px; right: 24px;
+  display: flex; gap: 16px; font-size: 12px; color: #1b1b1b;
+}

@@ -1,7 +1,10 @@
-import { useMemo, useState, type CSSProperties, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { useCompanyStore } from '../../state/useCompanyStore';
+import { useProfileStore } from '../../state/useProfileStore';
+import { VisaWordmark, MastercardCircles, ChaseOctagon } from '../../data/brands';
+import './banking.css';
 
-type Tab = 'activity' | 'transfer' | 'cards';
+type Tab = 'accounts' | 'transfer' | 'wallet';
 
 type Account = {
   id: string;
@@ -16,35 +19,174 @@ type Account = {
 
 type Txn = { id: string; accountId: string; date: string; desc: string; amount: number; balance: number };
 
-type UserCard = { id: string; network: 'Visa' | 'Mastercard' | 'Debit'; holder: string; number: string; cvv: string; expiry: string; linkedAccount: string };
-
 const BASE_ACCOUNTS: Account[] = [
-  { id: 'chk', kind: 'checking', name: 'Total Checking', last4: '1666', routing: '021000021', accountNumber: '9448201191', balance: 0, available: 0 },
+  { id: 'chk', kind: 'checking', name: 'Chase Total Checking', last4: '1666', routing: '021000021', accountNumber: '9448201191', balance: 0, available: 0 },
   { id: 'sav', kind: 'savings', name: 'Chase Savings', last4: '5462', routing: '021000021', accountNumber: '8824193375', balance: 0, available: 0 },
   { id: 'cc-freedom', kind: 'credit', name: 'Freedom Unlimited', last4: '6399', routing: 'N/A', accountNumber: '6399', balance: 0 },
   { id: 'cc-sapphire', kind: 'credit', name: 'Sapphire Reserve', last4: '0077', routing: 'N/A', accountNumber: '0077', balance: 0 },
   { id: 'mort', kind: 'mortgage', name: 'Home Mortgage', last4: '6798', routing: '021000021', accountNumber: '1177392281', balance: 0 },
 ];
 
-const CARDS: UserCard[] = [
-  { id: 'card-1', network: 'Visa', holder: 'AOS USER', number: '4138521900016399', cvv: '218', expiry: '03/29', linkedAccount: 'Freedom Unlimited' },
-  { id: 'card-2', network: 'Mastercard', holder: 'AOS USER', number: '5424001109870077', cvv: '605', expiry: '11/30', linkedAccount: 'Sapphire Reserve' },
-  { id: 'card-3', network: 'Debit', holder: 'AOS USER', number: '4213670041231666', cvv: '114', expiry: '08/28', linkedAccount: 'Total Checking' },
-];
-
 const shortCompany = (name: string) => name.split(/\s+/).map((p) => p[0]).join('').slice(0, 5).toUpperCase();
-const maskCard = (value: string) => `•••• •••• •••• ${value.slice(-4)}`;
+
+// ── Card art primitives ───────────────────────────────────────────────────────
+
+function EmvChip({ light = false }: { light?: boolean }) {
+  const stroke = light ? 'rgba(60,60,60,0.55)' : 'rgba(40,40,40,0.5)';
+  return (
+    <svg className="chb-chip" width="46" height="36" viewBox="0 0 46 36">
+      <defs>
+        <linearGradient id="chipGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#e8e6e1" />
+          <stop offset="0.5" stopColor="#c8c6c0" />
+          <stop offset="1" stopColor="#f0efec" />
+        </linearGradient>
+      </defs>
+      <rect x="1" y="1" width="44" height="34" rx="6" fill="url(#chipGrad)" stroke={stroke} strokeWidth="1" />
+      <path d="M1 13h14M1 23h14M31 13h14M31 23h14M15 13v-6M15 23v6M31 13v-6M31 23v6M15 13h16v10H15z" fill="none" stroke={stroke} strokeWidth="1" />
+    </svg>
+  );
+}
+
+function Contactless({ color = 'rgba(255,255,255,0.85)' }: { color?: string }) {
+  return (
+    <svg width="22" height="24" viewBox="0 0 22 24">
+      {[4, 9, 14, 19].map((r, i) => (
+        <path key={i} d={`M${2 + i * 2} ${12 - r / 1.4} a ${r} ${r} 0 0 1 0 ${r * 1.43}`} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+      ))}
+    </svg>
+  );
+}
+
+// ── Card definitions ──────────────────────────────────────────────────────────
+
+type WalletCard = {
+  id: string;
+  className: string;
+  bank: ReactNode;
+  product: ReactNode;
+  network: ReactNode;
+  holder: string;
+  last4: string;
+  expiry: string;
+  linked: string;
+  lightChip?: boolean;
+  darkText?: boolean;
+};
+
+const HuntingtonHex = (
+  <span className="chb-bankmark">
+    <svg width="20" height="20" viewBox="0 0 32 32">
+      <path d="M16 1 L30 9 v14 L16 31 L2 23 V9 Z" fill="#5B8F22" />
+      <path d="M10 9 h4 v5 h4 V9 h4 v14 h-4 v-5 h-4 v5 h-4 Z" fill="#fff" />
+    </svg>
+    <span style={{ fontWeight: 700, letterSpacing: '0.01em' }}>Huntington</span>
+  </span>
+);
+
+const PncMarkSmall = (
+  <span className="chb-bankmark">
+    <svg width="18" height="18" viewBox="0 0 30 30">
+      <path d="M15 2 L28 26 H2 Z" fill="#F58025" />
+      <path d="M15 9 L23 26 H7 Z" fill="#fff" />
+    </svg>
+    <span style={{ fontWeight: 800, letterSpacing: '0.02em' }}>PNC</span>
+  </span>
+);
+
+function buildWallet(holder: string): WalletCard[] {
+  const h = holder.toUpperCase();
+  return [
+    {
+      id: 'sapphire',
+      className: 'chb-card-sapphire',
+      bank: <span className="chb-bankmark"><span style={{ fontWeight: 700, letterSpacing: '0.08em' }}>CHASE</span> <ChaseOctagon size={16} /></span>,
+      product: <div className="chb-product-stack"><span>SAPPHIRE</span><span className="chb-product-sub">RESERVE</span></div>,
+      network: <div className="chb-network-stack"><VisaWordmark height={22} /><span className="chb-network-tier">Infinite</span></div>,
+      holder: h, last4: '0077', expiry: '11/30', linked: 'Sapphire Reserve',
+    },
+    {
+      id: 'freedom',
+      className: 'chb-card-freedom',
+      bank: <span className="chb-bankmark"><span style={{ fontWeight: 700, letterSpacing: '0.08em' }}>CHASE</span> <ChaseOctagon size={16} /></span>,
+      product: <div className="chb-product-stack"><span>FREEDOM</span><span className="chb-product-sub">UNLIMITED</span></div>,
+      network: <div className="chb-network-stack"><VisaWordmark height={22} /><span className="chb-network-tier">Signature</span></div>,
+      holder: h, last4: '6399', expiry: '03/29', linked: 'Freedom Unlimited',
+    },
+    {
+      id: 'huntington',
+      className: 'chb-card-huntington',
+      bank: HuntingtonHex,
+      product: <div className="chb-product-stack"><span style={{ fontSize: 13, letterSpacing: '0.14em' }}>VOICE REWARDS</span></div>,
+      network: <MastercardCircles height={30} />,
+      holder: h, last4: '4821', expiry: '07/29', linked: 'Huntington Voice',
+      lightChip: true, darkText: true,
+    },
+    {
+      id: 'pnc',
+      className: 'chb-card-pnc',
+      bank: PncMarkSmall,
+      product: <div className="chb-product-stack"><span style={{ fontSize: 13, letterSpacing: '0.14em' }}>CASH REWARDS</span></div>,
+      network: <div className="chb-network-stack"><VisaWordmark height={22} /><span className="chb-network-tier">Signature</span></div>,
+      holder: h, last4: '9034', expiry: '01/31', linked: 'PNC Cash Rewards',
+    },
+    {
+      id: 'worldelite',
+      className: 'chb-card-worldelite',
+      bank: <span className="chb-bankmark" style={{ fontWeight: 600, letterSpacing: '0.16em', fontSize: 11 }}>WORLD ELITE</span>,
+      product: <div className="chb-product-stack" />,
+      network: <MastercardCircles height={34} />,
+      holder: h, last4: '5512', expiry: '09/30', linked: 'World Elite Mastercard',
+    },
+    {
+      id: 'debit',
+      className: 'chb-card-debit',
+      bank: <span className="chb-bankmark"><span style={{ fontWeight: 700, letterSpacing: '0.08em' }}>CHASE</span> <ChaseOctagon size={16} /></span>,
+      product: <div className="chb-product-stack"><span style={{ fontSize: 12, letterSpacing: '0.16em' }}>TOTAL CHECKING</span><span className="chb-product-sub">DEBIT</span></div>,
+      network: <div className="chb-network-stack"><VisaWordmark height={22} /><span className="chb-network-tier">Debit</span></div>,
+      holder: h, last4: '1666', expiry: '08/28', linked: 'Total Checking',
+    },
+  ];
+}
+
+function CardArt({ card }: { card: WalletCard }) {
+  return (
+    <div className={`chb-card ${card.className}`}>
+      <div className="chb-card-sheen" />
+      <div className="chb-card-top">
+        {card.bank}
+        {card.product}
+      </div>
+      <div className="chb-card-mid">
+        <EmvChip light={card.lightChip} />
+        <Contactless color={card.darkText ? 'rgba(60,60,60,0.6)' : 'rgba(255,255,255,0.85)'} />
+      </div>
+      <div className="chb-card-bottom">
+        <div className="chb-card-holder">
+          <span className="chb-card-number">•••• {card.last4}</span>
+          <span className="chb-card-name">{card.holder}</span>
+        </div>
+        <div className="chb-card-netwrap">{card.network}</div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
 
 export function BankingApp() {
   const employerAccounts = useCompanyStore((s) => s.employerAccounts);
-  const [tab, setTab] = useState<Tab>('activity');
+  const profileName = useProfileStore((s) => s.fullName);
+  const [tab, setTab] = useState<Tab>('accounts');
   const [from, setFrom] = useState('chk');
   const [to, setTo] = useState('sav');
   const [amount, setAmount] = useState('');
   const [confirmation, setConfirmation] = useState('');
   const [selectedAccountId, setSelectedAccountId] = useState('chk');
+  const [lockedCards, setLockedCards] = useState<Record<string, boolean>>({});
 
   const activeEmployment = employerAccounts.filter((a) => a.employmentStatus === 'active' || a.employmentStatus === 'onboarding');
+  const holderName = profileName || 'AOS MEMBER';
 
   const salaryTxns = useMemo<Txn[]>(() => {
     if (activeEmployment.length === 0) return [];
@@ -63,7 +205,7 @@ export function BankingApp() {
           id: `pay-${emp.id}-${count}`,
           accountId,
           date: payDate.toISOString(),
-          desc: `Direct Deposit — ${shortCompany(emp.companyName)} Payroll`,
+          desc: `ACH Direct Dep — ${shortCompany(emp.companyName)} PAYROLL PPD`,
           amount: biweekly,
           balance: runningBalance,
         });
@@ -78,11 +220,10 @@ export function BankingApp() {
     const accountId = `income-${emp.id}`;
     const accountTxns = salaryTxns.filter((t) => t.accountId === accountId);
     const balance = accountTxns.reduce((sum, t) => sum + t.amount, 0);
-    const label = `${shortCompany(emp.companyName)} Income`;
     return {
       id: accountId,
-      kind: 'income',
-      name: label,
+      kind: 'income' as const,
+      name: `${shortCompany(emp.companyName)} Payroll`,
       last4: emp.employeeId.slice(-4),
       routing: 'PAYROLL',
       accountNumber: emp.employeeId,
@@ -101,118 +242,165 @@ export function BankingApp() {
   const selectedAccount = accounts.find((a) => a.id === selectedAccountId) ?? accounts[0];
   const accountTxns = salaryTxns.filter((t) => t.accountId === selectedAccount.id).sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
 
-  const totals = useMemo(() => ({
-    deposits: accounts.filter((a) => a.kind === 'checking' || a.kind === 'savings' || a.kind === 'income').reduce((n, a) => n + a.balance, 0),
-    credit: 0,
-  }), [accounts]);
+  const totalDeposits = accounts.filter((a) => a.kind === 'checking' || a.kind === 'savings' || a.kind === 'income').reduce((n, a) => n + a.balance, 0);
+  const fmt = (n: number) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+
+  const wallet = buildWallet(holderName);
 
   return (
-    <div style={{ height: '100%', background: '#eef2f6', color: '#0f172a', fontFamily: "'Helvetica Neue','Inter',sans-serif", display: 'grid', gridTemplateRows: '52px 50px 1fr' }}>
-      <header style={{ background: '#0b65a5', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 14px' }}>
-        <div style={{ fontWeight: 700, fontSize: 18, letterSpacing: '0.04em' }}>CHASE</div>
-        <div style={{ fontSize: 12 }}>Secure Session</div>
+    <div className="chb-shell">
+      {/* Brand header */}
+      <header className="chb-header">
+        <div className="chb-header-brand">
+          <ChaseOctagon size={26} color="#fff" />
+          <span className="chb-header-wordmark">CHASE</span>
+        </div>
+        <nav className="chb-header-nav">
+          <button type="button">Open an account</button>
+          <button type="button">Customer service</button>
+          <button type="button">Español</button>
+          <button type="button" className="chb-signout">Sign out</button>
+        </nav>
       </header>
 
-      <nav style={{ display: 'flex', alignItems: 'center', background: '#f8fafc', borderBottom: '1px solid #d9e1ea', padding: '0 12px', gap: 8 }}>
-        {[
-          ['activity', 'Account activity'],
-          ['transfer', 'Transfer money'],
-          ['cards', 'Manage your Cards'],
-        ].map(([id, label]) => (
-          <button key={id} type="button" onClick={() => setTab(id as Tab)} style={{ padding: '8px 10px', borderBottom: tab === id ? '2px solid #0b65a5' : '2px solid transparent', color: tab === id ? '#0b65a5' : '#334155', fontSize: 12, background: 'transparent' }}>
-            {label}
-          </button>
+      {/* Secondary nav */}
+      <nav className="chb-subnav">
+        {([
+          ['accounts', 'Accounts'],
+          ['transfer', 'Pay & transfer'],
+          ['wallet', 'Card services'],
+        ] as Array<[Tab, string]>).map(([id, label]) => (
+          <button key={id} type="button" className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>{label}</button>
         ))}
+        <span className="chb-subnav-static">Plan & track</span>
+        <span className="chb-subnav-static">Investments</span>
+        <span className="chb-subnav-static">Security & privacy</span>
+        <span className="chb-secure">🔒 Secure session</span>
       </nav>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 10, padding: 10, overflow: 'auto' }}>
-        <section style={{ background: 'white', border: '1px solid #d8e0e8' }}>
-          <Group title="Accounts">
-            {accounts.map((a) => (
-              <button key={a.id} type="button" onClick={() => setSelectedAccountId(a.id)} style={{ width: '100%', textAlign: 'left', background: selectedAccountId === a.id ? '#eff6ff' : 'transparent', border: 'none', cursor: 'pointer' }}>
-                <RowAccount name={a.name} amount={a.balance} meta={`${a.routing} • ****${a.last4}`} />
-              </button>
-            ))}
-          </Group>
-        </section>
-
-        <section style={{ background: 'white', border: '1px solid #d8e0e8', display: 'grid', gridTemplateRows: 'auto auto 1fr' }}>
-          <div style={{ borderBottom: '1px solid #e2e8f0', padding: 12, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-            <Metric label="Total deposits" value={`$${totals.deposits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
-            <Metric label="Selected account" value={selectedAccount?.name ?? 'N/A'} />
-            <Metric label="Overdraft protection" value="On" />
-          </div>
-
-          {tab === 'transfer' ? (
-            <div style={{ padding: 12, borderBottom: '1px solid #e2e8f0', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 8 }}>
-              <select value={from} onChange={(e) => setFrom(e.target.value)} style={input}>{accounts.filter((a) => a.kind !== 'mortgage').map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select>
-              <select value={to} onChange={(e) => setTo(e.target.value)} style={input}>{accounts.filter((a) => a.id !== from && a.kind !== 'mortgage').map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select>
-              <input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Amount" style={input} />
-              <button type="button" style={{ ...input, background: '#0b65a5', color: 'white', borderColor: '#0b65a5', cursor: 'pointer' }} onClick={() => setConfirmation(`Transfer submitted for $${amount || '0.00'}`)}>Submit</button>
+      <div className="chb-body">
+        {tab === 'wallet' ? (
+          <div className="chb-wallet">
+            <div className="chb-wallet-head">
+              <h1>Card services</h1>
+              <p>Manage your credit and debit cards, lock a misplaced card instantly, and view digital card details.</p>
             </div>
-          ) : (
-            <div style={{ padding: 12, borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: 12 }}>
-              {tab === 'activity' && `Viewing ${selectedAccount?.name ?? 'account'} activity.`}
-              {tab === 'cards' && 'Secure card details and virtual controls.'}
-              {confirmation && <div style={{ marginTop: 4, color: '#0b65a5' }}>{confirmation}</div>}
-            </div>
-          )}
-
-          <div style={{ overflow: 'auto' }}>
-            {tab === 'cards' ? (
-              <div style={{ padding: 16, display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))' }}>
-                {CARDS.map((card) => (
-                  <div key={card.id} style={{ borderRadius: 20, padding: 16, minHeight: 160, background: 'linear-gradient(130deg,#0b1f3a,#0b65a5 58%,#38bdf8)', color: 'white', boxShadow: '0 12px 30px rgba(2,6,23,.22)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>{card.network}</strong><span style={{ opacity: .8, fontSize: 12 }}>{card.linkedAccount}</span></div>
-                    <div style={{ marginTop: 28, letterSpacing: '.16em', fontSize: 16 }}>{maskCard(card.number)}</div>
-                    <div style={{ marginTop: 18, display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                      <span>{card.holder}</span><span>EXP {card.expiry}</span>
+            <div className="chb-wallet-grid">
+              {wallet.map((card) => (
+                <div key={card.id} className="chb-wallet-item">
+                  <CardArt card={card} />
+                  {lockedCards[card.id] && <div className="chb-card-lockedover">🔒 Card locked</div>}
+                  <div className="chb-wallet-meta">
+                    <div>
+                      <div className="chb-wallet-linked">{card.linked}</div>
+                      <div className="chb-wallet-sub">Card ending in {card.last4} · Exp {card.expiry}</div>
                     </div>
-                    <div style={{ marginTop: 6, fontSize: 12, opacity: .9 }}>CVV {card.cvv}</div>
+                    <div className="chb-wallet-actions">
+                      <button type="button" onClick={() => setLockedCards((p) => ({ ...p, [card.id]: !p[card.id] }))}>
+                        {lockedCards[card.id] ? 'Unlock card' : 'Lock card'}
+                      </button>
+                      <button type="button">Replace card</button>
+                    </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                <thead>
-                  <tr style={{ background: '#f8fafc', color: '#64748b' }}>
-                    <th style={th}>Date</th><th style={th}>Description</th><th style={th}>Amount</th><th style={th}>Balance</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {accountTxns.map((t) => (
-                    <tr key={t.id} style={{ background: 'rgba(11,101,165,0.04)' }}>
-                      <td style={td}>{new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
-                      <td style={{ ...td, color: '#0b65a5' }}>{t.desc}</td>
-                      <td style={{ ...td, color: '#15803d' }}>+{t.amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                      <td style={td}>{t.balance.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-                    </tr>
-                  ))}
-                  {accountTxns.length === 0 && (
-                    <tr><td colSpan={4} style={{ ...td, color: '#94a3b8', textAlign: 'center', padding: 24 }}>No transactions for this account yet.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            )}
+                </div>
+              ))}
+            </div>
           </div>
-        </section>
+        ) : (
+          <div className="chb-dashboard">
+            <aside className="chb-accounts-rail">
+              <div className="chb-rail-title">Accounts <span>{fmt(totalDeposits)}</span></div>
+              {accounts.map((a) => (
+                <button key={a.id} type="button"
+                  className={`chb-account-row ${selectedAccountId === a.id ? 'active' : ''}`}
+                  onClick={() => { setSelectedAccountId(a.id); setTab('accounts'); }}>
+                  <div className="chb-account-name">{a.name} <span>(...{a.last4})</span></div>
+                  <div className="chb-account-bal">{fmt(a.balance)}</div>
+                  <div className="chb-account-meta">{a.kind === 'credit' ? 'Current balance' : 'Available balance'}</div>
+                </button>
+              ))}
+              <div className="chb-rail-offer">
+                <strong>You're pre-approved</strong>
+                <span>Chase Sapphire Reserve® — earn 60,000 bonus points.</span>
+                <button type="button" onClick={() => setTab('wallet')}>Learn more</button>
+              </div>
+            </aside>
+
+            <main className="chb-main">
+              {tab === 'transfer' ? (
+                <section className="chb-panel">
+                  <h1>Transfer money</h1>
+                  <div className="chb-transfer-grid">
+                    <label>From
+                      <select value={from} onChange={(e) => setFrom(e.target.value)}>
+                        {accounts.filter((a) => a.kind !== 'mortgage').map((a) => <option key={a.id} value={a.id}>{a.name} (...{a.last4}) — {fmt(a.balance)}</option>)}
+                      </select>
+                    </label>
+                    <label>To
+                      <select value={to} onChange={(e) => setTo(e.target.value)}>
+                        {accounts.filter((a) => a.id !== from && a.kind !== 'mortgage').map((a) => <option key={a.id} value={a.id}>{a.name} (...{a.last4})</option>)}
+                      </select>
+                    </label>
+                    <label>Amount
+                      <input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="$0.00" />
+                    </label>
+                    <button type="button" className="chb-primary-btn" onClick={() => setConfirmation(`Transfer scheduled for ${amount ? `$${amount}` : '$0.00'} — confirmation #${Math.floor(Math.random() * 900000000 + 100000000)}`)}>
+                      Schedule transfer
+                    </button>
+                  </div>
+                  {confirmation && <div className="chb-confirm">✓ {confirmation}</div>}
+                  <p className="chb-finequote">Transfers between Chase accounts made before 11 PM ET are available immediately.</p>
+                </section>
+              ) : (
+                <>
+                  <section className="chb-hero-tile">
+                    <div>
+                      <div className="chb-hero-label">{selectedAccount.name} (...{selectedAccount.last4})</div>
+                      <div className="chb-hero-balance">{fmt(selectedAccount.balance)}</div>
+                      <div className="chb-hero-sub">{selectedAccount.kind === 'credit' ? 'Current balance' : 'Available balance'}</div>
+                    </div>
+                    <div className="chb-hero-details">
+                      <div><span>Routing number</span><strong>{selectedAccount.routing}</strong></div>
+                      <div><span>Account number</span><strong>···{selectedAccount.accountNumber.slice(-4)}</strong></div>
+                      <div><span>Overdraft protection</span><strong>On</strong></div>
+                    </div>
+                  </section>
+
+                  <section className="chb-panel">
+                    <div className="chb-panel-head">
+                      <h2>Activity</h2>
+                      <span>{accountTxns.length} transactions</span>
+                    </div>
+                    <table className="chb-table">
+                      <thead>
+                        <tr><th>Date</th><th>Description</th><th className="chb-num">Amount</th><th className="chb-num">Balance</th></tr>
+                      </thead>
+                      <tbody>
+                        {accountTxns.map((t) => (
+                          <tr key={t.id}>
+                            <td>{new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                            <td className="chb-txn-desc">{t.desc}</td>
+                            <td className="chb-num chb-credit">+{fmt(t.amount)}</td>
+                            <td className="chb-num">{fmt(t.balance)}</td>
+                          </tr>
+                        ))}
+                        {accountTxns.length === 0 && (
+                          <tr><td colSpan={4} className="chb-empty">No recent transactions on this account.{activeEmployment.length === 0 ? ' Accept a job offer in Outlook to start receiving payroll deposits.' : ''}</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </section>
+                </>
+              )}
+            </main>
+          </div>
+        )}
       </div>
+
+      <footer className="chb-footer">
+        <span>JPMorgan Chase Bank, N.A. Member FDIC · Equal Housing Lender</span>
+        <span>Simulation environment — for training use only</span>
+      </footer>
     </div>
   );
 }
-
-function Group({ title, children }: { title: string; children: ReactNode }) {
-  return <div style={{ borderBottom: '1px solid #e2e8f0' }}><div style={{ padding: '8px 10px', fontSize: 11, color: '#64748b', textTransform: 'uppercase' }}>{title}</div>{children}</div>;
-}
-
-function RowAccount({ name, amount, meta }: { name: string; amount: number; meta: string }) {
-  return <div style={{ padding: '8px 10px', borderTop: '1px solid #f1f5f9' }}><div style={{ fontSize: 13 }}>{name}</div><div style={{ fontSize: 12, color: '#334155', fontWeight: 600 }}>${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div><div style={{ fontSize: 11, color: '#64748b' }}>{meta}</div></div>;
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return <div><div style={{ fontSize: 11, color: '#64748b' }}>{label}</div><div style={{ fontWeight: 700 }}>{value}</div></div>;
-}
-
-const input: CSSProperties = { padding: '7px 8px', border: '1px solid #cbd5e1', borderRadius: 4, fontSize: 12 };
-const th: CSSProperties = { textAlign: 'left', padding: '7px 8px', borderBottom: '1px solid #e2e8f0' };
-const td: CSSProperties = { padding: '8px', borderBottom: '1px solid #f1f5f9' };
