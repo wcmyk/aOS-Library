@@ -131,3 +131,11 @@
 @media (max-width: 900px) {
   .go-results-tabs, .go-results-main { padding-left: 26px; }
 }
+
+/* Native Gemini AI Overview */
+.go-ai-card.gemini {
+  background: linear-gradient(140deg, #f3f6ff, #fdf7ff);
+  border-color: #e0e4f5;
+}
+.go-ai-disclaimer { margin-top: 10px; font-size: 12px; color: #70757a; }
+.go-ai-disclaimer span { color: #1a73e8; cursor: pointer; }

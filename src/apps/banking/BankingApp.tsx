@@ -1,6 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { useCompanyStore } from '../../state/useCompanyStore';
 import { useProfileStore } from '../../state/useProfileStore';
+import { useDevStore, subscriptionCharges } from '../../state/useDevStore';
 import { VisaWordmark, MastercardCircles, ChaseOctagon } from '../../data/brands';
 import './banking.css';
 
@@ -177,6 +178,8 @@ function CardArt({ card }: { card: WalletCard }) {
 export function BankingApp() {
   const employerAccounts = useCompanyStore((s) => s.employerAccounts);
   const profileName = useProfileStore((s) => s.fullName);
+  const cashAdjustment = useDevStore((s) => s.cashAdjustment);
+  const subscriptions = useDevStore((s) => s.subscriptions);
   const [tab, setTab] = useState<Tab>('accounts');
   const [from, setFrom] = useState('chk');
   const [to, setTo] = useState('sav');
@@ -187,6 +190,22 @@ export function BankingApp() {
 
   const activeEmployment = employerAccounts.filter((a) => a.employmentStatus === 'active' || a.employmentStatus === 'onboarding');
   const holderName = profileName || 'AOS MEMBER';
+
+  const extraTxns = useMemo<Txn[]>(() => {
+    const txns: Txn[] = [];
+    if (cashAdjustment !== 0) {
+      txns.push({
+        id: 'dev-adjust', accountId: 'chk', date: new Date().toISOString(),
+        desc: cashAdjustment > 0 ? 'Wire Transfer Credit — External Funding' : 'Adjustment — External Debit',
+        amount: cashAdjustment, balance: cashAdjustment,
+      });
+    }
+    subscriptionCharges(subscriptions).forEach((c) => {
+      const merchant = c.service === 'claude' ? 'ANTHROPIC PBC — CLAUDE PRO' : c.service === 'chatgpt' ? 'OPENAI *CHATGPT PLUS' : 'GOOGLE *AI PRO';
+      txns.push({ id: c.id, accountId: 'chk', date: c.date, desc: `Recurring Payment — ${merchant}`, amount: -c.amount, balance: 0 });
+    });
+    return txns;
+  }, [cashAdjustment, subscriptions]);
 
   const salaryTxns = useMemo<Txn[]>(() => {
     if (activeEmployment.length === 0) return [];
@@ -232,7 +251,8 @@ export function BankingApp() {
     };
   }), [activeEmployment, salaryTxns]);
 
-  const checkingBalance = payrollAccounts.reduce((sum, p) => sum + p.balance, 0);
+  const checkingBalance = payrollAccounts.reduce((sum, p) => sum + p.balance, 0)
+    + extraTxns.reduce((sum, t) => sum + t.amount, 0);
 
   const accounts = useMemo<Account[]>(() => ([
     ...BASE_ACCOUNTS.map((a) => a.id === 'chk' ? { ...a, balance: checkingBalance, available: checkingBalance } : a),
@@ -240,7 +260,7 @@ export function BankingApp() {
   ]), [checkingBalance, payrollAccounts]);
 
   const selectedAccount = accounts.find((a) => a.id === selectedAccountId) ?? accounts[0];
-  const accountTxns = salaryTxns.filter((t) => t.accountId === selectedAccount.id).sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
+  const accountTxns = [...salaryTxns, ...extraTxns].filter((t) => t.accountId === selectedAccount.id).sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
 
   const totalDeposits = accounts.filter((a) => a.kind === 'checking' || a.kind === 'savings' || a.kind === 'income').reduce((n, a) => n + a.balance, 0);
   const fmt = (n: number) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
@@ -380,7 +400,7 @@ export function BankingApp() {
                           <tr key={t.id}>
                             <td>{new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
                             <td className="chb-txn-desc">{t.desc}</td>
-                            <td className="chb-num chb-credit">+{fmt(t.amount)}</td>
+                            <td className={`chb-num ${t.amount >= 0 ? 'chb-credit' : 'chb-debit'}`}>{t.amount >= 0 ? '+' : '−'}{fmt(Math.abs(t.amount))}</td>
                             <td className="chb-num">{fmt(t.balance)}</td>
                           </tr>
                         ))}

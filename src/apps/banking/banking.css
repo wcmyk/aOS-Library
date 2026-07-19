@@ -262,3 +262,5 @@
 @media (max-width: 900px) {
   .chb-dashboard { grid-template-columns: minmax(0, 1fr); }
 }
+
+.chb-debit { color: #b91c1c; font-weight: 600; }

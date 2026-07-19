@@ -13,7 +13,10 @@ export type BrandKey =
   | 'mckinsey' | 'bain' | 'bcg' | 'deloitte' | 'boozallen' | 'cognizant'
   | 'jpmorgan' | 'morganstanley' | 'blackrock' | 'citi' | 'bofa' | 'schwab' | 'polymarket'
   | 'chase' | 'pnc' | 'huntington' | 'keybank' | 'mtb' | 'fifththird'
-  | 'disney' | 'fedex' | 'ebay' | 'tesla' | 'bmw' | 'caterpillar';
+  | 'disney' | 'fedex' | 'ebay' | 'tesla' | 'bmw' | 'caterpillar'
+  | 'mmm' | 'att' | 'ge' | 'chevron' | 'exxon' | 'homedepot' | 'humana'
+  | 'abbvie' | 'amgen' | 'aecom' | 'activision' | 'comcast' | 'ford' | 'gm'
+  | 'mercedes' | 'airbnb' | 'hp' | 'dell' | 'leidos' | 'biogen' | 'bms' | 'iqvia';
 
 type BrandDef = {
   match: RegExp;
@@ -295,6 +298,78 @@ export const BRANDS: Record<BrandKey, BrandDef> = {
       </svg>
     </div>
   ) },
+  mmm:          { match: /^3m\b|3m company/i, name: '3M', color: '#FF0000', tile: (s) => wordTile(s, '#fff', '#FF0000', '3M', { weight: 900, sizeRatio: 0.44, font: "'Arial Black', sans-serif", tracking: '-0.06em' }) },
+  att:          { match: /at&t/i, name: 'AT&T', color: '#00A8E0', tile: (s) => (
+    <div style={tileStyle(s, '#fff', { border: '1px solid #e8e8e8', gap: s * 0.05 })}>
+      <svg width={s * 0.44} height={s * 0.44} viewBox="0 0 32 32">
+        <circle cx="16" cy="16" r="14" fill="none" stroke="#00A8E0" strokeWidth="3.4" strokeDasharray="9 4 16 5 7 3" strokeLinecap="round" />
+        <circle cx="16" cy="16" r="7" fill="#00A8E0" opacity="0.85" />
+      </svg>
+    </div>
+  ) },
+  ge:           { match: /general electric|\bge\b/i, name: 'GE', color: '#3874BA', tile: (s) => (
+    <div style={tileStyle(s, '#3874BA')}>
+      <span style={{ color: '#fff', fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 700, fontSize: s * 0.4 }}>GE</span>
+    </div>
+  ) },
+  chevron:      { match: /chevron/i, name: 'Chevron', color: '#0054A4', tile: (s) => (
+    <div style={tileStyle(s, '#fff', { border: '1px solid #e8e8e8', flexDirection: 'column', gap: 0 })}>
+      <svg width={s * 0.5} height={s * 0.44} viewBox="0 0 40 34">
+        <path d="M4 2 L20 12 L36 2 V12 L20 22 L4 12 Z" fill="#0054A4" />
+        <path d="M4 14 L20 24 L36 14 V24 L20 34 L4 24 Z" fill="#E21836" />
+      </svg>
+    </div>
+  ) },
+  exxon:        { match: /exxon/i, name: 'ExxonMobil', color: '#FE000C', tile: (s) => wordTile(s, '#fff', '#FE000C', 'EM', { weight: 900, sizeRatio: 0.38, tracking: '-0.02em' }) },
+  homedepot:    { match: /home depot/i, name: 'The Home Depot', color: '#F96302', tile: (s) => (
+    <div style={tileStyle(s, '#F96302', { transform: 'none' })}>
+      <span style={{ color: '#fff', fontWeight: 900, fontSize: s * 0.2, transform: 'rotate(-45deg)', letterSpacing: '0.02em', textAlign: 'center', lineHeight: 1.1 }}>THE HOME<br/>DEPOT</span>
+    </div>
+  ) },
+  humana:       { match: /humana/i, name: 'Humana', color: '#78BE20', tile: (s) => wordTile(s, '#fff', '#5C9E31', 'Humana.', { weight: 700, sizeRatio: 0.2 }) },
+  abbvie:       { match: /abbvie/i, name: 'AbbVie', color: '#071D49', tile: (s) => wordTile(s, '#fff', '#071D49', 'abbvie', { weight: 700, sizeRatio: 0.24 }) },
+  amgen:        { match: /amgen/i, name: 'Amgen', color: '#0063C3', tile: (s) => wordTile(s, '#0063C3', '#fff', 'AMGEN', { weight: 800, sizeRatio: 0.2, tracking: '0.04em' }) },
+  aecom:        { match: /aecom/i, name: 'AECOM', color: '#008768', tile: (s) => wordTile(s, '#fff', '#008768', 'AECOM', { weight: 800, sizeRatio: 0.22, tracking: '0.02em' }) },
+  activision:   { match: /activision/i, name: 'Activision', color: '#000', tile: (s) => wordTile(s, '#000', '#fff', 'ATVI', { weight: 800, sizeRatio: 0.26, tracking: '0.06em' }) },
+  comcast:      { match: /comcast/i, name: 'Comcast', color: '#645FAA', tile: (s) => wordTile(s, '#fff', '#1F2C5C', 'C', { weight: 800, sizeRatio: 0.5 }) },
+  ford:         { match: /ford motor/i, name: 'Ford', color: '#003478', tile: (s) => (
+    <div style={tileStyle(s, '#fff', { border: '1px solid #e8e8e8' })}>
+      <span style={{ background: '#003478', borderRadius: '50%/50%', width: s * 0.7, height: s * 0.42, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 700, fontSize: s * 0.22, border: `${Math.max(1, s * 0.02)}px solid #9ab0d0` }}>Ford</span>
+    </div>
+  ) },
+  gm:           { match: /general motors/i, name: 'General Motors', color: '#0A70C7', tile: (s) => wordTile(s, '#0A70C7', '#fff', 'gm', { weight: 800, sizeRatio: 0.4 }) },
+  mercedes:     { match: /mercedes/i, name: 'Mercedes-Benz Group', color: '#9A9A9A', tile: (s) => (
+    <div style={tileStyle(s, '#16171A')}>
+      <svg width={s * 0.62} height={s * 0.62} viewBox="0 0 40 40">
+        <circle cx="20" cy="20" r="18" fill="none" stroke="#d7d7d7" strokeWidth="2.4" />
+        <path d="M20 3.4 L20 20 M20 20 L6 30 M20 20 L34 30" stroke="#d7d7d7" strokeWidth="2.6" strokeLinecap="round" />
+      </svg>
+    </div>
+  ) },
+  airbnb:       { match: /airbnb/i, name: 'Airbnb', color: '#FF5A5F', tile: (s) => (
+    <div style={tileStyle(s, '#fff', { border: '1px solid #e8e8e8' })}>
+      <svg width={s * 0.56} height={s * 0.56} viewBox="0 0 32 32">
+        <path d="M16 4 C18 4 19.4 5.2 20.6 7.6 L27 20.6 C28.4 23.6 27 27 23.8 27 C21.6 27 19.6 25.4 16 21.4 C12.4 25.4 10.4 27 8.2 27 C5 27 3.6 23.6 5 20.6 L11.4 7.6 C12.6 5.2 14 4 16 4 Z M16 9 C15.2 9 14.6 9.6 13.8 11.2 L9 21.4 C8.4 22.8 9 24 10.2 24 C11.4 24 13 22.6 16 19 C19 22.6 20.6 24 21.8 24 C23 24 23.6 22.8 23 21.4 L18.2 11.2 C17.4 9.6 16.8 9 16 9 Z" fill="#FF5A5F" />
+      </svg>
+    </div>
+  ) },
+  hp:           { match: /\bhp inc|hewlett packard|\bhpe\b/i, name: 'HP', color: '#0096D6', tile: (s) => (
+    <div style={tileStyle(s, '#0096D6')}>
+      <span style={{ color: '#fff', fontWeight: 800, fontStyle: 'italic', fontSize: s * 0.36, fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>hp</span>
+    </div>
+  ) },
+  dell:         { match: /\bdell\b/i, name: 'Dell Technologies', color: '#007DB8', tile: (s) => (
+    <div style={tileStyle(s, '#fff', { border: '1px solid #e8e8e8' })}>
+      <svg width={s * 0.6} height={s * 0.6} viewBox="0 0 40 40">
+        <circle cx="20" cy="20" r="17" fill="none" stroke="#007DB8" strokeWidth="3" />
+        <text x="20" y="25" textAnchor="middle" fontSize="13" fontWeight="800" fill="#007DB8" fontFamily="Helvetica, Arial">DELL</text>
+      </svg>
+    </div>
+  ) },
+  leidos:       { match: /leidos/i, name: 'Leidos', color: '#7A28C7', tile: (s) => wordTile(s, '#fff', '#3A1A6E', 'leidos', { weight: 700, sizeRatio: 0.24 }) },
+  biogen:       { match: /biogen/i, name: 'Biogen', color: '#00539B', tile: (s) => wordTile(s, '#fff', '#00539B', 'Biogen', { weight: 700, sizeRatio: 0.24 }) },
+  bms:          { match: /bristol/i, name: 'Bristol Myers Squibb', color: '#BE2BBB', tile: (s) => wordTile(s, '#fff', '#BE2BBB', 'BMS', { weight: 800, sizeRatio: 0.3 }) },
+  iqvia:        { match: /iqvia/i, name: 'IQVIA', color: '#00AEEF', tile: (s) => wordTile(s, '#fff', '#005587', 'IQVIA', { weight: 800, sizeRatio: 0.26 }) },
 };
 
 // ── Standalone marks (sponsors, AI assistants, HR platforms) ─────────────────
@@ -338,6 +413,21 @@ export function ChatGptKnot({ size = 20, color = '#000' }: { size?: number; colo
           transform={`rotate(${deg} 16 16)`}
         />
       ))}
+    </svg>
+  );
+}
+
+export function GeminiSpark({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32">
+      <defs>
+        <linearGradient id="gemGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#4285F4" />
+          <stop offset="0.5" stopColor="#9B72CB" />
+          <stop offset="1" stopColor="#D96570" />
+        </linearGradient>
+      </defs>
+      <path d="M16 2 C17.2 9.6 22.4 14.8 30 16 C22.4 17.2 17.2 22.4 16 30 C14.8 22.4 9.6 17.2 2 16 C9.6 14.8 14.8 9.6 16 2 Z" fill="url(#gemGrad)" />
     </svg>
   );
 }

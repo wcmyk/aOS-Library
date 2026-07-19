@@ -462,3 +462,56 @@
   .lk-jobs-detail { display: none; }
   .lk-network-layout, .lk-profile-layout, .lk-notif-layout { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ── People photos + profile modal ── */
+.lk-photo { border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.lk-photo.lk-avatar-40 { width: 40px; height: 40px; }
+.lk-photo.lk-avatar-48 { width: 48px; height: 48px; }
+.lk-photo-btn { background: none; border: none; padding: 0; cursor: pointer; line-height: 0; flex-shrink: 0; }
+.lk-person-photo { width: 72px; height: 72px; border: 2px solid #fff; border-radius: 50%; object-fit: cover; }
+.lk-person-photo-btn { margin: -36px 0 4px; }
+.lk-namelink { background: none; border: none; cursor: pointer; }
+.lk-namelink:hover { text-decoration: underline; color: #0a66c2; }
+
+.lk-pp-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  display: flex; align-items: center; justify-content: center; z-index: 500; padding: 24px;
+}
+.lk-pp {
+  background: #fff; border-radius: 12px; width: 560px; max-width: 100%;
+  max-height: 92%; overflow-y: auto; position: relative;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.4);
+}
+.lk-pp-close {
+  position: absolute; top: 10px; right: 12px; z-index: 3;
+  background: rgba(255,255,255,0.9); border: none; border-radius: 50%;
+  width: 32px; height: 32px; cursor: pointer; font-size: 14px; color: rgba(0,0,0,0.7);
+}
+.lk-pp-banner {
+  height: 110px; background: linear-gradient(120deg, #7896a8, #c0b8a0);
+  background-size: cover; background-position: center;
+  border-radius: 12px 12px 0 0;
+}
+.lk-pp-photo {
+  width: 120px; height: 120px; border-radius: 50%; object-fit: cover;
+  border: 4px solid #fff; margin: -70px 0 0 24px; position: relative; display: block;
+}
+.lk-pp-body { padding: 8px 24px 24px; }
+.lk-pp-body h2 { margin: 6px 0 0; font-size: 22px; display: flex; align-items: center; }
+.lk-pp-headline { font-size: 15px; margin-top: 2px; }
+.lk-pp-meta { font-size: 13px; color: rgba(0,0,0,0.6); margin-top: 4px; }
+.lk-pp-conns { color: #0a66c2; font-weight: 600; }
+.lk-pp-opento {
+  margin-top: 8px; background: #eaf6ec; border: 1px solid #b7e0c0;
+  border-radius: 8px; padding: 7px 10px; font-size: 12.5px; color: #01754f;
+}
+.lk-pp-btns { display: flex; gap: 8px; margin: 14px 0 4px; }
+.lk-pp-btns button { font-size: 14px !important; padding: 6px 16px !important; }
+.lk-pp-body section { border-top: 1px solid rgba(140,140,140,0.2); margin-top: 16px; padding-top: 12px; }
+.lk-pp-body section h3 { margin: 0 0 8px; font-size: 16px; }
+.lk-pp-body section p { margin: 0; font-size: 14px; line-height: 1.5; color: rgba(0,0,0,0.85); }
+.lk-pp-exp { display: flex; gap: 12px; padding: 8px 0; }
+.lk-pp-exp div { display: flex; flex-direction: column; }
+.lk-pp-exp strong { font-size: 14px; }
+.lk-pp-exp span { font-size: 13px; color: rgba(0,0,0,0.7); }
+.lk-pp-dates { color: rgba(0,0,0,0.5) !important; font-size: 12px !important; }
