@@ -23,6 +23,12 @@
 .adp-product { color: #fff; font-size: 16px; font-weight: 600; }
 .adp-topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
 .adp-org { color: rgba(255,255,255,0.75); font-size: 13px; }
+.adp-org-select {
+  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 6px; padding: 4px 8px; color: #fff; cursor: pointer; font-family: inherit;
+}
+.adp-org-select option { color: #1a1a1a; }
+.adp-nav-ic { display: inline-flex; align-items: center; justify-content: center; }
 .adp-avatar {
   width: 32px; height: 32px; border-radius: 50%;
   background: #d0271d; color: #fff; font-weight: 700;

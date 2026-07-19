@@ -73,7 +73,7 @@ export function GoogleSite() {
         <div className="go-center">
           <GoogleWordmark height={64} />
           <div className="go-searchbar">
-            <span className="go-search-ic">🔍</span>
+            <span className="go-search-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/></svg></span>
             <input
               autoFocus
               value={query}
@@ -81,7 +81,7 @@ export function GoogleSite() {
               onKeyDown={(e) => e.key === 'Enter' && runSearch()}
               aria-label="Search"
             />
-            <span className="go-mic">🎤</span>
+            <span className="go-mic"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M12 14.5a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5.5a3 3 0 0 0 3 3z"/><path fill="#34A853" d="M17.3 11.5a5.3 5.3 0 0 1-10.6 0H5a7 7 0 0 0 6 6.9V21h2v-2.6a7 7 0 0 0 6-6.9z"/></svg></span>
           </div>
           <div className="go-btnrow">
             <button type="button" onClick={() => runSearch()}>Google Search</button>
@@ -94,7 +94,7 @@ export function GoogleSite() {
               <button type="button"><span className="go-tile-drive">▲</span><span>Drive</span></button>
               <button type="button"><span className="go-tile-docs">≡</span><span>Docs</span></button>
               <button type="button"><span className="go-tile-cal">31</span><span>Calendar</span></button>
-              <button type="button"><span className="go-tile-meet">🎥</span><span>Meet</span></button>
+              <button type="button"><span className="go-tile-meet"><svg width="16" height="16" viewBox="0 0 24 24" fill="#00832d"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h9A1.5 1.5 0 0 1 15 6.5v11a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 3 17.5zM16 10l5-3.5v11L16 14z"/></svg></span><span>Meet</span></button>
             </div>
           </div>
         </div>
@@ -115,7 +115,7 @@ export function GoogleSite() {
         </button>
         <div className="go-searchbar go-searchbar-sm">
           <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && runSearch()} />
-          <span className="go-search-ic">🔍</span>
+          <span className="go-search-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/></svg></span>
         </div>
       </header>
       <div className="go-results-tabs">

@@ -128,6 +128,74 @@ function buildPanelEmail(meta: JobMeta): Omit<Email, 'id' | 'read' | 'starred'> 
   };
 }
 
+
+// ── Onboarding credentials + paperwork ───────────────────────────────────────
+
+function expectedCompanyEmail(fullNameOrPlaceholder: string, domain: string): string {
+  const clean = fullNameOrPlaceholder.toLowerCase().replace(/[^a-z\s]/g, '').trim().split(/\s+/);
+  const first = clean[0] ?? 'new';
+  const last = clean[clean.length - 1] ?? 'hire';
+  return `${first}.${last}@${domain}`;
+}
+
+function credentialsBlock(meta: JobMeta): string {
+  return `<div style="background:#f0f6ff;border:1px solid #cfe0f5;border-radius:8px;padding:14px;margin:12px 0"><p style="margin:0 0 6px;font-weight:600">Your ${meta.company} account credentials (active upon acceptance)</p><table style="font-size:13px;border-collapse:collapse"><tr><td style="padding:2px 14px 2px 0;color:#555">Company email / Teams sign-in</td><td><strong>&lt;firstname&gt;.&lt;lastname&gt;@${meta.domain}</strong></td></tr><tr><td style="padding:2px 14px 2px 0;color:#555">Temporary password</td><td><strong>Welcome@123</strong></td></tr><tr><td style="padding:2px 14px 2px 0;color:#555">Workday tenant</td><td><strong>workday.${meta.domain}</strong></td></tr><tr><td style="padding:2px 14px 2px 0;color:#555">Microsoft Teams</td><td><strong>${meta.company} tenant — your access is limited to this organization</strong></td></tr></table></div>`;
+}
+
+function formCard(title: string, rows: Array<[string, string]>, note?: string): string {
+  const body = rows.map(([k, v]) => `<tr><td style=\"padding:3px 16px 3px 0;color:#555;white-space:nowrap\">${k}</td><td style=\"padding:3px 0\"><strong>${v}</strong></td></tr>`).join('');
+  return `<div style=\"background:#fbfbf9;border:1.5px solid #c9c9c2;border-radius:6px;padding:14px;margin:12px 0;font-family:Georgia,serif\"><p style=\"margin:0 0 8px;font-weight:700;letter-spacing:0.02em\">${title}</p><table style=\"font-size:13px;border-collapse:collapse\">${body}</table>${note ? `<p style=\"margin:8px 0 0;font-size:12px;color:#777\">${note}</p>` : ''}</div>`;
+}
+
+function buildPaperworkEmail(meta: JobMeta, fullName: string, companyEmail: string, password: string): Omit<Email, 'id' | 'read' | 'starred'> {
+  const isContract = /contract/i.test(meta.employmentType ?? '');
+  const ein = generateEIN(meta.company);
+  const today = new Date().toLocaleDateString('en-US');
+  const forms = isContract
+    ? formCard('Form W-9 — Request for Taxpayer Identification Number and Certification', [
+        ['Name (as shown on your income tax return)', fullName],
+        ['Federal tax classification', 'Individual/sole proprietor'],
+        ['Requester', `${meta.company} · EIN ${ein}`],
+        ['TIN', 'XXX-XX-____ (complete in Workday)'],
+        ['Certification date', today],
+      ], 'As an independent contractor you will receive Form 1099-NEC reporting nonemployee compensation for the year. No taxes are withheld from your payments — you are responsible for quarterly estimated taxes.')
+      + formCard('Form 1099-NEC — Nonemployee Compensation (issued each January)', [
+        ['Payer', `${meta.company} · EIN ${ein}`],
+        ['Recipient', fullName],
+        ['Box 1 — Nonemployee compensation', 'Reported at year end'],
+      ])
+    : formCard("Form I-9 — Employment Eligibility Verification (Section 1)", [
+        ['Employee name', fullName],
+        ['Employer', `${meta.company} · EIN ${ein}`],
+        ['Citizenship/immigration status attestation', 'Complete in Workday within 3 business days of start'],
+        ['Acceptable documents', 'List A (e.g., U.S. Passport) OR List B + List C (e.g., license + Social Security card)'],
+        ['Section 2 appointment', 'First day, with People Operations'],
+      ], 'Federal law requires completion of Form I-9 no later than your third day of employment.')
+      + formCard("Form W-4 — Employee's Withholding Certificate", [
+        ['Employee', fullName],
+        ['Employer', `${meta.company} · EIN ${ein}`],
+        ['Filing status', 'Single or Married filing separately (default — update in Workday)'],
+        ['Step 2-4 adjustments', 'None on file'],
+        ['Signature date', today],
+      ])
+      + formCard('Direct Deposit Enrollment', [
+        ['Bank', 'JPMorgan Chase Bank, N.A.'],
+        ['Routing number', '021000021'],
+        ['Account', 'Chase Total Checking ····1666'],
+        ['Deposit allocation', '100% of net pay'],
+      ], 'First deposit lands with your first biweekly payroll run.');
+
+  return {
+    from: `People Operations at ${meta.company} <hr@${meta.domain}>`,
+    to: 'user@workspace.aos',
+    subject: `Onboarding packet — credentials and required employment forms — ${meta.company}`,
+    date: new Date().toISOString(),
+    folder: 'inbox',
+    body: `<p>Welcome to <strong>${meta.company}</strong>!</p><p>Your accounts are provisioned. Use these credentials for company email (Outlook account switcher), <strong>Microsoft Teams</strong>, and Workday:</p><div style="background:#f0f6ff;border:1px solid #cfe0f5;border-radius:8px;padding:14px;margin:10px 0"><table style="font-size:13px;border-collapse:collapse"><tr><td style="padding:2px 14px 2px 0;color:#555">Company email / Teams</td><td><strong>${companyEmail}</strong></td></tr><tr><td style="padding:2px 14px 2px 0;color:#555">Password</td><td><strong>${password}</strong></td></tr><tr><td style="padding:2px 14px 2px 0;color:#555">Workday</td><td><strong>workday.${meta.domain}</strong> (same password)</td></tr></table><p style="margin:8px 0 0;font-size:12px;color:#555">Teams access is scoped to the ${meta.company} tenant only — organizations you don't work for will not appear.</p></div><p>The following ${isContract ? 'contractor' : 'employment'} paperwork is required before your start date. Review each form below; completion is tracked in Workday.</p>${forms}<p>Questions? Reply to this email and People Operations will follow up.</p>`,
+    jobMeta: { ...meta, stage: 'onboarding' },
+  };
+}
+
 function buildOfferEmail(meta: JobMeta): Omit<Email, 'id' | 'read' | 'starred'> {
   const arch = getCompanyArchetype(meta.company);
   const bonus = Math.round((meta.compensation * (arch === 'finance' ? 0.3 : 0.15)) / 1000) * 1000;
@@ -138,7 +206,7 @@ function buildOfferEmail(meta: JobMeta): Omit<Email, 'id' | 'read' | 'starred'> 
     subject: `Offer of Employment — ${meta.role} at ${meta.company}`,
     date: new Date().toISOString(),
     folder: 'inbox',
-    body: `<p>Dear Applicant,</p><p>On behalf of <strong>${meta.company}</strong>, it is my pleasure to extend this formal offer for the position of <strong>${meta.role}</strong>, based in <strong>${meta.location}</strong>.</p><p><strong>Compensation Package:</strong></p><ul><li><strong>Base Salary:</strong> $${meta.compensation.toLocaleString()} per year, paid bi-weekly</li><li><strong>Annual Target Bonus:</strong> $${bonus.toLocaleString()}</li><li><strong>Benefits:</strong> Full medical, dental, vision; 401(k) with employer match; flexible PTO</li></ul><p>To accept this offer, please reply with the words <strong>"I Accept"</strong> and we will send your onboarding packet within one business day.</p><br><p>Sincerely,<br><strong>${meta.managerName}</strong><br>Director of Engineering, ${meta.company}</p>`,
+    body: `<p>Dear Applicant,</p><p>On behalf of <strong>${meta.company}</strong>, it is my pleasure to extend this formal offer for the position of <strong>${meta.role}</strong>, based in <strong>${meta.location}</strong>.</p><p><strong>Compensation Package:</strong></p><ul><li><strong>Base Salary:</strong> $${meta.compensation.toLocaleString()} per year, paid bi-weekly</li><li><strong>Annual Target Bonus:</strong> $${bonus.toLocaleString()}</li><li><strong>Benefits:</strong> Full medical, dental, vision; 401(k) with employer match; flexible PTO</li></ul>${credentialsBlock(meta)}<p>To accept this offer, please reply with the words <strong>"I Accept"</strong>. Your onboarding packet — including Form I-9, tax withholding forms, and direct deposit enrollment — will follow immediately.</p><br><p>Sincerely,<br><strong>${meta.managerName}</strong><br>Director of Engineering, ${meta.company}</p>`,
     jobMeta: { ...meta, stage: 'offer' },
   };
 }
@@ -470,14 +538,7 @@ export function OutlookApp() {
           fullName,
           department: selected.jobMeta.category,
         });
-        sendEmail({
-          from: `People Operations <hr@${account.domain}>`,
-          to: activeOutlookEmail,
-          subject: `Welcome to ${account.companyName} — account provisioning complete`,
-          body: `<p>Your offer has been accepted for <strong>${account.title}</strong>.</p><p>Company email: <strong>${account.companyEmail}</strong><br>Workday URL: <strong>workday.${account.domain}</strong><br>Outlook password: <strong>${account.outlookPassword}</strong><br>Your company Outlook account is now available via account switching.</p>`,
-          date: new Date().toISOString(),
-          folder: 'inbox',
-        });
+        sendEmail({ ...buildPaperworkEmail(selected.jobMeta, fullName, account.companyEmail, account.outlookPassword), folder: 'inbox' });
       }
 
       // ── EXEC routing ────────────────────────────────────────────────────────
@@ -516,8 +577,8 @@ export function OutlookApp() {
           <input placeholder="Search" value={searchText} onChange={(e) => setSearchText(e.target.value)} aria-label="Search mail" />
         </div>
         <div className="owa-topbar-actions" ref={menuRef}>
-          <button type="button" title="Settings" className="owa-topbar-ic">⚙</button>
-          <button type="button" title="Tips" className="owa-topbar-ic">💡</button>
+          <button type="button" title="Settings" className="owa-topbar-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4 18 18M18 6l-1.6 1.6M7.6 16.4 6 18"/></svg></button>
+          <button type="button" title="Tips" className="owa-topbar-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.8.6 1.5 1.9 1.5 3.1h4c0-1.2.7-2.5 1.5-3.1A6 6 0 0 0 12 3z"/></svg></button>
           <button type="button" title="Help" className="owa-topbar-ic">?</button>
           <button type="button" className="owa-me" onClick={() => setAccountOpen((v) => !v)} aria-label="Account manager">
             <div className="owa-avatar owa-avatar-me" style={{ background: avatarColor(fullName) }}>{getInitials(fullName).toUpperCase()}</div>
@@ -541,18 +602,18 @@ export function OutlookApp() {
             New mail <span className="owa-newmail-caret">▾</span>
           </button>
           <span className="owa-ribbon-sep" />
-          <button type="button" className="owa-rbtn" title="Delete">🗑 <span>Delete</span></button>
-          <button type="button" className="owa-rbtn" title="Archive">🗄 <span>Archive</span></button>
-          <button type="button" className="owa-rbtn" title="Report">🛡 <span>Report ▾</span></button>
-          <button type="button" className="owa-rbtn" title="Sweep">🧹 <span>Sweep</span></button>
-          <button type="button" className="owa-rbtn" title="Move to">📁 <span>Move to ▾</span></button>
+          <button type="button" className="owa-rbtn" title="Delete"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4 7h16M9 7V5h6v2M6.5 7l1 13h9l1-13"/><path d="M10 11v5M14 11v5"/></svg> <span>Delete</span></button>
+          <button type="button" className="owa-rbtn" title="Archive"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M3.5 4h17v4.5h-17z"/><path d="M5.5 8.5V20h13V8.5M10 12.5h4"/></svg> <span>Archive</span></button>
+          <button type="button" className="owa-rbtn" title="Report"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M12 3.5 5 6v5c0 4.5 3 8 7 9.5 4-1.5 7-5 7-9.5V6z"/></svg> <span>Report ▾</span></button>
+          <button type="button" className="owa-rbtn" title="Sweep"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="m14 4 6 6M13 5l-8 8c-1.5 1.5-2 5-2 5s3.5-.5 5-2l8-8"/></svg> <span>Sweep</span></button>
+          <button type="button" className="owa-rbtn" title="Move to"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M3.5 6A1.5 1.5 0 0 1 5 4.5h4l2 2.5h8A1.5 1.5 0 0 1 20.5 8.5V18a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18z"/></svg> <span>Move to ▾</span></button>
           <span className="owa-ribbon-sep" />
           <button type="button" className="owa-rbtn" onClick={openReply} title="Reply">↩ <span>Reply</span></button>
           <button type="button" className="owa-rbtn" onClick={openForward} title="Forward">↪ <span>Forward</span></button>
           <span className="owa-ribbon-sep" />
-          <button type="button" className="owa-rbtn" title="Read / Unread">✉ <span>Read / Unread</span></button>
-          <button type="button" className="owa-rbtn" title="Flag">🚩</button>
-          <button type="button" className="owa-rbtn" title="Pin">📌</button>
+          <button type="button" className="owa-rbtn" title="Read / Unread"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="3.5" y="5.5" width="17" height="13" rx="1.5"/><path d="m4.5 7 7.5 6 7.5-6"/></svg> <span>Read / Unread</span></button>
+          <button type="button" className="owa-rbtn" title="Flag"><svg width="14" height="14" viewBox="0 0 24 24" fill="#c50f1f"><path d="M5 3v18h1.8v-7h11.4l-2.6-5.5 2.6-5.5z"/></svg></button>
+          <button type="button" className="owa-rbtn" title="Pin"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="m9 4 11 11-3 .5L13 19l-2.5-5.5L5 11l3.5-4z"/><path d="m11 13-6 6"/></svg></button>
         </div>
       </div>
 
@@ -620,7 +681,7 @@ export function OutlookApp() {
           <div className="owa-list-items">
             {folderEmails.length === 0 && (
               <div className="owa-list-empty">
-                <div className="owa-list-empty-art">📭</div>
+                <div className="owa-list-empty-art"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="3.5" y="5.5" width="17" height="13" rx="1.5"/><path d="m4.5 7 7.5 6 7.5-6"/></svg></div>
                 <strong>All done for the day</strong>
                 <span>Enjoy your empty {FOLDER_LABELS[folder].toLowerCase()}.</span>
               </div>
@@ -654,7 +715,7 @@ export function OutlookApp() {
               <div className="owa-reading-subjectrow">
                 <h1>{selected.subject}</h1>
                 <div className="owa-reading-subjectactions">
-                  <button type="button" title="Summarize">✨ Summary by Copilot</button>
+                  <button type="button" title="Summarize"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5 14 9l6.5 2L14 13l-2 6.5L10 13 3.5 11 10 9z"/></svg> Summary by Copilot</button>
                 </div>
               </div>
               <div className="owa-reading-card">
@@ -696,7 +757,7 @@ export function OutlookApp() {
             </>
           ) : (
             <div className="owa-reading-empty">
-              <div className="owa-reading-empty-art">✉</div>
+              <div className="owa-reading-empty-art"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="3.5" y="5.5" width="17" height="13" rx="1.5"/><path d="m4.5 7 7.5 6 7.5-6"/></svg></div>
               <p>Select an item to read</p>
             </div>
           )}
@@ -725,8 +786,8 @@ export function OutlookApp() {
             <textarea className="owa-compose-body" value={body} onChange={(e) => setBody(e.target.value)} placeholder="" aria-label="Message body" />
             <div className="owa-compose-toolbar">
               <button type="button" className="owa-compose-send" onClick={send}>Send <span>▾</span></button>
-              <span className="owa-compose-tools">📎 &nbsp; 🖼 &nbsp; 😀 &nbsp; ✒ &nbsp; ⋯</span>
-              <button type="button" className="owa-compose-discard" onClick={() => setComposeOpen(false)} title="Discard">🗑</button>
+              <span className="owa-compose-tools"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="m20 12-7.6 7.6a5 5 0 0 1-7-7L13 5a3.5 3.5 0 0 1 5 5l-7.6 7.6a2 2 0 0 1-2.9-2.9L14 8.2"/></svg> &nbsp; <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="3.5" y="5" width="17" height="14" rx="1.5"/><circle cx="8.5" cy="10" r="1.5"/><path d="m5 18 5-5 3 3 3.5-3.5 3 3"/></svg> &nbsp; <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="12" cy="12" r="8.5"/><path d="M8.8 14a4 4 0 0 0 6.4 0M9.3 9.8h.02M14.7 9.8h.02"/></svg> &nbsp; <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4 20h4L20 8l-4-4L4 16z"/><path d="m14 6 4 4"/></svg> &nbsp; ⋯</span>
+              <button type="button" className="owa-compose-discard" onClick={() => setComposeOpen(false)} title="Discard"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4 7h16M9 7V5h6v2M6.5 7l1 13h9l1-13"/><path d="M10 11v5M14 11v5"/></svg></button>
             </div>
           </div>
         </div>

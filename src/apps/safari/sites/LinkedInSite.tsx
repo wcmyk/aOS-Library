@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useMailStore, type JobMeta } from '../../../state/useMailStore';
 import { useProfileStore } from '../../../state/useProfileStore';
 import { CompanyLogo, getCompanyBanner, getBrandColor } from '../../../data/brands';
-import { buildPerson, personPhoto, type Person } from '../../../data/people';
+import { buildPerson, buildProfileExtras, personPhoto, type Person } from '../../../data/people';
 import './linkedin.css';
 
 // ── Seeded random ─────────────────────────────────────────────────────────────
@@ -50,7 +50,7 @@ function makeName(rng: () => number) {
 // ── Company name algorithm ────────────────────────────────────────────────────
 
 const COMPANY_POOL = [
-  '3M Company','AbbVie Inc.','Activision Publishing, Inc.','Adobe Inc.','AECOM','Airbnb, Inc.','Alcoa Corp.','Amgen Inc.','Applied Materials, Inc.','Arrow Electronics, Inc.','Assurant, Inc.','AT&T, Services Inc.','Bank of America, N.A.','Becton, Dickinson and Company','Biogen MA Inc.','BlackRock, Inc.','Booz Allen Hamilton, Inc.','BorgWarner Inc.','Bristol-Myers Squibb Company','Cardinal Health, Inc.','CarMax Enterprise Services, LLC','Caterpillar Inc.','Charles Schwab & Co., Inc.','Chevron U.S.A. Inc.','Citibank, N.A.','Cognizant Worldwide Limited','Comcast Cable Communications Management, LLC','ConocoPhillips Company','DaVita Inc.','Dell USA L.P.','Disney Worldwide Services, Inc.','DXC Technology Services LLC','eBay Inc.','Equinix, Inc.','ExxonMobil Global Services Company','Federal National Mortgage Association','FedEx Corporate Services, Inc.','Fiserv Solutions, LLC','General Electric Company','Hewlett Packard Enterprise Company','Home Depot Store Support, Inc.','HP Inc.','Humana, Inc.','International Business Machines Corporation','Intuit Inc.','IQVIA Inc.','JP Morgan','Jabil, Inc.','KeyBank N.A.','Leidos, Inc.','LPL Financial LLC','M&T Bank','Marathon Petroleum Company LP','Marsh & McLennan Companies, Inc.','META','Google','Anthropic','OpenAI','Morgan Stanley','Netflix','NVIDIA','Apple','SAMSUNG','BMW Group','Mercedes-Benz Group','Ford Motor Company','General Motors','Tesla, Inc.','Amazon','Amazon Web Services (AWS)','McKinsey & Company','Bain & Company','Boston Consulting Group (BCG)','Microsoft','Deloitte',
+  '3M Company','AbbVie Inc.','Activision Publishing, Inc.','Adobe Inc.','AECOM','Airbnb, Inc.','Alcoa Corp.','Amgen Inc.','Applied Materials, Inc.','Arrow Electronics, Inc.','Assurant, Inc.','AT&T, Services Inc.','Bank of America, N.A.','Becton, Dickinson and Company','Biogen MA Inc.','BlackRock, Inc.','Booz Allen Hamilton, Inc.','BorgWarner Inc.','Bristol-Myers Squibb Company','Cardinal Health, Inc.','CarMax Enterprise Services, LLC','Caterpillar Inc.','Charles Schwab & Co., Inc.','Chevron U.S.A. Inc.','Citibank, N.A.','Cognizant Worldwide Limited','Comcast Cable Communications Management, LLC','ConocoPhillips Company','DaVita Inc.','Dell USA L.P.','Disney Worldwide Services, Inc.','DXC Technology Services LLC','eBay Inc.','Equinix, Inc.','ExxonMobil Global Services Company','Federal National Mortgage Association','FedEx Corporate Services, Inc.','Fiserv Solutions, LLC','General Electric Company','Hewlett Packard Enterprise Company','Home Depot Store Support, Inc.','HP Inc.','Humana, Inc.','International Business Machines Corporation','Intuit Inc.','IQVIA Inc.','JP Morgan','Jabil, Inc.','KeyBank N.A.','Leidos, Inc.','LPL Financial LLC','M&T Bank','Marathon Petroleum Company LP','Marsh & McLennan Companies, Inc.','META','Google','Anthropic','OpenAI','Morgan Stanley','Netflix','NVIDIA','Apple','SAMSUNG','BMW Group','Mercedes-Benz Group','Ford Motor Company','General Motors','Tesla, Inc.','Amazon','Amazon Web Services (AWS)','McKinsey & Company','Bain & Company','Boston Consulting Group (BCG)','Microsoft','Deloitte','Target','Walmart','Costco Wholesale','Best Buy','Kroger','CVS Health','Walgreens','Lowe\'s','Starbucks',
 ];
 
 function makeCompany(rng: () => number): string {
@@ -825,10 +825,10 @@ Talent Acquisition, ${job.company}<br>
       <div className="lk-identity-divider" />
       <button type="button" className="lk-identity-premium"><span className="lk-premium-square" /> Try Premium for $0</button>
       <div className="lk-identity-divider" />
-      <button type="button" className="lk-identity-link">🔖 Saved items</button>
-      <button type="button" className="lk-identity-link">👥 Groups</button>
-      <button type="button" className="lk-identity-link">📰 Newsletters</button>
-      <button type="button" className="lk-identity-link">📅 Events</button>
+      <button type="button" className="lk-identity-link"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M7 4h10v16l-5-3.5L7 20z"/></svg> Saved items</button>
+      <button type="button" className="lk-identity-link"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="9" cy="8.5" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="M15.5 6a3 3 0 0 1 0 5.6M16.5 13.6A5.5 5.5 0 0 1 20.5 19"/></svg> Groups</button>
+      <button type="button" className="lk-identity-link"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4.5 5.5h13v14h-13z"/><path d="M17.5 9h2v9a1.5 1.5 0 0 1-1.5 1.5h-13"/><path d="M7 9h8M7 12.5h8M7 16h5"/></svg> Newsletters</button>
+      <button type="button" className="lk-identity-link"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="4" y="5.5" width="16" height="14.5" rx="1.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg> Events</button>
     </div>
   );
 
@@ -844,8 +844,8 @@ Talent Acquisition, ${job.company}<br>
           </div>
           <div className="lk-composer-actions">
             <button type="button"><span className="lk-media-ic" style={{ color: '#378fe9' }}>▣</span> Media</button>
-            <button type="button"><span className="lk-media-ic" style={{ color: '#c37d16' }}>📅</span> Event</button>
-            <button type="button"><span className="lk-media-ic" style={{ color: '#e06847' }}>✍</span> Write article</button>
+            <button type="button"><span className="lk-media-ic" style={{ color: '#c37d16' }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="4" y="5.5" width="16" height="14.5" rx="1.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg></span> Event</button>
+            <button type="button"><span className="lk-media-ic" style={{ color: '#e06847' }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4 20h4L20 8l-4-4L4 16z"/><path d="m14 6 4 4"/></svg></span> Write article</button>
           </div>
         </div>
 
@@ -867,7 +867,7 @@ Talent Acquisition, ${job.company}<br>
                 <div className="lk-post-id">
                   <div className="lk-post-author">{post.author}{post.company && <VerifiedShield />} {!post.company && <span className="lk-post-degree">· 3rd+</span>}</div>
                   <div className="lk-post-headline">{post.company ? post.followers : post.headline}</div>
-                  <div className="lk-post-time">{post.promoted ? 'Promoted' : `${post.time} · `}{!post.promoted && <span title="Public">🌐</span>}</div>
+                  <div className="lk-post-time">{post.promoted ? 'Promoted' : `${post.time} · `}{!post.promoted && <span title="Public"></span>}</div>
                 </div>
                 <button type="button" className="lk-post-more">⋯</button>
                 {post.company && <button type="button" className="lk-post-follow">+ Follow</button>}
@@ -1022,8 +1022,8 @@ Talent Acquisition, ${job.company}<br>
                     {job.location} · {formatPosted(job.postedDays)} · <span className="lk-detail-applicants">{job.applicants} applicants</span>
                   </div>
                   <div className="lk-detail-attrs">
-                    <span className="lk-detail-attr">💼 {job.type} · {salaryPerYear(job.salary)}</span>
-                    <span className="lk-detail-attr">🏢 {job.categoryLabel}</span>
+                    <span className="lk-detail-attr"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="4" y="7" width="16" height="13" rx="1.5"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M4 12h16"/></svg> {job.type} · {salaryPerYear(job.salary)}</span>
+                    <span className="lk-detail-attr"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M5 20V4.5h9V20M14 8.5h5V20M3.5 20h17"/><path d="M8 8h2.5M8 11.5h2.5M8 15h2.5"/></svg> {job.categoryLabel}</span>
                   </div>
                   <div className="lk-detail-actionrow">
                     <button type="button"
@@ -1084,13 +1084,13 @@ Talent Acquisition, ${job.company}<br>
       <aside className="lk-rail-left">
         <div className="lk-card lk-manage-net">
           <div className="lk-manage-title">Manage my network</div>
-          {[['👥','Connections', String(Object.values(connectState).filter((s) => s === 'connected').length + 512)],
-            ['👤','Following & followers','1,204'],
-            ['📇','Groups','6'],
-            ['📅','Events','2'],
-            ['📰','Newsletters','9'],
-          ].map(([ic, label, count]) => (
-            <button key={label} type="button" className="lk-manage-row"><span>{ic} {label}</span><span className="lk-manage-count">{count}</span></button>
+          {[[<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="9" cy="8.5" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="M15.5 6a3 3 0 0 1 0 5.6M16.5 13.6A5.5 5.5 0 0 1 20.5 19"/></svg>,'Connections', String(Object.values(connectState).filter((s) => s === 'connected').length + 512)],
+            [<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="12" cy="8.5" r="3.5"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>,'Following & followers','1,204'],
+            [<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="3.5" y="5" width="17" height="14" rx="1.5"/><circle cx="9" cy="11" r="2"/><path d="M6 16.5a3.2 3.2 0 0 1 6 0M15 9.5h3M15 13h3"/></svg>,'Groups','6'],
+            [<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="4" y="5.5" width="16" height="14.5" rx="1.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg>,'Events','2'],
+            [<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4.5 5.5h13v14h-13z"/><path d="M17.5 9h2v9a1.5 1.5 0 0 1-1.5 1.5h-13"/><path d="M7 9h8M7 12.5h8M7 16h5"/></svg>,'Newsletters','9'],
+          ].map(([ic, label, count], mi) => (
+            <button key={mi} type="button" className="lk-manage-row"><span>{ic} {label}</span><span className="lk-manage-count">{count}</span></button>
           ))}
         </div>
       </aside>
@@ -1119,7 +1119,7 @@ Talent Acquisition, ${job.company}<br>
                   <button type="button" className="lk-person-name lk-namelink" onClick={() => setViewPerson(buildPerson(name, role, company))}>{name}</button>
                   <div className="lk-person-role">{role}</div>
                   <div className="lk-person-companyrow"><CompanyLogo company={company} size={16} /><span>{company}</span></div>
-                  <div className="lk-person-mutual">👥 {mutuals} mutual connection{mutuals !== 1 ? 's' : ''}</div>
+                  <div className="lk-person-mutual"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="9" cy="8.5" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="M15.5 6a3 3 0 0 1 0 5.6M16.5 13.6A5.5 5.5 0 0 1 20.5 19"/></svg> {mutuals} mutual connection{mutuals !== 1 ? 's' : ''}</div>
                   {cs === 'idle' && <button type="button" className="lk-connect-pill" onClick={() => setConnectState((p) => ({ ...p, [i]: 'pending' }))}>Connect</button>}
                   {cs === 'pending' && <button type="button" className="lk-connect-pill lk-pending" onClick={() => setConnectState((p) => ({ ...p, [i]: 'connected' }))}>Pending</button>}
                   {cs === 'connected' && <button type="button" className="lk-connect-pill lk-done" onClick={() => setMessageTarget(i)}>Message</button>}
@@ -1352,7 +1352,7 @@ Talent Acquisition, ${job.company}<br>
         </div>
       </header>
 
-      {viewPerson && <PersonProfileModal person={viewPerson} onClose={() => setViewPerson(null)} />}
+      {viewPerson && <PersonProfileModal person={viewPerson} onClose={() => setViewPerson(null)} onView={(p) => setViewPerson(p)} />}
 
       <div className="lk-body">
         {tab === 'feed' && renderFeed()}
@@ -1368,52 +1368,171 @@ Talent Acquisition, ${job.company}<br>
 
 // ── Person profile modal ─────────────────────────────────────────────────────
 
-function PersonProfileModal({ person, onClose }: { person: Person; onClose: () => void }) {
+function PersonProfileModal({ person, onClose, onView }: { person: Person; onClose: () => void; onView: (p: Person) => void }) {
   const banner = getCompanyBanner(person.company);
+  const extras = useMemo(() => buildProfileExtras(person), [person]);
+  const [connected, setConnected] = useState(false);
+
+  // Deterministic "People also viewed" rail — same person, same neighbors.
+  const alsoViewed = useMemo(() => {
+    const h = strHash(person.name);
+    const rows: Person[] = [];
+    for (let i = 0; i < 5; i++) {
+      const first = FIRST_NAMES[(h + i * 7) % FIRST_NAMES.length];
+      const last = LAST_NAMES[(h + i * 13) % LAST_NAMES.length];
+      const name = `${first} ${last}`;
+      if (name === person.name) continue;
+      const roles = ['Software Engineer', 'Senior Product Manager', 'Data Analyst', 'Engagement Manager', 'Technical Recruiter'];
+      rows.push(buildPerson(name, roles[(h + i) % roles.length], person.company));
+    }
+    return rows.slice(0, 4);
+  }, [person]);
+
   return (
     <div className="lk-pp-overlay" onClick={onClose}>
-      <div className="lk-pp" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="lk-pp-close" onClick={onClose}>✕</button>
-        <div className="lk-pp-banner" style={banner ? { backgroundImage: `url(${banner})` } : undefined} />
-        <img className="lk-pp-photo" src={person.photo} alt="" />
-        <div className="lk-pp-body">
-          <h2>{person.name}<VerifiedShield /></h2>
-          <div className="lk-pp-headline">{person.headline}</div>
-          <div className="lk-pp-meta">{person.location} · <span className="lk-pp-conns">{person.connections} connections</span></div>
-          {person.openTo && <div className="lk-pp-opento">{person.openTo}</div>}
-          <div className="lk-pp-btns">
-            <button type="button" className="lk-btn-primary">+ Connect</button>
-            <button type="button" className="lk-btn-outline">Message</button>
-            <button type="button" className="lk-btn-ghost">More</button>
-          </div>
-          <section>
-            <h3>About</h3>
-            <p>{person.about}</p>
-          </section>
-          <section>
-            <h3>Experience</h3>
-            {person.history.map((exp) => (
-              <div key={exp.company + exp.role} className="lk-pp-exp">
-                <CompanyLogo company={exp.company} size={40} />
-                <div>
-                  <strong>{exp.role}</strong>
-                  <span>{exp.company}</span>
-                  <span className="lk-pp-dates">{exp.years}</span>
+      <div className="lk-pp lk-pp-full" onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="lk-pp-close" onClick={onClose} aria-label="Close">
+          <svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="1.8" fill="none"><path d="M3 3l10 10M13 3 3 13" /></svg>
+        </button>
+        <div className="lk-pp-columns">
+          <div className="lk-pp-main">
+            {/* Top card */}
+            <div className="lk-pp-card">
+              <div className="lk-pp-banner" style={banner ? { backgroundImage: `url(${banner})` } : undefined} />
+              <img className="lk-pp-photo" src={person.photo} alt="" />
+              <div className="lk-pp-body">
+                <h2>{person.name}<VerifiedShield /></h2>
+                <div className="lk-pp-headline">{person.headline}</div>
+                <div className="lk-pp-meta">{person.location} · <span className="lk-pp-conns">Contact info</span></div>
+                <div className="lk-pp-meta"><span className="lk-pp-conns">{person.connections} connections</span> · {extras.mutuals}</div>
+                <div className="lk-pp-company-line">
+                  <CompanyLogo company={person.company} size={20} /> {person.company}
+                  <span className="lk-pp-dotsep" />
+                  <CompanyLogo company={person.education.school} size={20} /> {person.education.school}
+                </div>
+                {person.openTo && <div className="lk-pp-opento">{person.openTo}</div>}
+                <div className="lk-pp-btns">
+                  <button type="button" className="lk-btn-primary" onClick={() => setConnected((c) => !c)}>
+                    {connected ? 'Pending' : '+ Connect'}
+                  </button>
+                  <button type="button" className="lk-btn-outline">Message</button>
+                  <button type="button" className="lk-btn-ghost">More</button>
                 </div>
               </div>
-            ))}
-          </section>
-          <section>
-            <h3>Education</h3>
-            <div className="lk-pp-exp">
-              <CompanyLogo company={person.education.school} size={40} />
-              <div>
-                <strong>{person.education.school}</strong>
-                <span>{person.education.degree}</span>
-                <span className="lk-pp-dates">{person.education.years}</span>
+            </div>
+
+            {/* About */}
+            <div className="lk-pp-card lk-pp-section">
+              <h3>About</h3>
+              <p>{person.about}</p>
+            </div>
+
+            {/* Activity */}
+            <div className="lk-pp-card lk-pp-section">
+              <h3>Activity</h3>
+              <div className="lk-pp-followers">{extras.followers} followers</div>
+              {extras.posts.map((post, i) => (
+                <div key={i} className="lk-pp-post">
+                  <div className="lk-pp-post-head">
+                    <img src={person.photo} alt="" />
+                    <div>
+                      <strong>{person.name}</strong> <span className="lk-pp-post-age">reposted this · {post.age}</span>
+                    </div>
+                  </div>
+                  <p className="lk-pp-post-text">{post.text}</p>
+                  <div className="lk-pp-post-stats">
+                    <span className="lk-reaction-pills">
+                      <span className="lk-reaction lk-reaction-like" />
+                      <span className="lk-reaction lk-reaction-celebrate" />
+                    </span>
+                    {post.reactions} · {post.comments} comments
+                  </div>
+                </div>
+              ))}
+              <button type="button" className="lk-pp-showall">Show all posts</button>
+            </div>
+
+            {/* Experience */}
+            <div className="lk-pp-card lk-pp-section">
+              <h3>Experience</h3>
+              {person.history.map((exp, i) => (
+                <div key={exp.company + exp.role} className="lk-pp-exp">
+                  <CompanyLogo company={exp.company} size={44} />
+                  <div>
+                    <strong>{exp.role}</strong>
+                    <span>{exp.company} · Full-time</span>
+                    <span className="lk-pp-dates">{exp.years}</span>
+                    <span className="lk-pp-dates">{i === 0 ? person.location : 'Greater Chicago Area'}</span>
+                    <p className="lk-pp-exp-desc">
+                      {i === 0
+                        ? `Leading day-to-day delivery as ${exp.role.toLowerCase()} — scoping work with partners, driving execution, and mentoring newer teammates.`
+                        : 'Owned cross-team deliverables end to end and built the reporting the org still runs on.'}
+                    </p>
+                    {i === 0 && extras.skills.length > 0 && (
+                      <span className="lk-pp-exp-skills"><strong>Skills:</strong> {extras.skills.slice(0, 3).map((s) => s.name).join(' · ')}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Education */}
+            <div className="lk-pp-card lk-pp-section">
+              <h3>Education</h3>
+              <div className="lk-pp-exp">
+                <CompanyLogo company={person.education.school} size={44} />
+                <div>
+                  <strong>{person.education.school}</strong>
+                  <span>{person.education.degree}</span>
+                  <span className="lk-pp-dates">{person.education.years}</span>
+                </div>
               </div>
             </div>
-          </section>
+
+            {/* Skills */}
+            <div className="lk-pp-card lk-pp-section">
+              <h3>Skills</h3>
+              {extras.skills.map((skill) => (
+                <div key={skill.name} className="lk-pp-skill">
+                  <strong>{skill.name}</strong>
+                  <span>{skill.endorsements} endorsements</span>
+                </div>
+              ))}
+              <button type="button" className="lk-pp-showall">Show all {extras.skills.length + 9} skills</button>
+            </div>
+
+            {/* Interests */}
+            <div className="lk-pp-card lk-pp-section">
+              <h3>Interests</h3>
+              <div className="lk-pp-interests">
+                {extras.interests.map((it) => (
+                  <div key={it} className="lk-pp-interest">
+                    <CompanyLogo company={it} size={36} />
+                    <div>
+                      <strong>{it}</strong>
+                      <span>{20 + (strHash(it) % 900)}K followers</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right rail */}
+          <aside className="lk-pp-rail">
+            <div className="lk-pp-card lk-pp-section">
+              <h3>People also viewed</h3>
+              {alsoViewed.map((p) => (
+                <button key={p.name} type="button" className="lk-pp-also" onClick={() => onView(p)}>
+                  <img src={p.photo} alt="" />
+                  <div>
+                    <strong>{p.name}</strong>
+                    <span>{p.headline}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </aside>
         </div>
       </div>
     </div>

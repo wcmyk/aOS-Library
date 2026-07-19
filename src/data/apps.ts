@@ -166,6 +166,14 @@ export const apps: ShellApp[] = [
     defaultSize: { width: 1220, height: 760 },
   },
   {
+    id: 'teams',
+    name: 'Microsoft Teams',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23464775'/%3E%3Crect x='8' y='20' width='30' height='30' rx='6' fill='%23fff' opacity='0.96'/%3E%3Ctext x='23' y='42' text-anchor='middle' font-size='18' font-weight='700' fill='%23464775' font-family='Segoe UI, sans-serif'%3ET%3C/text%3E%3Ccircle cx='47' cy='24' r='7' fill='%237B83EB'/%3E%3Cpath d='M38 34h14a3 3 0 0 1 3 3v6a10 10 0 0 1-10 10h-1a10 10 0 0 1-8.6-4.9z' fill='%237B83EB'/%3E%3C/svg%3E`,
+    description: 'Org-scoped Microsoft Teams: channels, chats, and meetings for your employer tenant',
+    accent: '#5b5fc7',
+    defaultSize: { width: 1240, height: 780 },
+  },
+  {
     id: 'xcode',
     name: 'Xcode',
     icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='xg' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23a8d5ff'/%3E%3Cstop offset='1' stop-color='%232f7cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23xg)'/%3E%3Ccircle cx='32' cy='32' r='22' fill='%23fff' opacity='0.92'/%3E%3Cpath d='M26 20 l-4 24 M38 20 l4 24' stroke='%232f7cf6' stroke-width='3.4' stroke-linecap='round'/%3E%3Cpath d='M20 28 l24 8 M20 36 l24-8' stroke='%231b5fd0' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E`,
@@ -173,6 +181,14 @@ export const apps: ShellApp[] = [
     accent: '#2f7cf6',
     defaultSize: { width: 1280, height: 800 },
     dockHidden: true,
+  },
+  {
+    id: 'vscode',
+    name: 'Visual Studio Code',
+    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231e1e1e'/%3E%3Cpath d='M44 10 22 30l-8-6-4 3 9 5-9 5 4 3 8-6 22 20 10-5V15z' fill='%23007ACC'/%3E%3Cpath d='M44 22v20L30 32z' fill='%231e1e1e'/%3E%3C/svg%3E`,
+    description: 'Visual Studio Code: explorer, TypeScript editor, integrated terminal, source control',
+    accent: '#007acc',
+    defaultSize: { width: 1280, height: 800 },
   },
   {
     id: 'rentcafe',

@@ -99,13 +99,13 @@ export function GmailSite() {
           <span className="gm-wordmark">Gmail</span>
         </div>
         <div className="gm-searchwrap">
-          <span className="gm-search-ic">🔍</span>
+          <span className="gm-search-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/></svg></span>
           <input placeholder="Search mail" value={search} onChange={(e) => setSearch(e.target.value)} />
-          <span className="gm-search-tune">⚙̸</span>
+          <span className="gm-search-tune"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4 18 18M18 6l-1.6 1.6M7.6 16.4 6 18"/></svg></span>
         </div>
         <div className="gm-header-right">
           <button type="button" title="Support">?</button>
-          <button type="button" title="Settings">⚙</button>
+          <button type="button" title="Settings"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4 18 18M18 6l-1.6 1.6M7.6 16.4 6 18"/></svg></button>
           <button type="button" className="gm-waffle" title="Google apps">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="#5f6368"><circle cx="3" cy="3" r="1.7"/><circle cx="9" cy="3" r="1.7"/><circle cx="15" cy="3" r="1.7"/><circle cx="3" cy="9" r="1.7"/><circle cx="9" cy="9" r="1.7"/><circle cx="15" cy="9" r="1.7"/><circle cx="3" cy="15" r="1.7"/><circle cx="9" cy="15" r="1.7"/><circle cx="15" cy="15" r="1.7"/></svg>
           </button>
@@ -121,12 +121,12 @@ export function GmailSite() {
             Compose
           </button>
           {([
-            ['inbox', '📥', 'Inbox'],
-            ['starred', '⭐', 'Starred'],
-            ['sent', '📤', 'Sent'],
-            ['drafts', '📝', 'Drafts'],
-            ['trash', '🗑', 'Trash'],
-          ] as Array<[EmailFolder, string, string]>).map(([k, ic, label]) => (
+            ['inbox', <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4 5.5h16V19H4z"/><path d="M4 13h5a3 3 0 0 0 6 0h5"/></svg>, 'Inbox'],
+            ['starred', <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M12 4.5 14.3 9.3l5.2.7-3.8 3.6.9 5.2L12 16.3l-4.6 2.5.9-5.2L4.5 10l5.2-.7z"/></svg>, 'Starred'],
+            ['sent', <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M3.5 11.5 20.5 4l-4 16-4.5-6z"/><path d="m12 14 8.5-10"/></svg>, 'Sent'],
+            ['drafts', <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg>, 'Drafts'],
+            ['trash', <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4 7h16M9 7V5h6v2M6.5 7l1 13h9l1-13"/><path d="M10 11v5M14 11v5"/></svg>, 'Trash'],
+          ] as Array<[EmailFolder, JSX.Element, string]>).map(([k, ic, label]) => (
             <button key={k} type="button" className={`gm-rail-item ${folder === k ? 'active' : ''}`} onClick={() => { setFolder(k); setOpenId(null); }}>
               <span className="gm-rail-ic">{ic}</span>
               <span className="gm-rail-label">{label}</span>
@@ -142,13 +142,13 @@ export function GmailSite() {
               {folder === 'inbox' && (
                 <div className="gm-tabs">
                   <button type="button" className={category === 'primary' ? 'active' : ''} onClick={() => setCategory('primary')}>
-                    <span className="gm-tab-ic">📥</span> Primary
+                    <span className="gm-tab-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4 5.5h16V19H4z"/><path d="M4 13h5a3 3 0 0 0 6 0h5"/></svg></span> Primary
                   </button>
                   <button type="button" className={category === 'updates' ? 'active' : ''} onClick={() => setCategory('updates')}>
-                    <span className="gm-tab-ic">ℹ️</span> Updates
+                    <span className="gm-tab-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 7.6v.4"/></svg></span> Updates
                   </button>
                   <button type="button" className={category === 'promotions' ? 'active' : ''} onClick={() => setCategory('promotions')}>
-                    <span className="gm-tab-ic">🏷</span> Promotions
+                    <span className="gm-tab-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4 4h7l9 9-7 7-9-9z"/><circle cx="8.5" cy="8.5" r="1.4"/></svg></span> Promotions
                   </button>
                 </div>
               )}
@@ -172,9 +172,9 @@ export function GmailSite() {
             <div className="gm-reader">
               <div className="gm-reader-toolbar">
                 <button type="button" onClick={() => setOpenId(null)} title="Back">←</button>
-                <button type="button" title="Archive">🗄</button>
-                <button type="button" title="Delete">🗑</button>
-                <button type="button" title="Mark unread">✉</button>
+                <button type="button" title="Archive"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M3.5 4h17v4.5h-17z"/><path d="M5.5 8.5V20h13V8.5M10 12.5h4"/></svg></button>
+                <button type="button" title="Delete"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4 7h16M9 7V5h6v2M6.5 7l1 13h9l1-13"/><path d="M10 11v5M14 11v5"/></svg></button>
+                <button type="button" title="Mark unread"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="3.5" y="5.5" width="17" height="13" rx="1.5"/><path d="m4.5 7 7.5 6 7.5-6"/></svg></button>
               </div>
               <h1 className="gm-reader-subject">{open.subject} <span className="gm-label">Inbox</span></h1>
               <div className="gm-reader-head">
@@ -217,8 +217,8 @@ export function GmailSite() {
           <textarea className="gm-compose-body" value={body} onChange={(e) => setBody(e.target.value)} />
           <div className="gm-compose-foot">
             <button type="button" className="gm-send" onClick={send}>Send</button>
-            <span className="gm-compose-tools">A 📎 🔗 😀 🖼 ⋮</span>
-            <button type="button" className="gm-compose-trash" onClick={() => setComposeOpen(false)}>🗑</button>
+            <span className="gm-compose-tools">A <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="m20 12-7.6 7.6a5 5 0 0 1-7-7L13 5a3.5 3.5 0 0 1 5 5l-7.6 7.6a2 2 0 0 1-2.9-2.9L14 8.2"/></svg> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M9.5 14.5 14.5 9.5M8 12l-2.5 2.5a3.5 3.5 0 0 0 5 5L13 17M16 12l2.5-2.5a3.5 3.5 0 0 0-5-5L11 7"/></svg> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="12" cy="12" r="8.5"/><path d="M8.8 14a4 4 0 0 0 6.4 0M9.3 9.8h.02M14.7 9.8h.02"/></svg> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="3.5" y="5" width="17" height="14" rx="1.5"/><circle cx="8.5" cy="10" r="1.5"/><path d="m5 18 5-5 3 3 3.5-3.5 3 3"/></svg> ⋮</span>
+            <button type="button" className="gm-compose-trash" onClick={() => setComposeOpen(false)}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4 7h16M9 7V5h6v2M6.5 7l1 13h9l1-13"/><path d="M10 11v5M14 11v5"/></svg></button>
           </div>
         </div>
       )}

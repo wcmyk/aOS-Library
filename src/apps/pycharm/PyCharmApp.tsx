@@ -230,8 +230,8 @@ button:hover {
 }
 `,
   'myproject/static/app.js': `const messages = [
-  "Hello from JavaScript! 👋",
-  "aOS is running smoothly! 🚀",
+  "Hello from JavaScript!",
+  "aOS is running smoothly!",
   "Edit index.html to change this page.",
   "HTML + CSS + JS preview is live.",
 ];
@@ -1409,7 +1409,7 @@ parent.postMessage({ type: 'ready' }, '*');
             onClick={() => setShowPreview((v) => !v)}
             style={{ padding: '4px 10px', background: showPreview ? '#365880' : '#4c4f52', border: 'none', color: '#ffffff', borderRadius: 4, fontSize: 11, cursor: 'pointer', marginRight: 4 }}
           >
-            ⬛ {showPreview ? 'Preview On' : 'Preview'}
+            ■ {showPreview ? 'Preview On' : 'Preview'}
           </button>
         )}
         <button

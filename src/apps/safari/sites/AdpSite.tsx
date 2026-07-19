@@ -7,19 +7,23 @@ import './adp.css';
 
 type AdpView = 'dashboard' | 'pay' | 'time' | 'benefits' | 'retirement' | 'taxes';
 
-const NAV: Array<[AdpView, string, string]> = [
-  ['dashboard', '⌂', 'Dashboard'],
-  ['pay', '💵', 'Pay'],
-  ['time', '⏱', 'Time & Attendance'],
-  ['benefits', '🩺', 'Benefits'],
-  ['retirement', '📈', 'Retirement'],
-  ['taxes', '📄', 'Tax Statements'],
+const NAV: Array<[AdpView, JSX.Element, string]> = [
+  ['dashboard', <svg key="d" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M4 11 12 4l8 7" /><path d="M6 10v9h12v-9" /></svg>, 'Dashboard'],
+  ['pay', <svg key="p" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><rect x="3" y="6" width="18" height="12" rx="2" /><circle cx="12" cy="12" r="2.6" /></svg>, 'Pay'],
+  ['time', <svg key="t" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><circle cx="12" cy="12" r="8.5" /><path d="M12 7v5l3.4 2" /></svg>, 'Time & Attendance'],
+  ['benefits', <svg key="b" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M12 20s-7-4.6-9-9c-1.2-2.7.6-6 3.8-6 2 0 3.6 1.2 5.2 3.4C13.6 6.2 15.2 5 17.2 5c3.2 0 5 3.3 3.8 6-2 4.4-9 9-9 9z" /></svg>, 'Benefits'],
+  ['retirement', <svg key="r" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M4 19h16" /><path d="m5 15 4.5-4.5 3.5 3L19 8" /><path d="M15.5 8H19v3.5" /></svg>, 'Retirement'],
+  ['taxes', <svg key="x" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M6 3h8l4 4v14H6z" /><path d="M14 3v4h4" /><path d="M9 12h6M9 16h6" /></svg>, 'Tax Statements'],
 ];
 
 export function AdpSite() {
   const accounts = useCompanyStore((s) => s.employerAccounts);
   const fullName = useProfileStore((s) => s.fullName);
-  const active = accounts.find((a) => a.employmentStatus === 'active' || a.employmentStatus === 'onboarding') ?? accounts[0] ?? null;
+  // Real myADP aggregates every employer that runs payroll through ADP — when
+  // the user holds multiple jobs they pick which employer's pay to view.
+  const employed = accounts.filter((a) => a.employmentStatus === 'active' || a.employmentStatus === 'onboarding');
+  const [employerId, setEmployerId] = useState<string | null>(null);
+  const active = employed.find((a) => a.id === employerId) ?? employed[0] ?? accounts[0] ?? null;
   const [view, setView] = useState<AdpView>('dashboard');
   const [statementId, setStatementId] = useState<string | null>(null);
   const [clockedIn, setClockedIn] = useState(false);
@@ -49,7 +53,14 @@ export function AdpSite() {
         <AdpLogo height={24} />
         <span className="adp-product">myADP</span>
         <div className="adp-topbar-right">
-          <span className="adp-org">{active.companyName}</span>
+          {employed.length > 1 ? (
+            <select className="adp-org adp-org-select" value={active.id}
+              onChange={(e) => setEmployerId(e.target.value)} aria-label="Select employer">
+              {employed.map((a) => <option key={a.id} value={a.id}>{a.companyName}</option>)}
+            </select>
+          ) : (
+            <span className="adp-org">{active.companyName}</span>
+          )}
           <div className="adp-avatar">{(fullName[0] ?? 'U').toUpperCase()}</div>
         </div>
       </header>
@@ -108,9 +119,9 @@ export function AdpSite() {
 
                 <section className="adp-card">
                   <header><h3>To Do</h3></header>
-                  <div className="adp-todo">☐ Confirm your mailing address for W-2 delivery</div>
-                  <div className="adp-todo">☐ Review your federal withholding elections (W-4)</div>
-                  <div className="adp-todo">☑ Enroll in direct deposit — complete</div>
+                  <div className="adp-todo">Confirm your mailing address for W-2 delivery</div>
+                  <div className="adp-todo">Review your federal withholding elections (W-4)</div>
+                  <div className="adp-todo">Enroll in direct deposit — complete</div>
                 </section>
               </div>
             </>
@@ -201,8 +212,8 @@ export function AdpSite() {
             <>
               <h1 className="adp-h1">Tax Statements</h1>
               <div className="adp-card">
-                <div className="adp-kv"><span>📄 {new Date().getFullYear() - 1} W-2 — {active.companyName}</span><button type="button" className="adp-link">Download PDF</button></div>
-                <div className="adp-kv"><span>📄 W-4 on file — Single, no adjustments</span><button type="button" className="adp-link">Update withholding</button></div>
+                <div className="adp-kv"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg> {new Date().getFullYear() - 1} W-2 — {active.companyName}</span><button type="button" className="adp-link">Download PDF</button></div>
+                <div className="adp-kv"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg> W-4 on file — Single, no adjustments</span><button type="button" className="adp-link">Update withholding</button></div>
                 <div className="adp-kv"><span>State filing — {active.location.split(', ')[1] ?? 'NY'}</span><button type="button" className="adp-link">View</button></div>
               </div>
             </>
