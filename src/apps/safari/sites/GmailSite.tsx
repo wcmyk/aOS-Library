@@ -185,6 +185,16 @@ export function GmailSite() {
                 </div>
                 <span className="gm-reader-date">{new Date(open.date).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
               </div>
+              {open.jobMeta && (
+                <div className="gm-jobbrand">
+                  <CompanyLogo company={open.jobMeta.company} size={44} />
+                  <div className="gm-jobbrand-text">
+                    <strong>{open.jobMeta.company}</strong>
+                    <span>{open.jobMeta.role} · {open.jobMeta.location}</span>
+                  </div>
+                  <span className="gm-jobbrand-stage">{open.jobMeta.stage.replace('-', ' ')}</span>
+                </div>
+              )}
               <article className="gm-reader-body" dangerouslySetInnerHTML={{ __html: open.body }} />
               <div className="gm-reader-actions">
                 <button type="button" onClick={() => openReply(open)}>↩ Reply</button>

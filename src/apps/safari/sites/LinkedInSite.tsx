@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useMailStore, type JobMeta } from '../../../state/useMailStore';
 import { useProfileStore } from '../../../state/useProfileStore';
 import { CompanyLogo, getCompanyBanner, getBrandColor } from '../../../data/brands';
+import { buildPerson, personPhoto, type Person } from '../../../data/people';
 import './linkedin.css';
 
 // ── Seeded random ─────────────────────────────────────────────────────────────
@@ -709,6 +710,7 @@ export function LinkedInSite() {
   const [messageText, setMessageText] = useState<string>('');
   const [sentMessages, setSentMessages] = useState<Record<number, string[]>>({});
   const [likedPosts, setLikedPosts] = useState<Record<number, boolean>>({});
+  const [viewPerson, setViewPerson] = useState<Person | null>(null);
 
   useEffect(() => {
     localStorage.setItem('li_apply_state', JSON.stringify(applyState));
@@ -858,7 +860,9 @@ Talent Acquisition, ${job.company}<br>
                 {post.company ? (
                   <CompanyLogo company={post.company} size={48} />
                 ) : (
-                  <div className="lk-avatar-circle lk-avatar-48" style={{ background: getBrandColor(post.author) }}>{post.author.charAt(0)}</div>
+                  <button type="button" className="lk-photo-btn" onClick={() => setViewPerson(buildPerson(post.author, post.headline?.split(' at ')[0] ?? 'Professional', post.headline?.split(' at ')[1] ?? 'aOS'))}>
+                    <img className="lk-photo lk-avatar-48" src={personPhoto(post.author)} alt="" />
+                  </button>
                 )}
                 <div className="lk-post-id">
                   <div className="lk-post-author">{post.author}{post.company && <VerifiedShield />} {!post.company && <span className="lk-post-degree">· 3rd+</span>}</div>
@@ -1056,7 +1060,9 @@ Talent Acquisition, ${job.company}<br>
                   <section className="lk-detail-section">
                     <h2>Meet the hiring team</h2>
                     <div className="lk-recruiter-row">
-                      <div className="lk-avatar-circle lk-avatar-48" style={{ background: getBrandColor(job.recruiter) }}>{job.recruiter.charAt(0)}</div>
+                      <button type="button" className="lk-photo-btn" onClick={() => setViewPerson(buildPerson(job.recruiter, 'Talent Acquisition', job.company))}>
+                        <img className="lk-photo lk-avatar-48" src={personPhoto(job.recruiter)} alt="" />
+                      </button>
                       <div>
                         <div className="lk-recruiter-name">{job.recruiter} <span className="lk-post-degree">· 3rd</span></div>
                         <div className="lk-recruiter-title">Talent Acquisition at {job.company}</div>
@@ -1107,8 +1113,10 @@ Talent Acquisition, ${job.company}<br>
               return (
                 <div key={i} className="lk-person-card">
                   <div className="lk-person-cover" style={banner ? { backgroundImage: `url(${banner})` } : { background: `linear-gradient(135deg, hsl(${(i * 47 + 200) % 360}deg 45% 55%), hsl(${(i * 47 + 260) % 360}deg 45% 40%))` }} />
-                  <div className="lk-person-avatar" style={{ background: `hsl(${(i * 47 + 200) % 360}deg 55% 38%)` }}>{name.charAt(0)}</div>
-                  <div className="lk-person-name">{name}</div>
+                  <button type="button" className="lk-photo-btn lk-person-photo-btn" onClick={() => setViewPerson(buildPerson(name, role, company))}>
+                    <img className="lk-photo lk-person-photo" src={personPhoto(name)} alt="" />
+                  </button>
+                  <button type="button" className="lk-person-name lk-namelink" onClick={() => setViewPerson(buildPerson(name, role, company))}>{name}</button>
                   <div className="lk-person-role">{role}</div>
                   <div className="lk-person-companyrow"><CompanyLogo company={company} size={16} /><span>{company}</span></div>
                   <div className="lk-person-mutual">👥 {mutuals} mutual connection{mutuals !== 1 ? 's' : ''}</div>
@@ -1187,7 +1195,7 @@ Talent Acquisition, ${job.company}<br>
             const name = makeName(rng);
             return (
               <div key={idx} className="lk-conv-row">
-                <div className="lk-avatar-circle lk-avatar-48" style={{ background: `hsl(${(i * 47 + 200) % 360}deg 55% 38%)` }}>{name.charAt(0)}</div>
+                <img className="lk-photo lk-avatar-48" src={personPhoto(name)} alt="" />
                 <div className="lk-conv-body">
                   <div className="lk-conv-name">{name}</div>
                   <div className="lk-conv-preview">You: {msgs[msgs.length - 1]}</div>
@@ -1294,7 +1302,7 @@ Talent Acquisition, ${job.company}<br>
                 const company = makeCompany(rng);
                 return (
                   <li key={i}>
-                    <div className="lk-avatar-circle lk-avatar-40" style={{ background: `hsl(${(i * 67 + 180) % 360}deg 50% 40%)` }}>{name.charAt(0)}</div>
+                    <img className="lk-photo lk-avatar-40" src={personPhoto(name)} alt="" />
                     <div>
                       <strong>{name}</strong>
                       <span>{pick([...ROLE_MAP.swe], rng)} at {company}</span>
@@ -1344,6 +1352,8 @@ Talent Acquisition, ${job.company}<br>
         </div>
       </header>
 
+      {viewPerson && <PersonProfileModal person={viewPerson} onClose={() => setViewPerson(null)} />}
+
       <div className="lk-body">
         {tab === 'feed' && renderFeed()}
         {tab === 'jobs' && renderJobs()}
@@ -1351,6 +1361,60 @@ Talent Acquisition, ${job.company}<br>
         {tab === 'notifications' && renderNotifications()}
         {tab === 'messaging' && renderMessaging()}
         {tab === 'profile' && renderProfile()}
+      </div>
+    </div>
+  );
+}
+
+// ── Person profile modal ─────────────────────────────────────────────────────
+
+function PersonProfileModal({ person, onClose }: { person: Person; onClose: () => void }) {
+  const banner = getCompanyBanner(person.company);
+  return (
+    <div className="lk-pp-overlay" onClick={onClose}>
+      <div className="lk-pp" onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="lk-pp-close" onClick={onClose}>✕</button>
+        <div className="lk-pp-banner" style={banner ? { backgroundImage: `url(${banner})` } : undefined} />
+        <img className="lk-pp-photo" src={person.photo} alt="" />
+        <div className="lk-pp-body">
+          <h2>{person.name}<VerifiedShield /></h2>
+          <div className="lk-pp-headline">{person.headline}</div>
+          <div className="lk-pp-meta">{person.location} · <span className="lk-pp-conns">{person.connections} connections</span></div>
+          {person.openTo && <div className="lk-pp-opento">{person.openTo}</div>}
+          <div className="lk-pp-btns">
+            <button type="button" className="lk-btn-primary">+ Connect</button>
+            <button type="button" className="lk-btn-outline">Message</button>
+            <button type="button" className="lk-btn-ghost">More</button>
+          </div>
+          <section>
+            <h3>About</h3>
+            <p>{person.about}</p>
+          </section>
+          <section>
+            <h3>Experience</h3>
+            {person.history.map((exp) => (
+              <div key={exp.company + exp.role} className="lk-pp-exp">
+                <CompanyLogo company={exp.company} size={40} />
+                <div>
+                  <strong>{exp.role}</strong>
+                  <span>{exp.company}</span>
+                  <span className="lk-pp-dates">{exp.years}</span>
+                </div>
+              </div>
+            ))}
+          </section>
+          <section>
+            <h3>Education</h3>
+            <div className="lk-pp-exp">
+              <CompanyLogo company={person.education.school} size={40} />
+              <div>
+                <strong>{person.education.school}</strong>
+                <span>{person.education.degree}</span>
+                <span className="lk-pp-dates">{person.education.years}</span>
+              </div>
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   );

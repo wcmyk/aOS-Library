@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useProfileStore } from '../../../state/useProfileStore';
-import { GoogleWordmark, ClaudeSpark, ChatGptKnot, GmailM, PolymarketMark } from '../../../data/brands';
+import { GoogleWordmark, GeminiSpark, GmailM, PolymarketMark } from '../../../data/brands';
 import { useSafariStore } from '../../../state/useSafariStore';
 import './google.css';
 
-type Assistant = 'none' | 'claude' | 'chatgpt';
+
 
 type WebResult = { title: string; url: string; snippet: string };
 
@@ -23,11 +23,8 @@ function buildResults(q: string): WebResult[] {
   return all;
 }
 
-function aiAnswer(q: string, assistant: Assistant): string {
-  const intro = assistant === 'claude'
-    ? `Here's a concise overview of "${q}":`
-    : `Sure — here's a quick summary of "${q}":`;
-  return `${intro}
+function aiAnswer(q: string): string {
+  return `Here's an overview of "${q}":
 
 • In the aOS workforce simulation, the fastest path is: search openings on LinkedIn → apply → answer the recruiter email in Outlook or Gmail (reply ATS100 to advance) → complete interviews → accept the offer to unlock Workday, ADP, and payroll.
 
@@ -43,19 +40,18 @@ export function GoogleSite() {
   const navigate = useSafariStore((s) => s.navigate);
   const [query, setQuery] = useState('');
   const [submitted, setSubmitted] = useState('');
-  const [assistant, setAssistant] = useState<Assistant>('none');
   const [thinking, setThinking] = useState(false);
 
   const results = useMemo(() => (submitted ? buildResults(submitted) : []), [submitted]);
 
-  const runSearch = (mode: Assistant = assistant) => {
+  // Google's native AI Overview appears for question-like queries, like real Search.
+  const showOverview = /^(how|what|why|when|who|where|can|should|is|are|does|do)\b|\?$/i.test(submitted.trim());
+
+  const runSearch = () => {
     if (!query.trim()) return;
     setSubmitted(query.trim());
-    setAssistant(mode);
-    if (mode !== 'none') {
-      setThinking(true);
-      setTimeout(() => setThinking(false), 900);
-    }
+    setThinking(true);
+    setTimeout(() => setThinking(false), 900);
   };
 
   // ── Landing ──
@@ -82,23 +78,14 @@ export function GoogleSite() {
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && runSearch('none')}
+              onKeyDown={(e) => e.key === 'Enter' && runSearch()}
               aria-label="Search"
             />
             <span className="go-mic">🎤</span>
           </div>
           <div className="go-btnrow">
-            <button type="button" onClick={() => runSearch('none')}>Google Search</button>
+            <button type="button" onClick={() => runSearch()}>Google Search</button>
             <button type="button" onClick={() => { setQuery('how to get promoted fast'); }}>I'm Feeling Lucky</button>
-          </div>
-          <div className="go-ai-row">
-            <span>Search with AI:</span>
-            <button type="button" className="go-ai-chip" onClick={() => runSearch('claude')}>
-              <ClaudeSpark size={18} /> Claude
-            </button>
-            <button type="button" className="go-ai-chip" onClick={() => runSearch('chatgpt')}>
-              <ChatGptKnot size={18} /> ChatGPT
-            </button>
           </div>
           <div className="go-workspace">
             <span className="go-workspace-label">Google Workspace for {fullName.split(' ')[0]}</span>
@@ -123,37 +110,35 @@ export function GoogleSite() {
   return (
     <div className="go-shell go-results-shell">
       <header className="go-results-head">
-        <button type="button" className="go-results-logo" onClick={() => { setSubmitted(''); setAssistant('none'); }}>
+        <button type="button" className="go-results-logo" onClick={() => setSubmitted('')}>
           <GoogleWordmark height={26} />
         </button>
         <div className="go-searchbar go-searchbar-sm">
           <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && runSearch()} />
           <span className="go-search-ic">🔍</span>
         </div>
-        <div className="go-ai-row go-ai-row-inline">
-          <button type="button" className={`go-ai-chip ${assistant === 'claude' ? 'active' : ''}`} onClick={() => runSearch('claude')}><ClaudeSpark size={16} /> Claude</button>
-          <button type="button" className={`go-ai-chip ${assistant === 'chatgpt' ? 'active' : ''}`} onClick={() => runSearch('chatgpt')}><ChatGptKnot size={16} /> ChatGPT</button>
-        </div>
       </header>
       <div className="go-results-tabs">
-        {['All', 'Images', 'News', 'Videos', 'Shopping', 'More'].map((t, i) => (
+        {['All', 'AI Mode', 'Images', 'News', 'Videos', 'Shopping', 'More'].map((t, i) => (
           <button key={t} type="button" className={i === 0 ? 'active' : ''}>{t}</button>
         ))}
       </div>
       <main className="go-results-main">
         <div className="go-results-count">About {(1_240_000 + submitted.length * 73_211).toLocaleString()} results (0.{30 + (submitted.length % 60)} seconds)</div>
 
-        {assistant !== 'none' && (
-          <section className={`go-ai-card ${assistant}`}>
+        {showOverview && (
+          <section className="go-ai-card gemini">
             <header>
-              {assistant === 'claude' ? <ClaudeSpark size={20} /> : <ChatGptKnot size={20} />}
-              <strong>{assistant === 'claude' ? 'Claude' : 'ChatGPT'}</strong>
-              <span className="go-ai-tag">AI overview</span>
+              <GeminiSpark size={20} />
+              <strong>AI Overview</strong>
             </header>
             {thinking ? (
               <div className="go-ai-thinking"><span /><span /><span /></div>
             ) : (
-              <p>{aiAnswer(submitted, assistant)}</p>
+              <>
+                <p>{aiAnswer(submitted)}</p>
+                <div className="go-ai-disclaimer">AI responses may include mistakes. <span>Learn more</span></div>
+              </>
             )}
           </section>
         )}

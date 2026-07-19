@@ -677,6 +677,16 @@ export function OutlookApp() {
                     </div>
                   </div>
                 </div>
+                {selected.jobMeta && (
+                  <div className="owa-jobbrand">
+                    <CompanyLogo company={selected.jobMeta.company} size={44} />
+                    <div className="owa-jobbrand-text">
+                      <strong>{selected.jobMeta.company}</strong>
+                      <span>{selected.jobMeta.role} · {selected.jobMeta.location}</span>
+                    </div>
+                    <span className={`owa-jobbrand-stage stage-${selected.jobMeta.stage}`}>{selected.jobMeta.stage.replace('-', ' ')}</span>
+                  </div>
+                )}
                 <article className="owa-reading-body" dangerouslySetInnerHTML={{ __html: selected.body }} />
                 <div className="owa-reading-replyrow">
                   <button type="button" onClick={openReply}>↩ Reply</button>

@@ -4,6 +4,7 @@ import { WorkdaySite } from './sites/WorkdaySite';
 import { AdpSite } from './sites/AdpSite';
 import { GmailSite } from './sites/GmailSite';
 import { GoogleSite } from './sites/GoogleSite';
+import { ClaudeSite, ChatGptSite, GeminiSite } from './sites/AiAssistantSites';
 import { ProjectHubSite } from './sites/ProjectHubSite';
 import { WorkfrontSite } from './sites/WorkfrontSite';
 import { RadarSite } from './sites/RadarSite';
@@ -13,6 +14,8 @@ import { CoLabSite } from './sites/CoLabSite';
 import { SamsungPortalSite } from './sites/SamsungPortalSite';
 import { CurcuitSite } from './sites/CurcuitSite';
 import { useSafariStore } from '../../state/useSafariStore';
+import { CompanyLogo, GmailM, ClaudeSpark, ChatGptKnot, GeminiSpark, WorkdayLogo, AdpLogo, ChaseOctagon } from '../../data/brands';
+import './safari.css';
 import { useCompanyStore } from '../../state/useCompanyStore';
 
 type SiteId =
@@ -21,6 +24,9 @@ type SiteId =
   | 'adp'
   | 'gmail'
   | 'google'
+  | 'claude'
+  | 'chatgpt'
+  | 'gemini'
   | 'workfront'
   | 'radar'
   | 'buganizer'
@@ -81,6 +87,9 @@ const CORE_SITES: SiteEntry[] = [
   { id: 'workday',       title: 'Workday',               domain: 'workday.company.io',          component: WorkdaySite },
   { id: 'adp',           title: 'myADP',                 domain: 'my.adp.com',                  component: AdpSite },
   { id: 'gmail',         title: 'Gmail',                 domain: 'mail.google.com',             component: GmailSite },
+  { id: 'claude',        title: 'Claude',                domain: 'claude.ai',                   component: ClaudeSite },
+  { id: 'chatgpt',       title: 'ChatGPT',               domain: 'chatgpt.com',                 component: ChatGptSite },
+  { id: 'gemini',        title: 'Gemini',                domain: 'gemini.google.com',           component: GeminiSite },
   { id: 'workfront',     title: 'Adobe Workfront',       domain: 'app.workfront.com',           component: WorkfrontSite },
   { id: 'radar',         title: 'Radar',                 domain: 'radar.apple.com',             component: RadarSite },
   { id: 'buganizer',     title: 'Buganizer',             domain: 'b.corp.google.com',           component: BuganizerSite },
@@ -107,102 +116,85 @@ function resolveSiteId(url: string, companies: { domain: string; name: string }[
 // ─── Bookmark homepage grid ────────────────────────────────────────────────────
 
 const FAVICON_COLORS: Record<string, string> = {
-  linkedin: '#0a66c2', workday: '#f38b00', adp: '#d0271d', gmail: '#ea4335', google: '#4285f4', workfront: '#e8232a',
+  linkedin: '#0a66c2', workday: '#f38b00', adp: '#d0271d', gmail: '#ea4335', google: '#4285f4', claude: '#D97757', chatgpt: '#10a37f', gemini: '#4285F4', workfront: '#e8232a',
   radar: '#0071e3', buganizer: '#34a853', 'project-sail': '#003087',
   'project-hub': '#6366f1', colab: '#5b5fc7', 'samsung-portal': '#1428a0',
   curcuit: '#7dd3fc',
 };
 
-function FaviconSVG({ siteId, size = 28 }: { siteId: string; size?: number }) {
-  const color = FAVICON_COLORS[siteId] ?? '#475569';
-  const letter = (siteId.charAt(0) ?? 'W').toUpperCase();
-  return (
-    <svg width={size} height={size} viewBox="0 0 28 28">
-      <rect width="28" height="28" rx="6" fill={color} />
-      <text x="14" y="19.5" textAnchor="middle" fontSize="13" fontWeight="700"
-        fill="white" fontFamily="SF Pro Display, Inter, sans-serif">{letter}</text>
-    </svg>
+function SiteFavicon({ siteId, size = 28 }: { siteId: string; size?: number }) {
+  const wrap = (child: ReactNode, bg = '#fff', border = true) => (
+    <span style={{
+      width: size, height: size, borderRadius: size * 0.22, background: bg,
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      border: border ? '1px solid rgba(0,0,0,0.08)' : 'none', overflow: 'hidden', flexShrink: 0,
+    }}>{child}</span>
   );
+  switch (siteId) {
+    case 'linkedin': return (
+      <svg width={size} height={size} viewBox="0 0 34 34" style={{ flexShrink: 0 }}><rect width="34" height="34" rx="7" fill="#0a66c2" /><path d="M8.4 13.3h3.7V26H8.4zM10.2 7.5a2.15 2.15 0 1 1 0 4.3 2.15 2.15 0 0 1 0-4.3zM14.6 13.3h3.55v1.74h.05c.5-.94 1.7-1.93 3.51-1.93 3.76 0 4.45 2.47 4.45 5.69V26h-3.7v-6.4c0-1.53-.03-3.5-2.13-3.5-2.13 0-2.46 1.66-2.46 3.38V26h-3.7z" fill="#fff" /></svg>
+    );
+    case 'gmail': return wrap(<GmailM size={size * 0.72} />);
+    case 'google': return wrap(<svg width={size * 0.6} height={size * 0.6} viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>);
+    case 'claude': return wrap(<ClaudeSpark size={size * 0.68} />, '#F0EEE6');
+    case 'chatgpt': return wrap(<ChatGptKnot size={size * 0.68} color="#fff" />, '#000', false);
+    case 'gemini': return wrap(<GeminiSpark size={size * 0.68} />);
+    case 'workday': return wrap(<WorkdayLogo height={size * 0.6} />);
+    case 'adp': return wrap(<AdpLogo height={size * 0.52} />, 'transparent', false);
+    case 'radar': return wrap(<CompanyLogo company="Apple" size={size} />, 'transparent', false);
+    case 'buganizer': return wrap(<span style={{ fontSize: size * 0.55 }}>🐛</span>);
+    default: {
+      const color = FAVICON_COLORS[siteId] ?? '#475569';
+      const letter = (siteId.charAt(0) ?? 'W').toUpperCase();
+      return (
+        <svg width={size} height={size} viewBox="0 0 28 28" style={{ flexShrink: 0 }}>
+          <rect width="28" height="28" rx="6" fill={color} />
+          <text x="14" y="19.5" textAnchor="middle" fontSize="13" fontWeight="700" fill="white" fontFamily="SF Pro Display, Inter, sans-serif">{letter}</text>
+        </svg>
+      );
+    }
+  }
 }
 
-function BookmarksPage({ onNavigate }: { onNavigate: (url: string, siteId: SiteId, title: string) => void }) {
+function StartPage({ onNavigate }: { onNavigate: (url: string, siteId: SiteId, title: string) => void }) {
   const companies = useCompanyStore((s) => s.companies);
-  const companyBookmarks = companies.slice(0, 8);
   const coreSites = CORE_SITES.filter((s) => s.id !== 'company-site' && s.id !== 'new-tab');
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto', background: '#0a1220', padding: '40px 32px' }}>
-      {/* Search prompt */}
-      <div style={{ textAlign: 'center', marginBottom: 40 }}>
-        <svg width="44" height="44" viewBox="0 0 44 44" style={{ marginBottom: 12 }}>
-          <circle cx="22" cy="22" r="21" fill="none" stroke="rgba(125,211,252,0.3)" strokeWidth="1.5" />
-          <path d="M14 22 Q22 10 30 22 Q22 34 14 22Z" fill="none" stroke="rgba(125,211,252,0.5)" strokeWidth="1.5" />
-          <ellipse cx="22" cy="22" rx="5" ry="21" fill="none" stroke="rgba(125,211,252,0.3)" strokeWidth="1" />
-        </svg>
-        <div style={{ fontSize: 13, color: '#64748b' }}>Type a URL or site name in the address bar to navigate</div>
-      </div>
-
-      {/* Core bookmarks */}
-      <div style={{ marginBottom: 32 }}>
-        <div style={{ fontSize: 11, fontWeight: 600, color: '#475569', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 14 }}>
-          Bookmarks
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
-          {coreSites.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => onNavigate(`https://${s.domain}`, s.id, s.title)}
-              style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-                padding: '18px 12px', background: 'rgba(15,25,45,0.9)',
-                border: '1px solid rgba(148,163,184,0.12)', borderRadius: 12,
-                cursor: 'pointer', transition: 'border-color 0.15s, background 0.15s',
-              }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(125,211,252,0.35)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(20,40,70,0.9)'; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(148,163,184,0.12)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(15,25,45,0.9)'; }}
-            >
-              <FaviconSVG siteId={s.id} />
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#cbd5e1', textAlign: 'center' }}>{s.title}</div>
-              <div style={{ fontSize: 10, color: '#475569', textAlign: 'center' }}>{s.domain}</div>
+    <div className="sf-start">
+      <div className="sf-start-inner">
+        <h2 className="sf-start-title">Favorites</h2>
+        <div className="sf-fav-grid">
+          {coreSites.map((site) => (
+            <button key={site.id} type="button" className="sf-fav" onClick={() => onNavigate(`https://${site.domain}`, site.id, site.title)}>
+              <span className="sf-fav-icon"><SiteFavicon siteId={site.id} size={44} /></span>
+              <span className="sf-fav-label">{site.title}</span>
             </button>
           ))}
         </div>
-      </div>
 
-      {/* Company bookmarks */}
-      {companyBookmarks.length > 0 && (
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#475569', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 14 }}>
-            Companies
+        {companies.length > 0 && (
+          <>
+            <h2 className="sf-start-title">Frequently Visited</h2>
+            <div className="sf-fav-grid">
+              {companies.slice(0, 8).map((c) => (
+                <button key={c.id} type="button" className="sf-fav" onClick={() => onNavigate(`https://${c.domain}`, 'company-site', c.name)}>
+                  <span className="sf-fav-icon"><CompanyLogo company={c.name} size={44} /></span>
+                  <span className="sf-fav-label">{c.name}</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        <div className="sf-privacy-card">
+          <div className="sf-privacy-head">
+            <svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 2 4 5.5V11c0 4.9 3.4 9.5 8 10.7 4.6-1.2 8-5.8 8-10.7V5.5L12 2z" fill="#4d90f0"/><path d="M12 6.5a3.2 3.2 0 0 1 3.2 3.2c0 2.4-3.2 6-3.2 6s-3.2-3.6-3.2-6A3.2 3.2 0 0 1 12 6.5z" fill="#fff" opacity="0.9"/></svg>
+            <strong>Privacy Report</strong>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
-            {companyBookmarks.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => onNavigate(`https://${c.domain}`, 'company-site', c.name)}
-                style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-                  padding: '18px 12px', background: 'rgba(15,25,45,0.9)',
-                  border: '1px solid rgba(148,163,184,0.12)', borderRadius: 12,
-                  cursor: 'pointer', transition: 'border-color 0.15s, background 0.15s',
-                }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(125,211,252,0.35)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(20,40,70,0.9)'; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(148,163,184,0.12)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(15,25,45,0.9)'; }}
-              >
-                <svg width="28" height="28" viewBox="0 0 28 28">
-                  <rect width="28" height="28" rx="6" fill={c.color ?? '#334155'} />
-                  <text x="14" y="19.5" textAnchor="middle" fontSize="11" fontWeight="700"
-                    fill="white" fontFamily="SF Pro Display, Inter, sans-serif">
-                    {c.name.slice(0, 2).toUpperCase()}
-                  </text>
-                </svg>
-                <div style={{ fontSize: 12, fontWeight: 600, color: '#cbd5e1', textAlign: 'center' }}>{c.name}</div>
-                <div style={{ fontSize: 10, color: '#475569', textAlign: 'center' }}>{c.domain}</div>
-              </button>
-            ))}
-          </div>
+          <p>In the last seven days, Safari has prevented <strong>{47 + (companies.length * 3)}</strong> trackers from profiling you.</p>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -210,11 +202,13 @@ function BookmarksPage({ onNavigate }: { onNavigate: (url: string, siteId: SiteI
 // ─── Main Browser Shell ────────────────────────────────────────────────────────
 
 export function SafariApp() {
-  // Current page state — null means "show bookmarks homepage"
+  // Current page state — null means "show the start page"
   const [currentPage, setCurrentPage] = useState<{ url: string; siteId: SiteId; title: string } | null>(null);
+  const [history, setHistory] = useState<Array<{ url: string; siteId: SiteId; title: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [addressBar, setAddressBar] = useState('');
   const [editingAddress, setEditingAddress] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useSafariStore((s) => s.navigate);
   const companies = useCompanyStore((s) => s.companies);
   const loadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -227,12 +221,25 @@ export function SafariApp() {
 
   function openPage(url: string, siteId: SiteId, title: string) {
     setLoading(true);
+    if (currentPage) setHistory((h) => [...h.slice(-19), currentPage]);
     setCurrentPage({ url, siteId, title });
     setAddressBar(url);
     setEditingAddress(false);
     navigate(url);
     if (loadTimerRef.current) clearTimeout(loadTimerRef.current);
     loadTimerRef.current = setTimeout(() => setLoading(false), 420);
+  }
+
+  function goBack() {
+    const prev = history[history.length - 1];
+    if (prev) {
+      setHistory((h) => h.slice(0, -1));
+      setCurrentPage(prev);
+      setAddressBar(prev.url);
+      navigate(prev.url);
+    } else {
+      goHome();
+    }
   }
 
   function handleNavigate(rawInput: string) {
@@ -250,107 +257,110 @@ export function SafariApp() {
     ? (CORE_SITES.find((s) => s.id === currentPage.siteId)?.component ?? NewTabPage)
     : null;
 
-  return (
-    <div className="safari-shell" style={{ gap: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* ── Toolbar ── */}
-      <div className="safari-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', flexShrink: 0 }}>
-        <div className="safari-dots"><span /><span /><span /></div>
+  const displayHost = currentPage ? currentPage.url.replace(/^https?:\/\//, '').split('/')[0] : '';
 
-        {/* Back to home button */}
-        <button
-          type="button"
-          onClick={goHome}
-          title="Bookmarks"
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px',
-            color: currentPage ? '#7dd3fc' : '#334155', borderRadius: 6,
-            display: 'flex', alignItems: 'center',
-          }}
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M2 5.5L8 2l6 3.5V14H2V5.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-            <rect x="5.5" y="9" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.2" />
-          </svg>
+  return (
+    <div className="sf-shell">
+      {/* ── Safari unified toolbar ── */}
+      <div className="sf-toolbar">
+        <button type="button" className={`sf-tbtn ${sidebarOpen ? 'on' : ''}`} title="Show sidebar" onClick={() => setSidebarOpen((v) => !v)}>
+          <svg width="17" height="15" viewBox="0 0 20 17"><rect x="0.75" y="0.75" width="18.5" height="15.5" rx="3.2" fill="none" stroke="currentColor" strokeWidth="1.5"/><line x1="7" y1="1" x2="7" y2="16" stroke="currentColor" strokeWidth="1.5"/><line x1="2.6" y1="4.4" x2="4.8" y2="4.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><line x1="2.6" y1="7.2" x2="4.8" y2="7.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+        </button>
+        <div className="sf-nav-chevrons">
+          <button type="button" className="sf-tbtn" title="Back" onClick={goBack} disabled={!currentPage}>
+            <svg width="10" height="16" viewBox="0 0 10 16"><path d="M8.5 1.5 2 8l6.5 6.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+          <button type="button" className="sf-tbtn" title="Forward" disabled>
+            <svg width="10" height="16" viewBox="0 0 10 16"><path d="M1.5 1.5 8 8l-6.5 6.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+        </div>
+
+        <button type="button" className="sf-tbtn sf-shield" title="Privacy Report">
+          <svg width="15" height="17" viewBox="0 0 24 26"><path d="M12 1 2 5v7c0 6.2 4.3 12 10 13.5C17.7 24 22 18.2 22 12V5L12 1z" fill="none" stroke="currentColor" strokeWidth="2"/></svg>
         </button>
 
-        {/* Back button (only when a page is loaded) */}
-        {currentPage && (
-          <button
-            type="button"
-            onClick={goHome}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: '#94a3b8', borderRadius: 6 }}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-        )}
+        {/* Centered address capsule */}
+        <div className="sf-address-wrap">
+          <div className={`sf-address ${editingAddress ? 'editing' : ''}`} onClick={() => setEditingAddress(true)}>
+            {!editingAddress && currentPage ? (
+              <>
+                <span className="sf-lock">🔒</span>
+                <span className="sf-host">{displayHost}</span>
+                <button type="button" className="sf-reload" title="Reload" onClick={(e) => { e.stopPropagation(); openPage(currentPage.url, currentPage.siteId, currentPage.title); }}>
+                  <svg width="13" height="13" viewBox="0 0 16 16"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 1v3.5H10" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                </button>
+              </>
+            ) : (
+              <>
+                <span className="sf-search-glass">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M21.41 18.59l-5.27-5.28A6.83 6.83 0 0 0 17 10a7 7 0 1 0-7 7 6.83 6.83 0 0 0 3.31-.86l5.28 5.27a2 2 0 0 0 2.82-2.82zM5 10a5 5 0 1 1 5 5 5 5 0 0 1-5-5z"/></svg>
+                </span>
+                <input
+                  autoFocus={editingAddress}
+                  className="sf-address-input"
+                  value={editingAddress ? addressBar : ''}
+                  onFocus={() => { setEditingAddress(true); setAddressBar(currentPage?.url ?? ''); }}
+                  onBlur={() => setTimeout(() => setEditingAddress(false), 120)}
+                  onChange={(e) => setAddressBar(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleNavigate(addressBar); if (e.key === 'Escape') setEditingAddress(false); }}
+                  placeholder="Search or enter website name"
+                  spellCheck={false}
+                />
+              </>
+            )}
+            {loading && <span className="sf-loading" />}
+          </div>
+        </div>
 
-        {/* Address bar */}
-        <input
-          className="safari-address"
-          style={{ flex: 1 }}
-          value={editingAddress ? addressBar : (currentPage?.url ?? '')}
-          onFocus={() => { setEditingAddress(true); setAddressBar(currentPage?.url ?? ''); }}
-          onBlur={() => setEditingAddress(false)}
-          onChange={(e) => setAddressBar(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') handleNavigate(addressBar); if (e.key === 'Escape') { setEditingAddress(false); } }}
-          placeholder="Search bookmarks or enter a URL"
-          spellCheck={false}
-        />
-
-        {/* Loading indicator */}
-        {loading && <span className="safari-tab-loading" style={{ width: 14, height: 14, flexShrink: 0 }} />}
+        <button type="button" className="sf-tbtn" title="Share">
+          <svg width="14" height="18" viewBox="0 0 18 24"><path d="M9 1v13M5 5l4-4 4 4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M4 9H2v13h14V9h-2" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+        </button>
+        <button type="button" className="sf-tbtn" title="New tab" onClick={goHome}>
+          <svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 1v14M1 8h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+        </button>
+        <button type="button" className="sf-tbtn" title="Tab overview">
+          <svg width="15" height="15" viewBox="0 0 18 18"><rect x="1" y="1" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.5"/><rect x="10" y="1" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.5"/><rect x="1" y="10" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.5"/><rect x="10" y="10" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.5"/></svg>
+        </button>
       </div>
 
       {/* ── Main layout ── */}
-      <div className="safari-layout" style={{ flex: 1, minHeight: 0 }}>
-        {/* Bookmarks sidebar */}
-        <aside className="safari-sidebar">
-          <div className="safari-section-label">Bookmarks</div>
-          {CORE_SITES.filter((s) => s.id !== 'company-site' && s.id !== 'new-tab').map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              className={currentPage?.siteId === s.id ? 'active' : ''}
-              onClick={() => openPage(`https://${s.domain}`, s.id, s.title)}
-            >
-              <strong>{s.title}</strong>
-              <span>{s.domain}</span>
-            </button>
-          ))}
+      <div className="sf-layout">
+        {sidebarOpen && (
+          <aside className="sf-sidebar">
+            <div className="sf-sidebar-label">Favorites</div>
+            {CORE_SITES.filter((s) => s.id !== 'company-site' && s.id !== 'new-tab').map((site) => (
+              <button
+                key={site.id}
+                type="button"
+                className={`sf-sidebar-row ${currentPage?.siteId === site.id ? 'active' : ''}`}
+                onClick={() => openPage(`https://${site.domain}`, site.id, site.title)}
+              >
+                <SiteFavicon siteId={site.id} size={20} />
+                <span>{site.title}</span>
+              </button>
+            ))}
+            {companies.length > 0 && <div className="sf-sidebar-label">Companies</div>}
+            {companies.slice(0, 10).map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                className={`sf-sidebar-row ${currentPage?.siteId === 'company-site' && currentPage.url.includes(c.domain) ? 'active' : ''}`}
+                onClick={() => openPage(`https://${c.domain}`, 'company-site', c.name)}
+              >
+                <CompanyLogo company={c.name} size={20} />
+                <span>{c.name}</span>
+              </button>
+            ))}
+          </aside>
+        )}
 
-          {companies.slice(0, 10).length > 0 && (
-            <>
-              <div className="safari-section-label" style={{ marginTop: 6 }}>Companies</div>
-              {companies.slice(0, 10).map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  className={currentPage?.siteId === 'company-site' && currentPage.url.includes(c.domain) ? 'active' : ''}
-                  onClick={() => openPage(`https://${c.domain}`, 'company-site', c.name)}
-                >
-                  <strong>{c.name}</strong>
-                  <span>{c.domain}</span>
-                </button>
-              ))}
-            </>
-          )}
-        </aside>
-
-        {/* Page content */}
-        <section className="safari-view safari-view-react" style={{ flex: 1, overflow: 'hidden' }}>
+        <section className="sf-view safari-view-react">
           {loading ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#0f1218' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-                <div className="safari-tab-loading" style={{ width: 22, height: 22, borderWidth: 2.5 }} />
-                <div style={{ fontSize: 12, color: '#334155' }}>Loading…</div>
-              </div>
-            </div>
+            <div className="sf-loading-page"><span className="sf-loading sf-loading-lg" /></div>
           ) : currentPage && SiteComponent ? (
             <SiteComponent />
           ) : (
-            <BookmarksPage onNavigate={openPage} />
+            <StartPage onNavigate={openPage} />
           )}
         </section>
       </div>

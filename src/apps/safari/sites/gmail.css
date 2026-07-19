@@ -145,3 +145,18 @@
 .gm-send:hover { background: #0842a0; }
 .gm-compose-tools { color: #5f6368; letter-spacing: 0.2em; font-size: 14px; }
 .gm-compose-trash { margin-left: auto; background: none; border: none; cursor: pointer; color: #5f6368; font-size: 15px; }
+
+/* Branded job email header */
+.gm-jobbrand {
+  display: flex; align-items: center; gap: 12px;
+  border: 1px solid #e0e3e7; border-radius: 12px;
+  padding: 12px 14px; margin: 4px 0 14px;
+  background: #f8fafd;
+}
+.gm-jobbrand-text { flex: 1; display: flex; flex-direction: column; }
+.gm-jobbrand-text strong { font-size: 14px; }
+.gm-jobbrand-text span { font-size: 12px; color: #5f6368; }
+.gm-jobbrand-stage {
+  font-size: 11px; font-weight: 700; text-transform: capitalize;
+  background: #e8f0fe; color: #1a73e8; border-radius: 12px; padding: 3px 10px;
+}
