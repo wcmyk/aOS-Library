@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { getVirtueCatalog } from '../../data/virtue/provider';
+import './appstore.css';
 import { inferInstallState, useVirtueStore } from '../../hooks/virtue/useVirtueStore';
 import { filterApps, sortApps } from './utils/catalog';
 import { Sidebar } from './components/Sidebar';

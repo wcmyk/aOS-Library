@@ -1,0 +1,177 @@
+import { useMemo, useState } from 'react';
+import { useProfileStore } from '../../../state/useProfileStore';
+import { GoogleWordmark, ClaudeSpark, ChatGptKnot, GmailM, PolymarketMark } from '../../../data/brands';
+import { useSafariStore } from '../../../state/useSafariStore';
+import './google.css';
+
+type Assistant = 'none' | 'claude' | 'chatgpt';
+
+type WebResult = { title: string; url: string; snippet: string };
+
+// Internal-web results so searches land on simulation surfaces
+function buildResults(q: string): WebResult[] {
+  const query = q.toLowerCase();
+  const all: WebResult[] = [
+    { title: 'LinkedIn: Jobs, Networking, and Careers', url: 'https://linkedin.com', snippet: `Browse thousands of open roles matching "${q}" at Google, Apple, McKinsey, Amazon and more. Apply with Easy Apply and track recruiter responses.` },
+    { title: 'Workday — Employee Self Service', url: 'https://workday.company.io', snippet: 'View your payslips, career profile, time off balances, and tasks awaiting your action in Workday.' },
+    { title: 'myADP — Pay statements, W-2s and benefits', url: 'https://my.adp.com', snippet: 'Securely access your pay statements, tax documents, timecard, and retirement savings with ADP.' },
+    { title: 'Gmail — Email by Google', url: 'https://mail.google.com', snippet: 'Fast, secure email for your job search: recruiter confirmations, interview invitations, and offer letters in one inbox.' },
+    { title: 'Chase Online Banking — Card Services', url: 'https://chase.com', snippet: 'Manage your Sapphire Reserve and Freedom Unlimited cards, view payroll direct deposits, and transfer money.' },
+    { title: `${q} — Interview preparation guide`, url: 'https://careers.aos/guides', snippet: `Structured preparation for ${q}: phone screen, panel loops, system design, and behavioral rounds with rubric-based feedback.` },
+  ];
+  if (/salary|pay|compensation/.test(query)) all.unshift({ title: `${q} — Salary ranges and compensation data`, url: 'https://workday.company.io', snippet: 'Median base pay, bonus structures, and biweekly net pay after federal, state, FICA, and 401(k) deductions.' });
+  return all;
+}
+
+function aiAnswer(q: string, assistant: Assistant): string {
+  const intro = assistant === 'claude'
+    ? `Here's a concise overview of "${q}":`
+    : `Sure — here's a quick summary of "${q}":`;
+  return `${intro}
+
+• In the aOS workforce simulation, the fastest path is: search openings on LinkedIn → apply → answer the recruiter email in Outlook or Gmail (reply ATS100 to advance) → complete interviews → accept the offer to unlock Workday, ADP, and payroll.
+
+• Once employed, your real work lives in Workday → My Tasks: role-specific deliverables with hard deadlines and complexity ratings. Submitting quality write-ups on time is what drives promotions (reply PROMOTION% to a work email after settling in).
+
+• Pay flows automatically: biweekly checks appear in Workday (payslips + paper-check view), ADP (statements, W-2, 401k), and your Chase checking account.
+
+Want me to break down any single step in more detail?`;
+}
+
+export function GoogleSite() {
+  const { fullName } = useProfileStore();
+  const navigate = useSafariStore((s) => s.navigate);
+  const [query, setQuery] = useState('');
+  const [submitted, setSubmitted] = useState('');
+  const [assistant, setAssistant] = useState<Assistant>('none');
+  const [thinking, setThinking] = useState(false);
+
+  const results = useMemo(() => (submitted ? buildResults(submitted) : []), [submitted]);
+
+  const runSearch = (mode: Assistant = assistant) => {
+    if (!query.trim()) return;
+    setSubmitted(query.trim());
+    setAssistant(mode);
+    if (mode !== 'none') {
+      setThinking(true);
+      setTimeout(() => setThinking(false), 900);
+    }
+  };
+
+  // ── Landing ──
+  if (!submitted) {
+    return (
+      <div className="go-shell">
+        <header className="go-topnav">
+          <nav>
+            <button type="button" onClick={() => navigate('https://mail.google.com')}>Gmail</button>
+            <button type="button">Images</button>
+          </nav>
+          <div className="go-topnav-right">
+            <button type="button" className="go-waffle" title="Google apps">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="#5f6368"><circle cx="3" cy="3" r="1.7"/><circle cx="9" cy="3" r="1.7"/><circle cx="15" cy="3" r="1.7"/><circle cx="3" cy="9" r="1.7"/><circle cx="9" cy="9" r="1.7"/><circle cx="15" cy="9" r="1.7"/><circle cx="3" cy="15" r="1.7"/><circle cx="9" cy="15" r="1.7"/><circle cx="15" cy="15" r="1.7"/></svg>
+            </button>
+            <div className="go-me">{(fullName[0] ?? 'U').toUpperCase()}</div>
+          </div>
+        </header>
+        <div className="go-center">
+          <GoogleWordmark height={64} />
+          <div className="go-searchbar">
+            <span className="go-search-ic">🔍</span>
+            <input
+              autoFocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && runSearch('none')}
+              aria-label="Search"
+            />
+            <span className="go-mic">🎤</span>
+          </div>
+          <div className="go-btnrow">
+            <button type="button" onClick={() => runSearch('none')}>Google Search</button>
+            <button type="button" onClick={() => { setQuery('how to get promoted fast'); }}>I'm Feeling Lucky</button>
+          </div>
+          <div className="go-ai-row">
+            <span>Search with AI:</span>
+            <button type="button" className="go-ai-chip" onClick={() => runSearch('claude')}>
+              <ClaudeSpark size={18} /> Claude
+            </button>
+            <button type="button" className="go-ai-chip" onClick={() => runSearch('chatgpt')}>
+              <ChatGptKnot size={18} /> ChatGPT
+            </button>
+          </div>
+          <div className="go-workspace">
+            <span className="go-workspace-label">Google Workspace for {fullName.split(' ')[0]}</span>
+            <div className="go-workspace-tiles">
+              <button type="button" onClick={() => navigate('https://mail.google.com')}><GmailM size={26} /><span>Gmail</span></button>
+              <button type="button"><span className="go-tile-drive">▲</span><span>Drive</span></button>
+              <button type="button"><span className="go-tile-docs">≡</span><span>Docs</span></button>
+              <button type="button"><span className="go-tile-cal">31</span><span>Calendar</span></button>
+              <button type="button"><span className="go-tile-meet">🎥</span><span>Meet</span></button>
+            </div>
+          </div>
+        </div>
+        <footer className="go-footer">
+          <span>aOS Simulation Network</span>
+          <span className="go-sponsor">Sponsored by <PolymarketMark height={14} /></span>
+        </footer>
+      </div>
+    );
+  }
+
+  // ── Results ──
+  return (
+    <div className="go-shell go-results-shell">
+      <header className="go-results-head">
+        <button type="button" className="go-results-logo" onClick={() => { setSubmitted(''); setAssistant('none'); }}>
+          <GoogleWordmark height={26} />
+        </button>
+        <div className="go-searchbar go-searchbar-sm">
+          <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && runSearch()} />
+          <span className="go-search-ic">🔍</span>
+        </div>
+        <div className="go-ai-row go-ai-row-inline">
+          <button type="button" className={`go-ai-chip ${assistant === 'claude' ? 'active' : ''}`} onClick={() => runSearch('claude')}><ClaudeSpark size={16} /> Claude</button>
+          <button type="button" className={`go-ai-chip ${assistant === 'chatgpt' ? 'active' : ''}`} onClick={() => runSearch('chatgpt')}><ChatGptKnot size={16} /> ChatGPT</button>
+        </div>
+      </header>
+      <div className="go-results-tabs">
+        {['All', 'Images', 'News', 'Videos', 'Shopping', 'More'].map((t, i) => (
+          <button key={t} type="button" className={i === 0 ? 'active' : ''}>{t}</button>
+        ))}
+      </div>
+      <main className="go-results-main">
+        <div className="go-results-count">About {(1_240_000 + submitted.length * 73_211).toLocaleString()} results (0.{30 + (submitted.length % 60)} seconds)</div>
+
+        {assistant !== 'none' && (
+          <section className={`go-ai-card ${assistant}`}>
+            <header>
+              {assistant === 'claude' ? <ClaudeSpark size={20} /> : <ChatGptKnot size={20} />}
+              <strong>{assistant === 'claude' ? 'Claude' : 'ChatGPT'}</strong>
+              <span className="go-ai-tag">AI overview</span>
+            </header>
+            {thinking ? (
+              <div className="go-ai-thinking"><span /><span /><span /></div>
+            ) : (
+              <p>{aiAnswer(submitted, assistant)}</p>
+            )}
+          </section>
+        )}
+
+        {results.map((r) => (
+          <div key={r.url + r.title} className="go-result">
+            <div className="go-result-url">{r.url.replace('https://', '')}</div>
+            <button type="button" className="go-result-title" onClick={() => navigate(r.url)}>{r.title}</button>
+            <p className="go-result-snippet">{r.snippet}</p>
+          </div>
+        ))}
+
+        <div className="go-result go-result-sponsored">
+          <div className="go-result-url">polymarket.com <span className="go-adtag">Sponsored</span></div>
+          <div className="go-result-title-static"><PolymarketMark height={18} /></div>
+          <p className="go-result-snippet">The world's largest prediction market. What are the odds on your industry's next move?</p>
+        </div>
+      </main>
+    </div>
+  );
+}

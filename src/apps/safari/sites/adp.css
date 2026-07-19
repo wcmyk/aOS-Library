@@ -1,0 +1,163 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   ADP / myADP — payroll platform replica (adp- namespace)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.adp-shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #f2f4f7;
+  color: #1a2433;
+  font-family: 'Segoe UI', -apple-system, system-ui, Roboto, sans-serif;
+  font-size: 14px;
+  overflow: hidden;
+  position: relative;
+}
+.adp-shell button { font-family: inherit; }
+.adp-center { align-items: center; justify-content: center; }
+
+.adp-topbar {
+  height: 54px; background: #1a2433;
+  display: flex; align-items: center; gap: 12px; padding: 0 18px; flex-shrink: 0;
+}
+.adp-product { color: #fff; font-size: 16px; font-weight: 600; }
+.adp-topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.adp-org { color: rgba(255,255,255,0.75); font-size: 13px; }
+.adp-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: #d0271d; color: #fff; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.adp-layout { flex: 1; display: flex; min-height: 0; }
+.adp-nav {
+  width: 210px; background: #fff; border-right: 1px solid #e2e7ee;
+  padding: 14px 8px; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0;
+}
+.adp-nav button {
+  display: flex; align-items: center; gap: 10px;
+  background: none; border: none; cursor: pointer;
+  padding: 10px 12px; border-radius: 8px;
+  font-size: 13.5px; font-weight: 600; color: #45536a; text-align: left;
+}
+.adp-nav button:hover { background: #f2f4f7; }
+.adp-nav button.active { background: #fdeceb; color: #d0271d; }
+.adp-nav-ic { width: 20px; text-align: center; }
+
+.adp-main { flex: 1; overflow-y: auto; padding: 22px 26px 48px; }
+.adp-h1 { font-size: 23px; font-weight: 700; margin: 0 0 16px; }
+.adp-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.adp-card {
+  background: #fff; border: 1px solid #e2e7ee; border-radius: 12px;
+  padding: 16px 18px; box-shadow: 0 1px 3px rgba(26, 36, 51, 0.05);
+}
+.adp-card > header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.adp-card h3 { margin: 0; font-size: 15px; font-weight: 700; }
+.adp-link { background: none; border: none; color: #1567d2; font-weight: 600; font-size: 13px; cursor: pointer; padding: 0; }
+.adp-link:hover { text-decoration: underline; }
+.adp-sub { font-size: 12.5px; color: #67758c; }
+.adp-empty { color: #67758c; font-size: 13px; padding: 12px 0; }
+.adp-primary {
+  background: #d0271d; color: #fff; border: none; border-radius: 20px;
+  padding: 9px 20px; font-size: 13.5px; font-weight: 700; cursor: pointer; margin-top: 12px;
+}
+.adp-primary:hover { background: #b01f16; }
+
+/* Pay card + donut */
+.adp-paydate { font-size: 13px; color: #67758c; }
+.adp-net { font-size: 30px; font-weight: 700; margin: 4px 0 12px; }
+.adp-donut {
+  width: 128px; height: 128px; border-radius: 50%;
+  background: conic-gradient(#2aa64c calc(var(--pct) * 1%), #d0271d 0);
+  display: flex; align-items: center; justify-content: center;
+  margin: 4px auto 10px;
+}
+.adp-donut-hole {
+  width: 88px; height: 88px; border-radius: 50%; background: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.adp-donut-hole strong { font-size: 20px; }
+.adp-donut-hole span { font-size: 11px; color: #67758c; }
+.adp-pay-legend { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; }
+.adp-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+.adp-dot-net { background: #2aa64c; }
+.adp-dot-tax { background: #d0271d; }
+
+/* Clock */
+.adp-clock { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.adp-clock-time { font-size: 26px; font-weight: 700; }
+.adp-clock-btn {
+  border: none; border-radius: 22px; padding: 11px 24px;
+  font-size: 14px; font-weight: 700; cursor: pointer; color: #fff;
+}
+.adp-clock-btn.in { background: #2aa64c; }
+.adp-clock-btn.out { background: #d0271d; }
+.adp-clock-log { font-size: 12.5px; color: #67758c; padding: 3px 0; border-bottom: 1px dashed #eef1f5; }
+.adp-todo { padding: 7px 0; border-bottom: 1px solid #eef1f5; font-size: 13.5px; }
+.adp-todo:last-child { border-bottom: none; }
+.adp-kpi { font-size: 26px; font-weight: 700; }
+
+/* Tables */
+.adp-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 10px; }
+.adp-table th {
+  text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+  color: #67758c; padding: 8px; border-bottom: 2px solid #e2e7ee;
+}
+.adp-table td { padding: 9px 8px; border-bottom: 1px solid #eef1f5; }
+.adp-num { text-align: right; }
+.adp-strong { font-weight: 700; }
+.adp-kv { display: flex; justify-content: space-between; align-items: center; padding: 10px 2px; border-bottom: 1px solid #eef1f5; font-size: 13.5px; }
+.adp-kv:last-child { border-bottom: none; }
+.adp-kv span { color: #45536a; }
+.adp-pill {
+  display: inline-block; border-radius: 10px; padding: 2px 9px;
+  font-size: 11px; font-weight: 700; background: #eef1f5; color: #67758c;
+}
+.adp-pill.ok { background: #e2f5e7; color: #1e7d38; }
+.adp-pill.now { background: #fdeceb; color: #d0271d; }
+
+/* Login/empty card */
+.adp-login-card {
+  width: 420px; max-width: calc(100% - 40px);
+  background: #fff; border: 1px solid #e2e7ee; border-radius: 14px;
+  padding: 32px; display: flex; flex-direction: column; gap: 10px;
+  box-shadow: 0 8px 30px rgba(26, 36, 51, 0.12);
+}
+.adp-login-card h2 { margin: 8px 0 0; }
+.adp-login-card p { margin: 0; color: #67758c; font-size: 13.5px; line-height: 1.5; }
+
+/* Statement modal */
+.adp-modal-overlay {
+  position: absolute; inset: 0; background: rgba(26, 36, 51, 0.5);
+  display: flex; align-items: center; justify-content: center; z-index: 100; padding: 24px;
+}
+.adp-modal {
+  background: #fff; border-radius: 12px; width: 680px; max-width: 100%;
+  max-height: 90%; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+}
+.adp-modal-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 18px; border-bottom: 1px solid #e2e7ee;
+  position: sticky; top: 0; background: #fff;
+}
+.adp-modal-head button { background: none; border: none; cursor: pointer; font-size: 15px; color: #67758c; }
+.adp-statement { padding: 16px 18px 22px; }
+.adp-statement-meta {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  background: #f2f4f7; border-radius: 8px; padding: 12px; margin-bottom: 14px;
+}
+.adp-statement-meta div { display: flex; flex-direction: column; font-size: 12.5px; }
+.adp-statement-meta span { color: #67758c; font-size: 11px; }
+.adp-statement-net {
+  display: flex; justify-content: space-between; align-items: center;
+  background: #1a2433; color: #fff; border-radius: 8px; padding: 12px 16px;
+  font-size: 15px; margin-top: 6px;
+}
+.adp-statement-net strong { font-size: 20px; }
+
+@media (max-width: 860px) {
+  .adp-grid { grid-template-columns: 1fr; }
+  .adp-nav { width: 60px; }
+  .adp-nav button { justify-content: center; }
+  .adp-nav button span + * { display: none; }
+}

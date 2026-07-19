@@ -1,6 +1,9 @@
 import { useRef, useState, type ComponentType, type ReactNode } from 'react';
 import { LinkedInSite } from './sites/LinkedInSite';
 import { WorkdaySite } from './sites/WorkdaySite';
+import { AdpSite } from './sites/AdpSite';
+import { GmailSite } from './sites/GmailSite';
+import { GoogleSite } from './sites/GoogleSite';
 import { ProjectHubSite } from './sites/ProjectHubSite';
 import { WorkfrontSite } from './sites/WorkfrontSite';
 import { RadarSite } from './sites/RadarSite';
@@ -15,6 +18,9 @@ import { useCompanyStore } from '../../state/useCompanyStore';
 type SiteId =
   | 'linkedin'
   | 'workday'
+  | 'adp'
+  | 'gmail'
+  | 'google'
   | 'workfront'
   | 'radar'
   | 'buganizer'
@@ -73,6 +79,8 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 const CORE_SITES: SiteEntry[] = [
   { id: 'linkedin',      title: 'LinkedIn',              domain: 'linkedin.com',               component: LinkedInSite },
   { id: 'workday',       title: 'Workday',               domain: 'workday.company.io',          component: WorkdaySite },
+  { id: 'adp',           title: 'myADP',                 domain: 'my.adp.com',                  component: AdpSite },
+  { id: 'gmail',         title: 'Gmail',                 domain: 'mail.google.com',             component: GmailSite },
   { id: 'workfront',     title: 'Adobe Workfront',       domain: 'app.workfront.com',           component: WorkfrontSite },
   { id: 'radar',         title: 'Radar',                 domain: 'radar.apple.com',             component: RadarSite },
   { id: 'buganizer',     title: 'Buganizer',             domain: 'b.corp.google.com',           component: BuganizerSite },
@@ -81,6 +89,7 @@ const CORE_SITES: SiteEntry[] = [
   { id: 'colab',         title: 'CoLab',                 domain: 'colab.aos',                   component: CoLabSite },
   { id: 'samsung-portal',title: 'Samsung PLCM',          domain: 'portal.samsung-dev.net',      component: SamsungPortalSite },
   { id: 'curcuit',       title: 'CIRCUTE',               domain: 'circute.aos',                 component: CurcuitSite },
+  { id: 'google',        title: 'Google',                domain: 'google.com',                  component: GoogleSite },
   { id: 'company-site',  title: 'Company',               domain: '.com',                        component: CompanySite },
   { id: 'new-tab',       title: 'New Tab',               domain: '',                            component: NewTabPage },
 ];
@@ -98,7 +107,7 @@ function resolveSiteId(url: string, companies: { domain: string; name: string }[
 // ─── Bookmark homepage grid ────────────────────────────────────────────────────
 
 const FAVICON_COLORS: Record<string, string> = {
-  linkedin: '#0a66c2', workday: '#f36f21', workfront: '#e8232a',
+  linkedin: '#0a66c2', workday: '#f38b00', adp: '#d0271d', gmail: '#ea4335', google: '#4285f4', workfront: '#e8232a',
   radar: '#0071e3', buganizer: '#34a853', 'project-sail': '#003087',
   'project-hub': '#6366f1', colab: '#5b5fc7', 'samsung-portal': '#1428a0',
   curcuit: '#7dd3fc',

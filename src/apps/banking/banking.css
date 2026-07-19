@@ -1,0 +1,264 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   CHASE BANKING — chb- namespace, with photoreal payment card art
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.chb-shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #f5f7fa;
+  color: #131313;
+  font-family: 'Open Sans', 'Segoe UI', -apple-system, system-ui, sans-serif;
+  overflow: hidden;
+}
+.chb-shell button { font-family: inherit; }
+
+/* Header */
+.chb-header {
+  height: 56px; background: #117ACA;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px; flex-shrink: 0;
+}
+.chb-header-brand { display: flex; align-items: center; gap: 10px; }
+.chb-header-wordmark { color: #fff; font-size: 21px; font-weight: 700; letter-spacing: 0.12em; font-family: 'Trebuchet MS', 'Segoe UI', sans-serif; }
+.chb-header-nav { display: flex; align-items: center; gap: 4px; }
+.chb-header-nav button {
+  background: none; border: none; color: rgba(255,255,255,0.92);
+  font-size: 13px; padding: 8px 12px; cursor: pointer; border-radius: 4px;
+}
+.chb-header-nav button:hover { background: rgba(255,255,255,0.12); }
+.chb-signout { border: 1px solid rgba(255,255,255,0.6) !important; }
+
+/* Subnav */
+.chb-subnav {
+  background: #fff; border-bottom: 1px solid #d9e1ea;
+  display: flex; align-items: center; gap: 4px; padding: 0 20px; flex-shrink: 0;
+}
+.chb-subnav button, .chb-subnav-static {
+  background: none; border: none; font-size: 14px; color: #414042;
+  padding: 14px 14px 11px; cursor: pointer; border-bottom: 3px solid transparent;
+}
+.chb-subnav button.active { color: #117ACA; font-weight: 700; border-bottom-color: #117ACA; }
+.chb-subnav button:hover { color: #117ACA; }
+.chb-subnav-static { color: #75777a; cursor: default; }
+.chb-secure { margin-left: auto; font-size: 12px; color: #2e7d32; }
+
+.chb-body { flex: 1; overflow-y: auto; }
+
+/* Dashboard */
+.chb-dashboard {
+  display: grid; grid-template-columns: 320px minmax(0, 1fr);
+  gap: 16px; padding: 16px 20px; max-width: 1200px; margin: 0 auto;
+}
+.chb-accounts-rail { display: flex; flex-direction: column; gap: 8px; }
+.chb-rail-title {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 16px; font-weight: 700; padding: 4px 2px;
+}
+.chb-rail-title span { font-size: 14px; color: #414042; font-weight: 600; }
+.chb-account-row {
+  background: #fff; border: 1px solid #d9e1ea; border-radius: 8px;
+  padding: 12px 14px; text-align: left; cursor: pointer;
+}
+.chb-account-row:hover { border-color: #117ACA; box-shadow: 0 1px 6px rgba(17,122,202,0.15); }
+.chb-account-row.active { border-color: #117ACA; box-shadow: inset 3px 0 0 #117ACA; }
+.chb-account-name { font-size: 13px; font-weight: 700; color: #131313; }
+.chb-account-name span { font-weight: 400; color: #75777a; }
+.chb-account-bal { font-size: 20px; font-weight: 400; margin-top: 4px; color: #131313; }
+.chb-account-meta { font-size: 11px; color: #75777a; margin-top: 2px; }
+.chb-rail-offer {
+  background: linear-gradient(135deg, #0a2a4d, #117ACA);
+  color: #fff; border-radius: 8px; padding: 16px 14px;
+  display: flex; flex-direction: column; gap: 6px; margin-top: 8px;
+}
+.chb-rail-offer strong { font-size: 14px; }
+.chb-rail-offer span { font-size: 12px; opacity: 0.9; line-height: 1.45; }
+.chb-rail-offer button {
+  align-self: flex-start; margin-top: 6px;
+  background: #fff; color: #117ACA; border: none; border-radius: 18px;
+  padding: 7px 16px; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+
+.chb-main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.chb-hero-tile {
+  background: #fff; border: 1px solid #d9e1ea; border-radius: 8px;
+  padding: 20px; display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+}
+.chb-hero-label { font-size: 14px; font-weight: 700; color: #414042; }
+.chb-hero-balance { font-size: 34px; font-weight: 300; margin-top: 4px; }
+.chb-hero-sub { font-size: 12px; color: #75777a; }
+.chb-hero-details { display: flex; gap: 28px; align-items: center; flex-wrap: wrap; }
+.chb-hero-details div { display: flex; flex-direction: column; gap: 2px; }
+.chb-hero-details span { font-size: 11px; color: #75777a; }
+.chb-hero-details strong { font-size: 14px; font-weight: 600; }
+
+.chb-panel { background: #fff; border: 1px solid #d9e1ea; border-radius: 8px; padding: 16px 20px 20px; }
+.chb-panel h1 { font-size: 22px; font-weight: 400; margin: 0 0 16px; }
+.chb-panel-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+.chb-panel-head h2 { font-size: 17px; font-weight: 700; margin: 0; }
+.chb-panel-head span { font-size: 12px; color: #75777a; }
+.chb-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.chb-table th {
+  text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+  color: #75777a; font-weight: 600; padding: 8px; border-bottom: 2px solid #d9e1ea;
+}
+.chb-table td { padding: 10px 8px; border-bottom: 1px solid #eef1f5; }
+.chb-num { text-align: right; }
+.chb-txn-desc { color: #117ACA; }
+.chb-credit { color: #2e7d32; font-weight: 600; }
+.chb-empty { text-align: center; color: #75777a; padding: 28px 8px !important; }
+
+.chb-transfer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 640px; }
+.chb-transfer-grid label { display: flex; flex-direction: column; gap: 5px; font-size: 12px; font-weight: 700; color: #414042; }
+.chb-transfer-grid select, .chb-transfer-grid input {
+  border: 1px solid #b5bec9; border-radius: 4px; padding: 9px 10px;
+  font-size: 13px; font-family: inherit; background: #fff; color: #131313;
+}
+.chb-primary-btn {
+  grid-column: span 2; justify-self: start;
+  background: #117ACA; color: #fff; border: none; border-radius: 22px;
+  padding: 10px 28px; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.chb-primary-btn:hover { background: #0d5da0; }
+.chb-confirm { margin-top: 14px; background: #e8f5e9; border: 1px solid #a5d6a7; color: #2e7d32; border-radius: 6px; padding: 10px 14px; font-size: 13px; }
+.chb-finequote { font-size: 11px; color: #75777a; margin-top: 14px; }
+
+.chb-footer {
+  border-top: 1px solid #d9e1ea; background: #fff;
+  display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 10px 20px; font-size: 11px; color: #75777a; flex-shrink: 0;
+}
+
+/* ═══════════════ Wallet / card art ═══════════════ */
+
+.chb-wallet { max-width: 1200px; margin: 0 auto; padding: 20px; }
+.chb-wallet-head h1 { font-size: 26px; font-weight: 400; margin: 0 0 4px; }
+.chb-wallet-head p { font-size: 13px; color: #75777a; margin: 0 0 20px; }
+.chb-wallet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; }
+.chb-wallet-item { position: relative; }
+.chb-wallet-meta {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 10px 4px 0;
+}
+.chb-wallet-linked { font-size: 14px; font-weight: 700; }
+.chb-wallet-sub { font-size: 12px; color: #75777a; }
+.chb-wallet-actions { display: flex; gap: 6px; }
+.chb-wallet-actions button {
+  background: none; border: 1px solid #117ACA; color: #117ACA;
+  border-radius: 16px; padding: 5px 12px; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.chb-wallet-actions button:hover { background: rgba(17,122,202,0.08); }
+.chb-card-lockedover {
+  position: absolute; inset: 0 0 auto 0; height: 212px;
+  background: rgba(20,20,30,0.55); border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 16px; font-weight: 700; letter-spacing: 0.04em;
+  backdrop-filter: blur(2px);
+}
+
+/* Base card */
+.chb-card {
+  position: relative;
+  aspect-ratio: 1.586;
+  max-width: 360px;
+  width: 100%;
+  height: auto;
+  min-height: 212px;
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-sizing: border-box;
+  display: flex; flex-direction: column; justify-content: space-between;
+  color: #fff;
+  overflow: hidden;
+  box-shadow: 0 14px 32px rgba(9, 20, 40, 0.35), inset 0 1px 0 rgba(255,255,255,0.15);
+  user-select: none;
+}
+.chb-card-sheen {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.07) 45%, transparent 60%);
+}
+.chb-card-top { display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 2; }
+.chb-bankmark { display: inline-flex; align-items: center; gap: 7px; font-size: 15px; }
+.chb-product-stack { display: flex; flex-direction: column; align-items: flex-end; font-size: 14px; letter-spacing: 0.28em; font-weight: 500; }
+.chb-product-sub { font-size: 10px; letter-spacing: 0.42em; opacity: 0.85; margin-top: 2px; }
+.chb-card-mid { display: flex; align-items: center; gap: 14px; position: relative; z-index: 2; }
+.chb-chip { border-radius: 6px; }
+.chb-card-bottom { display: flex; justify-content: space-between; align-items: flex-end; position: relative; z-index: 2; }
+.chb-card-holder { display: flex; flex-direction: column; gap: 3px; }
+.chb-card-number { font-family: 'OCR A Std', 'Courier New', monospace; font-size: 15px; letter-spacing: 0.18em; opacity: 0.95; }
+.chb-card-name { font-family: 'OCR A Std', 'Courier New', monospace; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.9; }
+.chb-network-stack { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+.chb-network-tier { font-size: 10px; letter-spacing: 0.06em; opacity: 0.85; }
+.chb-card-netwrap { display: flex; align-items: flex-end; }
+
+/* Sapphire Reserve — brushed dark navy metal with prism light lines */
+.chb-card-sapphire {
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.016) 0 1px, transparent 1px 3px),
+    linear-gradient(150deg, #0e1e33 0%, #12253e 45%, #0a1830 70%, #14273f 100%);
+}
+.chb-card-sapphire::before {
+  content: ''; position: absolute; inset: 0;
+  background:
+    linear-gradient(115deg, transparent 62%, rgba(160,200,255,0.16) 62.3%, transparent 62.9%),
+    linear-gradient(105deg, transparent 74%, rgba(160,200,255,0.22) 74.3%, transparent 74.8%),
+    linear-gradient(125deg, transparent 82%, rgba(160,200,255,0.12) 82.3%, transparent 83%),
+    radial-gradient(120% 160% at 85% -20%, rgba(90,140,220,0.25), transparent 55%);
+}
+/* Freedom Unlimited — deep blue gradient */
+.chb-card-freedom {
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0 1px, transparent 1px 3px),
+    linear-gradient(135deg, #072a4d 0%, #0d4f8b 55%, #1173bd 100%);
+}
+.chb-card-freedom::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(140% 120% at 110% 110%, rgba(56,189,248,0.28), transparent 55%);
+}
+/* Huntington Voice — porcelain white with green edge */
+.chb-card-huntington {
+  background:
+    linear-gradient(160deg, #ffffff 0%, #f2f4f1 60%, #e8ece5 100%);
+  color: #2c2e2b;
+  box-shadow: 0 14px 32px rgba(60, 80, 40, 0.25), inset 0 1px 0 rgba(255,255,255,0.9);
+}
+.chb-card-huntington::before {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 56px;
+  background: linear-gradient(90deg, #5B8F22, #7ab63a);
+  clip-path: polygon(0 62%, 100% 20%, 100% 100%, 0 100%);
+  opacity: 0.92;
+}
+.chb-card-huntington .chb-card-number,
+.chb-card-huntington .chb-card-name { color: #fff; }
+.chb-card-huntington .chb-network-tier { color: #fff; }
+/* PNC — steel navy with orange keyline */
+.chb-card-pnc {
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 3px),
+    linear-gradient(140deg, #142c4e 0%, #255398 70%, #2e63b0 100%);
+}
+.chb-card-pnc::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 58px; height: 3px;
+  background: linear-gradient(90deg, #F58025, rgba(245,128,37,0.15));
+}
+.chb-card-pnc .chb-bankmark span:last-child { color: #fff; }
+/* World Elite Mastercard — matte black */
+.chb-card-worldelite {
+  background:
+    repeating-linear-gradient(45deg, rgba(255,255,255,0.012) 0 2px, transparent 2px 5px),
+    linear-gradient(150deg, #16161a 0%, #232329 55%, #101013 100%);
+}
+.chb-card-worldelite::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(130% 150% at 100% 0%, rgba(255,255,255,0.06), transparent 50%);
+}
+/* Chase debit — light steel blue */
+.chb-card-debit {
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 3px),
+    linear-gradient(135deg, #23496e 0%, #2f6ea6 60%, #3f88c5 100%);
+}
+
+@media (max-width: 900px) {
+  .chb-dashboard { grid-template-columns: minmax(0, 1fr); }
+}

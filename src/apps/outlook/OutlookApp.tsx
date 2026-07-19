@@ -3,6 +3,8 @@ import { useMailStore, type Email, type EmailFolder, type JobMeta } from '../../
 import { useCompanyStore } from '../../state/useCompanyStore';
 import { useProfileStore } from '../../state/useProfileStore';
 import { meetingToolLabel } from '../safari/sites/LinkedInSite';
+import { CompanyLogo } from '../../data/brands';
+import './outlook.css';
 
 const FOLDER_LABELS: Record<EmailFolder, string> = {
   inbox: 'Inbox',
@@ -10,14 +12,6 @@ const FOLDER_LABELS: Record<EmailFolder, string> = {
   sent: 'Sent Items',
   drafts: 'Drafts',
   trash: 'Deleted Items',
-};
-
-const FOLDER_ICONS: Record<EmailFolder, string> = {
-  inbox: '📥',
-  starred: '⭐',
-  sent: '📤',
-  drafts: '📝',
-  trash: '🗑',
 };
 
 function percentCount(text: string) {
@@ -40,14 +34,22 @@ function getInitials(name: string) {
   return (tokens[0]?.[0] ?? 'U') + (tokens[1]?.[0] ?? tokens[0]?.[1] ?? 'S');
 }
 
+const AVATAR_COLORS = ['#0f6cbd', '#ca5010', '#038387', '#8764b8', '#498205', '#c239b3', '#986f0b', '#4f6bed', '#d13438', '#00758f'];
+
+function avatarColor(name: string): string {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
+
 function formatDate(dateStr: string) {
   const d = new Date(dateStr);
   const now = new Date();
   const isToday = d.toDateString() === now.toDateString();
   if (isToday) {
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
   }
-  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  return d.toLocaleDateString([], { weekday: 'short', month: 'numeric', day: 'numeric' });
 }
 
 // ── ATS Pipeline ──────────────────────────────────────────────────────────────
@@ -158,9 +160,9 @@ function buildOnboardingEmail(meta: JobMeta): Omit<Email, 'id' | 'read' | 'starr
   };
 }
 
-const MORTGAGE_BANKS = ['CHASE', 'WELLS FARGO', 'TD AMERITRADE', 'PNC', '5/3', 'BANK OF AMERICA', 'CITIBANK', 'CAPITAL ONE'];
+const MORTGAGE_BANKS = ['CHASE', 'WELLS FARGO', 'TD AMERITRADE', 'PNC', '5/3', 'BANK OF AMERICA', 'CITIBANK', 'CAPITAL ONE', 'HUNTINGTON'];
 
-function processHousingAutomation(
+export function processHousingAutomation(
   original: Email,
   replyBody: string,
   sendEmail: (e: Omit<Email, 'id' | 'read' | 'starred'> & { jobMeta?: JobMeta }) => void,
@@ -185,7 +187,7 @@ function processHousingAutomation(
   }
 }
 
-function processAtsReply(
+export function processAtsReply(
   original: Email,
   replyBody: string,
   sendEmail: (e: Omit<Email, 'id' | 'read' | 'starred'> & { jobMeta?: JobMeta }) => void,
@@ -206,251 +208,33 @@ function processAtsReply(
   }
 }
 
-// ── UI helpers ─────────────────────────────────────────────────────────────────
+// ── Fluent icons ──────────────────────────────────────────────────────────────
 
-function ProfileAvatar({ fullName, email, onClick }: { fullName: string; email: string; onClick: () => void }) {
+const Ic = {
+  mail: (c = 'currentColor') => <svg width="20" height="20" viewBox="0 0 24 24" fill={c}><path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zm8 7.2L4.4 7h15.2L12 12.2zM4 9.1V17h16V9.1l-7.5 4.8a1 1 0 0 1-1 0L4 9.1z"/></svg>,
+  calendar: (c = 'currentColor') => <svg width="20" height="20" viewBox="0 0 24 24" fill={c}><path d="M17 3v1H7V3H5v1H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1V3h-2zM4 8h16v10H4V8zm2 2v2h3v-2H6z"/></svg>,
+  people: (c = 'currentColor') => <svg width="20" height="20" viewBox="0 0 24 24" fill={c}><path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zm7.5 1a2.75 2.75 0 1 0 0-5.5 2.75 2.75 0 0 0 0 5.5zM2 18.5C2 15.5 5 14 9 14s7 1.5 7 4.5V20H2v-1.5zM17.5 14c-.6 0-1.2.06-1.76.17 1.38.98 2.26 2.3 2.26 4.33V20H22v-1.25c0-2.6-2.06-4.75-4.5-4.75z"/></svg>,
+  word: () => <svg width="20" height="20" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3" fill="#185ABD"/><path d="M6 7l1.8 10h1.9l1.6-7.2L12.9 17h1.9L16.9 7h-1.8l-1.3 7.4L12.2 7h-1.4l-1.6 7.4L7.9 7H6z" fill="#fff"/></svg>,
+  excel: () => <svg width="20" height="20" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3" fill="#107C41"/><path d="M8 7l2.7 5L8 17h2.2l1.7-3.4L13.6 17h2.2l-2.7-5 2.7-5h-2.2l-1.7 3.4L10.2 7H8z" fill="#fff"/></svg>,
+  ppt: () => <svg width="20" height="20" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3" fill="#C43E1C"/><path d="M8 7h4.5a3.25 3.25 0 0 1 0 6.5H10V17H8V7zm2 2v2.5h2.4a1.25 1.25 0 0 0 0-2.5H10z" fill="#fff"/></svg>,
+  todo: () => <svg width="20" height="20" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3" fill="#2564CF"/><path d="M7 12.5l3 3 7-7-1.4-1.4L10 12.7l-1.6-1.6L7 12.5z" fill="#fff"/></svg>,
+};
+
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+function MicrosoftLogo({ size = 20 }: { size?: number }) {
   return (
-    <button className="out-profile-avatar" onClick={onClick} aria-label={`Open account menu for ${email}`}>
-      {getInitials(fullName).toUpperCase()}
-    </button>
-  );
-}
-
-function SignatureEditor({
-  signatureName,
-  setSignatureName,
-  includeOnNew,
-  setIncludeOnNew,
-  includeOnReply,
-  setIncludeOnReply,
-}: {
-  signatureName: string;
-  setSignatureName: (v: string) => void;
-  includeOnNew: boolean;
-  setIncludeOnNew: (v: boolean) => void;
-  includeOnReply: boolean;
-  setIncludeOnReply: (v: boolean) => void;
-}) {
-  const editorRef = useRef<HTMLDivElement | null>(null);
-
-  const run = (command: 'bold' | 'italic' | 'createLink' | 'insertImage') => {
-    if (command === 'createLink') {
-      const url = window.prompt('Enter link URL');
-      if (url) document.execCommand('createLink', false, url);
-      return;
-    }
-    if (command === 'insertImage') {
-      const src = window.prompt('Enter image URL');
-      if (src) document.execCommand('insertImage', false, src);
-      return;
-    }
-    document.execCommand(command);
-    editorRef.current?.focus();
-  };
-
-  return (
-    <div className="out-signature-editor">
-      <label className="out-settings-label">
-        Signature name
-        <input
-          className="out-settings-input"
-          value={signatureName}
-          onChange={(e) => setSignatureName(e.target.value)}
-          placeholder="My signature"
-        />
-      </label>
-      <div className="out-editor-toolbar" role="toolbar" aria-label="Formatting tools">
-        <button type="button" onClick={() => run('bold')}><strong>B</strong></button>
-        <button type="button" onClick={() => run('italic')}><em>I</em></button>
-        <button type="button" onClick={() => run('createLink')}>Link</button>
-        <button type="button" onClick={() => run('insertImage')}>Image</button>
-      </div>
-      <div
-        ref={editorRef}
-        className="out-rich-editor"
-        contentEditable
-        suppressContentEditableWarning
-        aria-label="Email signature rich text editor"
-      >
-        Best regards,<br />{signatureName || 'Your Name'}
-      </div>
-      <label className="out-checkbox"><input type="checkbox" checked={includeOnNew} onChange={(e) => setIncludeOnNew(e.target.checked)} /> Automatically include on new emails</label>
-      <label className="out-checkbox"><input type="checkbox" checked={includeOnReply} onChange={(e) => setIncludeOnReply(e.target.checked)} /> Automatically include on replies and forwards</label>
-    </div>
-  );
-}
-
-function SettingsPanel({
-  open,
-  onClose,
-  isDark,
-  onToggleTheme,
-}: {
-  open: boolean;
-  onClose: () => void;
-  isDark: boolean;
-  onToggleTheme: () => void;
-}) {
-  const [signatureName, setSignatureName] = useState('Primary Signature');
-  const [includeOnNew, setIncludeOnNew] = useState(true);
-  const [includeOnReply, setIncludeOnReply] = useState(true);
-
-  if (!open) return null;
-
-  return (
-    <aside className="out-settings-panel" role="dialog" aria-label="Outlook settings">
-      <header>
-        <h3>Mail settings</h3>
-        <button type="button" onClick={onClose}>✕</button>
-      </header>
-      <section>
-        <h4>Email signature</h4>
-        <SignatureEditor
-          signatureName={signatureName}
-          setSignatureName={setSignatureName}
-          includeOnNew={includeOnNew}
-          setIncludeOnNew={setIncludeOnNew}
-          includeOnReply={includeOnReply}
-          setIncludeOnReply={setIncludeOnReply}
-        />
-      </section>
-      <section>
-        <h4>Rules & automation</h4>
-        <ul>
-          <li>Inbox rules</li>
-          <li>Automatic replies</li>
-          <li>Mail layout preferences</li>
-          <li>Notification preferences</li>
-        </ul>
-      </section>
-      <section>
-        <h4>Appearance</h4>
-        <button className="out-appearance-toggle" type="button" onClick={onToggleTheme}>{isDark ? 'Switch to light mode' : 'Switch to dark mode'}</button>
-      </section>
-    </aside>
-  );
-}
-
-function AccountDropdown({
-  email,
-  fullName,
-  accounts,
-  onSignOut,
-  onToggleTheme,
-  isDark,
-}: {
-  email: string;
-  fullName: string;
-  accounts: string[];
-  onSignOut: () => void;
-  onToggleTheme: () => void;
-  isDark: boolean;
-}) {
-  const secondary = accounts.filter((a) => a !== email);
-  return (
-    <div className="out-account-dropdown" role="menu" aria-label="Account menu">
-      <div className="out-account-top">
-        <div className="out-account-avatar-large">{getInitials(fullName).toUpperCase()}</div>
-        <div className="out-account-name">{fullName}</div>
-        <div className="out-account-email">{email}</div>
-        <button type="button">My Microsoft Account</button>
-        <button type="button">My Profile</button>
-      </div>
-      <hr />
-      <div className="out-account-list">
-        {secondary.map((acc) => (
-          <button key={acc} type="button" className="out-account-item">
-            <span>{extractName(fullName)}</span>
-            <small>{acc}</small>
-          </button>
-        ))}
-      </div>
-      <hr />
-      <button type="button" className="out-account-item">Sign in with a different account</button>
-      <hr />
-      <div className="out-account-settings">
-        <button type="button">⚙ Email settings</button>
-        <button type="button">✎ Email signature</button>
-        <button type="button" onClick={onToggleTheme}>◐ Appearance: {isDark ? 'Dark' : 'Light'}</button>
-      </div>
-      <hr />
-      <button className="out-signout-btn" type="button" onClick={onSignOut}>Sign out</button>
-    </div>
-  );
-}
-
-function OutlookHeader({
-  fullName,
-  email,
-  accounts,
-  onCompose,
-  onSignOut,
-  onOpenSettings,
-  isDark,
-  onToggleTheme,
-}: {
-  fullName: string;
-  email: string;
-  accounts: string[];
-  onCompose: () => void;
-  onSignOut: () => void;
-  onOpenSettings: () => void;
-  isDark: boolean;
-  onToggleTheme: () => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const onClick = (ev: MouseEvent) => {
-      if (!menuRef.current?.contains(ev.target as Node)) setOpen(false);
-    };
-    const onEsc = (ev: KeyboardEvent) => {
-      if (ev.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('mousedown', onClick);
-    document.addEventListener('keydown', onEsc);
-    return () => {
-      document.removeEventListener('mousedown', onClick);
-      document.removeEventListener('keydown', onEsc);
-    };
-  }, []);
-
-  return (
-    <header className="outlook-header">
-      <div className="outlook-wordmark">
-        <span className="outlook-wordmark-icon">✉</span>
-        Outlook
-      </div>
-      <div className="outlook-toolbar">
-        <button className="outlook-toolbar-btn" type="button" onClick={onCompose}>
-          <span>✏</span> New mail
-        </button>
-        <button className="outlook-toolbar-btn" type="button">Delete</button>
-        <button className="outlook-toolbar-btn" type="button">Archive</button>
-        <button className="outlook-toolbar-btn outlook-toolbar-btn-text" type="button">Sweep ▾</button>
-        <button className="outlook-toolbar-btn outlook-toolbar-btn-text" type="button">Move to ▾</button>
-        <span className="outlook-toolbar-sep" />
-        <button className="outlook-toolbar-btn" type="button">↩</button>
-        <button className="outlook-toolbar-btn" type="button">↪</button>
-      </div>
-      <input className="outlook-search" placeholder="🔍 Search" aria-label="Search mail" />
-      <div className="out-header-actions" ref={menuRef}>
-        <button className="out-gear-btn" type="button" onClick={onOpenSettings} aria-label="Open settings">⚙</button>
-        <ProfileAvatar fullName={fullName} email={email} onClick={() => setOpen((v) => !v)} />
-        {open && <AccountDropdown email={email} fullName={fullName} accounts={accounts} onSignOut={onSignOut} onToggleTheme={onToggleTheme} isDark={isDark} />}
-      </div>
-    </header>
+    <svg width={size} height={size} viewBox="0 0 21 21" aria-hidden="true">
+      <rect x="0" y="0" width="10" height="10" fill="#f25022" />
+      <rect x="11" y="0" width="10" height="10" fill="#7fba00" />
+      <rect x="0" y="11" width="10" height="10" fill="#00a4ef" />
+      <rect x="11" y="11" width="10" height="10" fill="#ffb900" />
+    </svg>
   );
 }
 
 function OutlookLoginScreen({
-  emailInput,
-  setEmailInput,
-  password,
-  setPassword,
-  authError,
-  onSignIn,
+  emailInput, setEmailInput, password, setPassword, authError, onSignIn,
 }: {
   emailInput: string;
   setEmailInput: (v: string) => void;
@@ -459,22 +243,100 @@ function OutlookLoginScreen({
   authError: string;
   onSignIn: () => void;
 }) {
+  const [step, setStep] = useState<'email' | 'password'>('email');
   return (
-    <div className="outlook-login-screen">
-      <div className="outlook-login-card">
-        <div className="ms-logo" aria-hidden="true"><span />Microsoft</div>
-        <h2>Sign in</h2>
-        <p>to continue to Outlook</p>
-        <input value={emailInput} onChange={(e) => setEmailInput(e.target.value)} placeholder="Email, phone, or Skype" />
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
-        <div className="out-login-links"><a href="#">No account? Create one!</a><a href="#">Can&apos;t access your account?</a></div>
-        <div className="out-login-actions"><button type="button" onClick={onSignIn}>Next</button></div>
-        {authError && <div className="out-auth-error">{authError}</div>}
+    <div className="owa-login-bg">
+      <div className="owa-login-card">
+        <div className="owa-login-mslogo"><MicrosoftLogo /> <span>Microsoft</span></div>
+        {step === 'email' ? (
+          <>
+            <h1>Sign in</h1>
+            <p className="owa-login-sub">to continue to Outlook</p>
+            <input
+              className="owa-login-input"
+              value={emailInput}
+              onChange={(e) => setEmailInput(e.target.value)}
+              placeholder="Email, phone, or Skype"
+              onKeyDown={(e) => e.key === 'Enter' && setStep('password')}
+            />
+            <div className="owa-login-links">
+              <span>No account? <a href="#">Create one!</a></span>
+              <a href="#">Can&apos;t access your account?</a>
+            </div>
+            <div className="owa-login-btnrow">
+              <button type="button" className="owa-login-back" disabled>Back</button>
+              <button type="button" className="owa-login-next" onClick={() => setStep('password')}>Next</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="owa-login-idrow">‹ {emailInput}</div>
+            <h1>Enter password</h1>
+            <input
+              className="owa-login-input"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              autoFocus
+              onKeyDown={(e) => e.key === 'Enter' && onSignIn()}
+            />
+            <div className="owa-login-links"><a href="#">Forgot password?</a></div>
+            {authError && <div className="owa-login-error">{authError}</div>}
+            <div className="owa-login-btnrow">
+              <button type="button" className="owa-login-back" onClick={() => setStep('email')}>Back</button>
+              <button type="button" className="owa-login-next" onClick={onSignIn}>Sign in</button>
+            </div>
+          </>
+        )}
       </div>
-      <button className="out-signin-options" type="button">Sign-in options</button>
+      <div className="owa-login-footer">
+        <span>Terms of use</span><span>Privacy &amp; cookies</span><span>· · ·</span>
+      </div>
     </div>
   );
 }
+
+function AccountDropdown({
+  email, fullName, accounts, onSignOut,
+}: {
+  email: string;
+  fullName: string;
+  accounts: string[];
+  onSignOut: () => void;
+}) {
+  const secondary = accounts.filter((a) => a !== email);
+  return (
+    <div className="owa-account-menu" role="menu" aria-label="Account menu">
+      <div className="owa-account-top">
+        <MicrosoftLogo size={16} />
+        <button type="button" className="owa-account-signout" onClick={onSignOut}>Sign out</button>
+      </div>
+      <div className="owa-account-id">
+        <div className="owa-avatar owa-avatar-lg" style={{ background: avatarColor(fullName) }}>{getInitials(fullName).toUpperCase()}</div>
+        <div>
+          <div className="owa-account-name">{fullName}</div>
+          <div className="owa-account-email">{email}</div>
+          <button type="button" className="owa-account-link">View account</button>
+        </div>
+      </div>
+      {secondary.length > 0 && (
+        <div className="owa-account-others">
+          <div className="owa-account-others-title">Other accounts</div>
+          {secondary.map((acc) => (
+            <button key={acc} type="button" className="owa-account-other">
+              <div className="owa-avatar owa-avatar-sm" style={{ background: avatarColor(acc) }}>{acc[0]?.toUpperCase()}</div>
+              <span>{acc}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      <button type="button" className="owa-account-add">+ Sign in with a different account</button>
+    </div>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
 
 export function OutlookApp() {
   const { emails, sendEmail, markRead } = useMailStore();
@@ -492,12 +354,26 @@ export function OutlookApp() {
   const [folder, setFolder] = useState<EmailFolder>('inbox');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [composeOpen, setComposeOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [isDark, setIsDark] = useState(true);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [to, setTo] = useState('');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [messageTab, setMessageTab] = useState<'focused' | 'other'>('focused');
+  const [searchText, setSearchText] = useState('');
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const onClick = (ev: MouseEvent) => {
+      if (!menuRef.current?.contains(ev.target as Node)) setAccountOpen(false);
+    };
+    const onEsc = (ev: KeyboardEvent) => { if (ev.key === 'Escape') setAccountOpen(false); };
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onEsc);
+    return () => {
+      document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('keydown', onEsc);
+    };
+  }, []);
 
   const accountEmails = useMemo(
     () => ['user@workspace.aos', ...accounts.map((a) => a.companyEmail)],
@@ -514,14 +390,17 @@ export function OutlookApp() {
         authError={authError}
         onSignIn={() => {
           const ok = loginOutlook(emailInput, password);
-          setAuthError(ok ? '' : 'That Microsoft account does not exist.');
+          setAuthError(ok ? '' : "That Microsoft account doesn't exist. Enter a different account.");
         }}
       />
     );
   }
 
   const scoped = emails.filter((e) => (e.to + e.from).toLowerCase().includes(activeOutlookEmail.toLowerCase()) || activeOutlookEmail === 'user@workspace.aos');
-  const folderEmails = scoped.filter((e) => (folder === 'starred' ? e.starred : e.folder === folder)).sort((a, b) => +new Date(b.date) - +new Date(a.date));
+  const searched = searchText.trim()
+    ? scoped.filter((e) => (e.subject + e.from + e.body).toLowerCase().includes(searchText.toLowerCase()))
+    : scoped;
+  const folderEmails = searched.filter((e) => (folder === 'starred' ? e.starred : e.folder === folder)).sort((a, b) => +new Date(b.date) - +new Date(a.date));
   const selected = folderEmails.find((e) => e.id === selectedId) ?? folderEmails[0] ?? null;
 
   const openCompose = (opts?: { to?: string; subject?: string; body?: string }) => {
@@ -535,14 +414,14 @@ export function OutlookApp() {
     if (!selected) return;
     const replyTo = extractEmail(selected.from);
     const replySubject = selected.subject.startsWith('RE: ') ? selected.subject : `RE: ${selected.subject}`;
-    const quotedBody = `\n\n--- Original Message ---\nFrom: ${selected.from}\nDate: ${new Date(selected.date).toLocaleString()}\nSubject: ${selected.subject}\n\n`;
+    const quotedBody = `\n\n________________________________\nFrom: ${selected.from}\nSent: ${new Date(selected.date).toLocaleString()}\nSubject: ${selected.subject}\n\n`;
     openCompose({ to: replyTo, subject: replySubject, body: quotedBody });
   };
 
   const openForward = () => {
     if (!selected) return;
     const fwdSubject = selected.subject.startsWith('FW: ') ? selected.subject : `FW: ${selected.subject}`;
-    const quotedBody = `\n\n--- Forwarded Message ---\nFrom: ${selected.from}\nDate: ${new Date(selected.date).toLocaleString()}\nSubject: ${selected.subject}\n\n`;
+    const quotedBody = `\n\n________________________________\nFrom: ${selected.from}\nSent: ${new Date(selected.date).toLocaleString()}\nSubject: ${selected.subject}\n\n`;
     openCompose({ subject: fwdSubject, body: quotedBody });
   };
 
@@ -561,7 +440,6 @@ export function OutlookApp() {
       // ── PROMOTION% — find the matching employer account by email domain ──────
       const pCount = percentCount(upper);
       if (pCount > 0) {
-        // Try activeOutlookEmail first; fall back to finding account by email domain from the selected email
         const senderDomain = selected.from.match(/@([\w.-]+)>?$/)?.[1];
         const matchedAcc = accounts.find((a) =>
           a.companyEmail.toLowerCase() === activeOutlookEmail.toLowerCase() ||
@@ -581,9 +459,7 @@ export function OutlookApp() {
         }
       }
 
-      // ── I ACCEPT on offer email ─────────────────────────────────────────────
-      // (also handled by processAtsReply → buildOnboardingEmail above for the jobMeta flow)
-      // This branch handles provisioning the employer account when accepting the offer
+      // ── I ACCEPT on offer email — provision employer account ────────────────
       if (upper.includes('I ACCEPT') && selected.jobMeta?.stage === 'offer') {
         const account = ensureEmployerFromOffer({
           companyName: selected.jobMeta.company,
@@ -615,181 +491,236 @@ export function OutlookApp() {
     setBody('');
   };
 
-  const unreadCount = folderEmails.filter((e) => !e.read).length;
+  const unreadCount = scoped.filter((e) => e.folder === 'inbox' && !e.read).length;
+
+  const senderVisual = (e: Email, size: number) => {
+    if (e.jobMeta) return <CompanyLogo company={e.jobMeta.company} size={size} />;
+    const name = extractName(e.from);
+    return (
+      <div className="owa-avatar" style={{ width: size, height: size, fontSize: size * 0.38, background: avatarColor(name) }}>
+        {getInitials(name).toUpperCase()}
+      </div>
+    );
+  };
 
   return (
-    <div className={`outlook-shell ${isDark ? 'theme-dark' : 'theme-light'}`}>
-      <OutlookHeader
-        fullName={fullName}
-        email={activeOutlookEmail}
-        accounts={accountEmails}
-        onCompose={() => openCompose()}
-        onSignOut={logoutOutlook}
-        onOpenSettings={() => setSettingsOpen(true)}
-        isDark={isDark}
-        onToggleTheme={() => setIsDark((v) => !v)}
-      />
-      <div className="outlook-layout">
-        {/* Sidebar */}
-        <aside className="outlook-sidebar">
-          <div className="outlook-sidebar-section">
-            <div className="outlook-sidebar-section-title">Favorites</div>
+    <div className="owa-shell">
+      {/* ── Suite header ── */}
+      <header className="owa-topbar">
+        <button type="button" className="owa-waffle" aria-label="App launcher">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="#fff"><circle cx="2.5" cy="2.5" r="1.6"/><circle cx="8" cy="2.5" r="1.6"/><circle cx="13.5" cy="2.5" r="1.6"/><circle cx="2.5" cy="8" r="1.6"/><circle cx="8" cy="8" r="1.6"/><circle cx="13.5" cy="8" r="1.6"/><circle cx="2.5" cy="13.5" r="1.6"/><circle cx="8" cy="13.5" r="1.6"/><circle cx="13.5" cy="13.5" r="1.6"/></svg>
+        </button>
+        <span className="owa-wordmark">Outlook</span>
+        <div className="owa-searchwrap">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#605e5c"><path d="M21.41 18.59l-5.27-5.28A6.83 6.83 0 0 0 17 10a7 7 0 1 0-7 7 6.83 6.83 0 0 0 3.31-.86l5.28 5.27a2 2 0 0 0 2.82-2.82zM5 10a5 5 0 1 1 5 5 5 5 0 0 1-5-5z"/></svg>
+          <input placeholder="Search" value={searchText} onChange={(e) => setSearchText(e.target.value)} aria-label="Search mail" />
+        </div>
+        <div className="owa-topbar-actions" ref={menuRef}>
+          <button type="button" title="Settings" className="owa-topbar-ic">⚙</button>
+          <button type="button" title="Tips" className="owa-topbar-ic">💡</button>
+          <button type="button" title="Help" className="owa-topbar-ic">?</button>
+          <button type="button" className="owa-me" onClick={() => setAccountOpen((v) => !v)} aria-label="Account manager">
+            <div className="owa-avatar owa-avatar-me" style={{ background: avatarColor(fullName) }}>{getInitials(fullName).toUpperCase()}</div>
+          </button>
+          {accountOpen && (
+            <AccountDropdown email={activeOutlookEmail} fullName={fullName} accounts={accountEmails} onSignOut={logoutOutlook} />
+          )}
+        </div>
+      </header>
+
+      {/* ── Ribbon ── */}
+      <div className="owa-ribbon">
+        <div className="owa-ribbon-tabs">
+          <button type="button" className="active">Home</button>
+          <button type="button">View</button>
+          <button type="button">Help</button>
+        </div>
+        <div className="owa-ribbon-row">
+          <button type="button" className="owa-newmail" onClick={() => openCompose()}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M20.7 6.3l-3-3a1 1 0 0 0-1.4 0L4 15.6V20h4.4L20.7 7.7a1 1 0 0 0 0-1.4zM7.6 18H6v-1.6l8.3-8.3 1.6 1.6L7.6 18z"/></svg>
+            New mail <span className="owa-newmail-caret">▾</span>
+          </button>
+          <span className="owa-ribbon-sep" />
+          <button type="button" className="owa-rbtn" title="Delete">🗑 <span>Delete</span></button>
+          <button type="button" className="owa-rbtn" title="Archive">🗄 <span>Archive</span></button>
+          <button type="button" className="owa-rbtn" title="Report">🛡 <span>Report ▾</span></button>
+          <button type="button" className="owa-rbtn" title="Sweep">🧹 <span>Sweep</span></button>
+          <button type="button" className="owa-rbtn" title="Move to">📁 <span>Move to ▾</span></button>
+          <span className="owa-ribbon-sep" />
+          <button type="button" className="owa-rbtn" onClick={openReply} title="Reply">↩ <span>Reply</span></button>
+          <button type="button" className="owa-rbtn" onClick={openForward} title="Forward">↪ <span>Forward</span></button>
+          <span className="owa-ribbon-sep" />
+          <button type="button" className="owa-rbtn" title="Read / Unread">✉ <span>Read / Unread</span></button>
+          <button type="button" className="owa-rbtn" title="Flag">🚩</button>
+          <button type="button" className="owa-rbtn" title="Pin">📌</button>
+        </div>
+      </div>
+
+      <div className="owa-main">
+        {/* ── App rail ── */}
+        <nav className="owa-rail">
+          <button type="button" className="owa-rail-btn active" title="Mail">{Ic.mail('#0f6cbd')}<span className="owa-rail-dot" /></button>
+          <button type="button" className="owa-rail-btn" title="Calendar">{Ic.calendar('#5b5fc7')}</button>
+          <button type="button" className="owa-rail-btn" title="People">{Ic.people('#0f6cbd')}</button>
+          <button type="button" className="owa-rail-btn" title="To Do">{Ic.todo()}</button>
+          <button type="button" className="owa-rail-btn" title="Word">{Ic.word()}</button>
+          <button type="button" className="owa-rail-btn" title="Excel">{Ic.excel()}</button>
+          <button type="button" className="owa-rail-btn" title="PowerPoint">{Ic.ppt()}</button>
+          <button type="button" className="owa-rail-btn" title="More apps">⋯</button>
+        </nav>
+
+        {/* ── Folder pane ── */}
+        <aside className="owa-folders">
+          <div className="owa-folders-section">
+            <button type="button" className="owa-folders-group">▾ Favorites</button>
             {(['inbox', 'sent', 'drafts'] as EmailFolder[]).map((k) => (
               <button
                 key={`fav-${k}`}
-                className={`outlook-sidebar-item ${folder === k ? 'active' : ''}`}
+                className={`owa-folder ${folder === k ? 'active' : ''}`}
                 type="button"
                 onClick={() => setFolder(k)}
               >
-                <span className="outlook-sidebar-icon">{FOLDER_ICONS[k]}</span>
-                <span className="outlook-sidebar-label">{FOLDER_LABELS[k]}</span>
-                {k === 'inbox' && unreadCount > 0 && (
-                  <span className="outlook-sidebar-count">{unreadCount}</span>
-                )}
+                <span className="owa-folder-label">{FOLDER_LABELS[k]}</span>
+                {k === 'inbox' && unreadCount > 0 && <span className="owa-folder-count">{unreadCount}</span>}
               </button>
             ))}
           </div>
-          <div className="outlook-sidebar-section">
-            <div className="outlook-sidebar-section-title">{activeOutlookEmail}</div>
+          <div className="owa-folders-section">
+            <button type="button" className="owa-folders-group">▾ {activeOutlookEmail}</button>
             {(Object.entries(FOLDER_LABELS) as [EmailFolder, string][]).map(([k, v]) => (
               <button
                 key={k}
-                className={`outlook-sidebar-item ${folder === k ? 'active' : ''}`}
+                className={`owa-folder ${folder === k ? 'active' : ''}`}
                 type="button"
                 onClick={() => setFolder(k)}
               >
-                <span className="outlook-sidebar-icon">{FOLDER_ICONS[k]}</span>
-                <span className="outlook-sidebar-label">{v}</span>
-                {k === 'inbox' && unreadCount > 0 && (
-                  <span className="outlook-sidebar-count">{unreadCount}</span>
-                )}
+                <span className="owa-folder-label">{v}</span>
+                {k === 'inbox' && unreadCount > 0 && <span className="owa-folder-count">{unreadCount}</span>}
               </button>
             ))}
+            <button type="button" className="owa-folder"><span className="owa-folder-label">Junk Email</span></button>
+            <button type="button" className="owa-folder"><span className="owa-folder-label">Archive</span></button>
+            <button type="button" className="owa-folder"><span className="owa-folder-label">Notes</span></button>
           </div>
         </aside>
 
-        {/* Message list */}
-        <section className="outlook-message-list">
-          {folder === 'inbox' && (
-            <div className="outlook-message-tabs">
-              <button
-                className={messageTab === 'focused' ? 'active' : ''}
-                type="button"
-                onClick={() => setMessageTab('focused')}
-              >
-                Focused
-              </button>
-              <button
-                className={messageTab === 'other' ? 'active' : ''}
-                type="button"
-                onClick={() => setMessageTab('other')}
-              >
-                Other
-              </button>
-            </div>
-          )}
-          {folder !== 'inbox' && (
-            <div className="outlook-message-list-header">
-              <span>{FOLDER_LABELS[folder]}</span>
-              {folderEmails.length > 0 && (
-                <span className="outlook-message-list-count">{folderEmails.length}</span>
-              )}
-            </div>
-          )}
-          <div className="outlook-message-list-items">
+        {/* ── Message list ── */}
+        <section className="owa-list">
+          <div className="owa-list-head">
+            {folder === 'inbox' ? (
+              <div className="owa-pivots">
+                <button type="button" className={messageTab === 'focused' ? 'active' : ''} onClick={() => setMessageTab('focused')}>Focused</button>
+                <button type="button" className={messageTab === 'other' ? 'active' : ''} onClick={() => setMessageTab('other')}>Other</button>
+              </div>
+            ) : (
+              <div className="owa-list-title">{FOLDER_LABELS[folder]}</div>
+            )}
+            <button type="button" className="owa-list-filter">≡ Filter</button>
+          </div>
+          <div className="owa-list-items">
             {folderEmails.length === 0 && (
-              <div className="outlook-message-empty">No messages</div>
+              <div className="owa-list-empty">
+                <div className="owa-list-empty-art">📭</div>
+                <strong>All done for the day</strong>
+                <span>Enjoy your empty {FOLDER_LABELS[folder].toLowerCase()}.</span>
+              </div>
             )}
             {folderEmails.map((e) => (
               <button
                 key={e.id}
                 type="button"
-                className={`outlook-message-row ${selected?.id === e.id ? 'selected' : ''} ${!e.read ? 'unread' : ''}`}
+                className={`owa-row ${selected?.id === e.id ? 'selected' : ''} ${!e.read ? 'unread' : ''}`}
                 onClick={() => { setSelectedId(e.id); markRead(e.id); }}
               >
-                <div className="outlook-message-row-avatar">
-                  {getInitials(extractName(e.from)).toUpperCase()}
-                </div>
-                <div className="outlook-message-row-content">
-                  <div className="outlook-message-row-top">
-                    <span className="outlook-message-from">{extractName(e.from)}</span>
-                    <span className="outlook-message-date">{formatDate(e.date)}</span>
+                <span className="owa-row-selbar" />
+                {senderVisual(e, 32)}
+                <div className="owa-row-content">
+                  <div className="owa-row-top">
+                    <span className="owa-row-from">{extractName(e.from)}</span>
+                    <span className="owa-row-date">{formatDate(e.date)}</span>
                   </div>
-                  <div className="outlook-message-subject">{e.subject}</div>
-                  <div className="outlook-message-preview">{e.body.replace(/<[^>]+>/g, '').slice(0, 80)}</div>
+                  <div className="owa-row-subject">{e.subject}</div>
+                  <div className="owa-row-preview">{e.body.replace(/<[^>]+>/g, '').slice(0, 90)}</div>
                 </div>
               </button>
             ))}
           </div>
         </section>
 
-        {/* Reading pane */}
-        <main className="outlook-reading-pane">
+        {/* ── Reading pane ── */}
+        <main className="owa-reading">
           {selected ? (
             <>
-              <div className="outlook-reading-header">
-                <h2 className="outlook-reading-subject">{selected.subject}</h2>
-                <div className="outlook-reading-meta">
-                  <div className="outlook-reading-avatar">
-                    {getInitials(extractName(selected.from)).toUpperCase()}
-                  </div>
-                  <div className="outlook-reading-meta-text">
-                    <div className="outlook-reading-from">
-                      <strong>{extractName(selected.from)}</strong>
-                      <span className="outlook-reading-from-addr">&lt;{extractEmail(selected.from)}&gt;</span>
-                    </div>
-                    <div className="outlook-reading-to">To: {selected.to}</div>
-                    <div className="outlook-reading-date">{new Date(selected.date).toLocaleString()}</div>
-                  </div>
-                </div>
-                <div className="outlook-reading-actions">
-                  <button className="outlook-action-btn outlook-action-reply" type="button" onClick={openReply}>
-                    ↩ Reply
-                  </button>
-                  <button className="outlook-action-btn" type="button" onClick={() => openCompose({ to: selected.from.includes('<') ? `${selected.from}` : selected.from })}>
-                    ↩↩ Reply All
-                  </button>
-                  <button className="outlook-action-btn" type="button" onClick={openForward}>
-                    ↪ Forward
-                  </button>
-                  <button className="outlook-action-btn" type="button">🗑 Delete</button>
+              <div className="owa-reading-subjectrow">
+                <h1>{selected.subject}</h1>
+                <div className="owa-reading-subjectactions">
+                  <button type="button" title="Summarize">✨ Summary by Copilot</button>
                 </div>
               </div>
-              <article className="outlook-reading-body" dangerouslySetInnerHTML={{ __html: selected.body }} />
+              <div className="owa-reading-card">
+                <div className="owa-reading-meta">
+                  {senderVisual(selected, 40)}
+                  <div className="owa-reading-names">
+                    <div className="owa-reading-from">
+                      <strong>{extractName(selected.from)}</strong>
+                      <span className="owa-reading-addr">&lt;{extractEmail(selected.from)}&gt;</span>
+                    </div>
+                    <div className="owa-reading-to">To: {selected.to === 'user@workspace.aos' ? 'You' : selected.to}</div>
+                  </div>
+                  <div className="owa-reading-right">
+                    <span className="owa-reading-date">{new Date(selected.date).toLocaleString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+                    <div className="owa-reading-quick">
+                      <button type="button" title="Reply" onClick={openReply}>↩</button>
+                      <button type="button" title="Reply all" onClick={() => openCompose({ to: extractEmail(selected.from), subject: selected.subject.startsWith('RE:') ? selected.subject : `RE: ${selected.subject}` })}>↩↩</button>
+                      <button type="button" title="Forward" onClick={openForward}>↪</button>
+                      <button type="button" title="More actions">⋯</button>
+                    </div>
+                  </div>
+                </div>
+                <article className="owa-reading-body" dangerouslySetInnerHTML={{ __html: selected.body }} />
+                <div className="owa-reading-replyrow">
+                  <button type="button" onClick={openReply}>↩ Reply</button>
+                  <button type="button" onClick={openForward}>↪ Forward</button>
+                </div>
+              </div>
             </>
           ) : (
-            <div className="outlook-reading-empty">Select an email to read</div>
+            <div className="owa-reading-empty">
+              <div className="owa-reading-empty-art">✉</div>
+              <p>Select an item to read</p>
+            </div>
           )}
         </main>
       </div>
 
+      {/* ── Compose ── */}
       {composeOpen && (
-        <div className="out-compose-overlay">
-          <div className="out-compose-modal">
-            <div className="out-compose-header">
-              <span>New Message</span>
-              <button className="out-compose-close" type="button" onClick={() => setComposeOpen(false)}>✕</button>
-            </div>
-            <div className="out-compose-fields">
-              <div className="out-compose-field">
-                <span className="out-compose-label">To</span>
-                <input className="out-compose-input" value={to} onChange={(e) => setTo(e.target.value)} placeholder="Recipients" />
-              </div>
-              <div className="out-compose-field">
-                <span className="out-compose-label">Subject</span>
-                <input className="out-compose-input" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Subject" />
+        <div className="owa-compose-overlay">
+          <div className="owa-compose">
+            <div className="owa-compose-titlebar">
+              <span>{subject || 'New message'}</span>
+              <div>
+                <button type="button" title="Minimize">—</button>
+                <button type="button" title="Close" onClick={() => setComposeOpen(false)}>✕</button>
               </div>
             </div>
-            <textarea className="out-compose-body" value={body} onChange={(e) => setBody(e.target.value)} placeholder="Write a message..." />
-            <div className="out-compose-footer">
-              <button className="out-send-btn" type="button" onClick={send}>Send</button>
-              <button className="out-discard-btn" type="button" onClick={() => setComposeOpen(false)}>Discard</button>
+            <div className="owa-compose-field">
+              <button type="button" className="owa-compose-tobtn">To</button>
+              <input value={to} onChange={(e) => setTo(e.target.value)} placeholder="" aria-label="To" />
+              <span className="owa-compose-ccbcc">Cc &nbsp; Bcc</span>
+            </div>
+            <div className="owa-compose-field">
+              <input className="owa-compose-subject" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Add a subject" aria-label="Subject" />
+            </div>
+            <textarea className="owa-compose-body" value={body} onChange={(e) => setBody(e.target.value)} placeholder="" aria-label="Message body" />
+            <div className="owa-compose-toolbar">
+              <button type="button" className="owa-compose-send" onClick={send}>Send <span>▾</span></button>
+              <span className="owa-compose-tools">📎 &nbsp; 🖼 &nbsp; 😀 &nbsp; ✒ &nbsp; ⋯</span>
+              <button type="button" className="owa-compose-discard" onClick={() => setComposeOpen(false)} title="Discard">🗑</button>
             </div>
           </div>
         </div>
       )}
-
-      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} isDark={isDark} onToggleTheme={() => setIsDark((v) => !v)} />
     </div>
   );
 }
