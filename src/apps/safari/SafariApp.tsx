@@ -13,6 +13,7 @@ import { ProjectSailSite } from './sites/ProjectSailSite';
 import { CoLabSite } from './sites/CoLabSite';
 import { SamsungPortalSite } from './sites/SamsungPortalSite';
 import { CurcuitSite } from './sites/CurcuitSite';
+import { AmazonSite } from './sites/AmazonSite';
 import { useSafariStore } from '../../state/useSafariStore';
 import { CompanyLogo, GmailM, ClaudeSpark, ChatGptKnot, GeminiSpark, WorkdayLogo, AdpLogo, ChaseOctagon } from '../../data/brands';
 import './safari.css';
@@ -35,6 +36,7 @@ type SiteId =
   | 'colab'
   | 'samsung-portal'
   | 'curcuit'
+  | 'amazon'
   | 'company-site'
   | 'new-tab';
 
@@ -98,6 +100,7 @@ const CORE_SITES: SiteEntry[] = [
   { id: 'colab',         title: 'CoLab',                 domain: 'colab.aos',                   component: CoLabSite },
   { id: 'samsung-portal',title: 'Samsung PLCM',          domain: 'portal.samsung-dev.net',      component: SamsungPortalSite },
   { id: 'curcuit',       title: 'CIRCUTE',               domain: 'circute.aos',                 component: CurcuitSite },
+  { id: 'amazon',        title: 'Amazon',                domain: 'amazon.com',                  component: AmazonSite },
   { id: 'google',        title: 'Google',                domain: 'google.com',                  component: GoogleSite },
   { id: 'company-site',  title: 'Company',               domain: '.com',                        component: CompanySite },
   { id: 'new-tab',       title: 'New Tab',               domain: '',                            component: NewTabPage },
@@ -143,6 +146,14 @@ function SiteFavicon({ siteId, size = 28 }: { siteId: string; size?: number }) {
     case 'adp': return wrap(<AdpLogo height={size * 0.52} />, 'transparent', false);
     case 'radar': return wrap(<CompanyLogo company="Apple" size={size} />, 'transparent', false);
     case 'buganizer': return wrap(<span style={{ fontSize: size * 0.55 }}>🐛</span>);
+    case 'amazon': return wrap(
+      <svg width={size * 0.72} height={size * 0.72} viewBox="0 0 32 32" style={{ flexShrink: 0 }}>
+        <text x="16" y="17" textAnchor="middle" fontFamily="Helvetica Neue, Arial" fontWeight="800" fontSize="9.5" letterSpacing="-0.6" fill="#131921">amazon</text>
+        <path d="M6 20 C 13 24, 22 24, 27 19.5" fill="none" stroke="#ff9900" strokeWidth="2.1" strokeLinecap="round" />
+        <path d="M27 19.5 l-4-1.3 M27 19.5 l-1.2 4" fill="none" stroke="#ff9900" strokeWidth="1.9" strokeLinecap="round" />
+      </svg>,
+      '#fff',
+    );
     default: {
       const color = FAVICON_COLORS[siteId] ?? '#475569';
       const letter = (siteId.charAt(0) ?? 'W').toUpperCase();
