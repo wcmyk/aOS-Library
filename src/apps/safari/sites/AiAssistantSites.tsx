@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useProfileStore } from '../../../state/useProfileStore';
-import { useDevStore, AI_PLANS, type AiService } from '../../../state/useDevStore';
+import { useDevStore, AI_PLANS, CLAUDE_PLANS, CLAUDE_ENTERPRISE_ORGS, type AiService, type ClaudePlan } from '../../../state/useDevStore';
+import { useCompanyStore } from '../../../state/useCompanyStore';
 import { ClaudeSpark, ChatGptKnot, GeminiSpark } from '../../../data/brands';
 import './aiassistants.css';
 
@@ -69,6 +70,10 @@ function AiChatSite({ service }: { service: AiService }) {
   const fullName = useProfileStore((s) => s.fullName);
   const sub = useDevStore((s) => s.subscriptions[service]);
   const subscribe = useDevStore((s) => s.subscribe);
+  const employerAccounts = useCompanyStore((s) => s.employerAccounts);
+  const enterpriseOrg = service === 'claude'
+    ? employerAccounts.find((a) => (a.employmentStatus === 'active' || a.employmentStatus === 'onboarding') && CLAUDE_ENTERPRISE_ORGS.test(a.companyName))
+    : undefined;
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
@@ -94,6 +99,64 @@ function AiChatSite({ service }: { service: AiService }) {
 
   // ── Paywall ──
   if (!sub.active) {
+    if (service === 'claude') {
+      return (
+        <div className={`ai-shell ai-${service}`}>
+          <div className="ai-paywall ai-paywall-wide">
+            <div className="ai-paywall-icon">{meta.icon(44)}</div>
+            <h1>Claude</h1>
+            <p className="ai-paywall-sub">Choose the plan that works for you. Personal plans bill your Chase checking account monthly.</p>
+            {enterpriseOrg && (
+              <div className="ai-enterprise-banner">
+                <div>
+                  <strong>{enterpriseOrg.companyName} provides Claude Enterprise</strong>
+                  <span>Your organization covers Claude for employees, with SSO, expanded context, and enterprise data controls. No personal billing.</span>
+                </div>
+                <button type="button" className="ai-subscribe-btn" style={{ background: meta.accent }}
+                  onClick={() => subscribe('claude', 'enterprise')}>
+                  Continue with {enterpriseOrg.companyName} work account
+                </button>
+              </div>
+            )}
+            <div className="ai-plan-grid">
+              {(['pro', 'max', 'team'] as ClaudePlan[]).map((pl) => {
+                const info = CLAUDE_PLANS[pl];
+                const monthly = pl === 'team' ? info.monthly * 5 : info.monthly;
+                return (
+                  <div key={pl} className={`ai-plan-card ${pl === 'max' ? 'featured' : ''}`}>
+                    {pl === 'max' && <span className="ai-plan-flag">Most capable</span>}
+                    <div className="ai-plan-name">{info.label}</div>
+                    <div className="ai-plan-price">${info.monthly.toFixed(0)}<span>{info.perSeat ? '/seat/month' : '/month'}</span></div>
+                    <ul>
+                      <li>{info.blurb}</li>
+                      <li>Access to {meta.model}</li>
+                      <li>{pl === 'team' ? `Billed as $${monthly}/month for 5 seats` : 'Cancel anytime in Settings'}</li>
+                    </ul>
+                    <button type="button" className="ai-subscribe-btn" style={{ background: meta.accent }} onClick={() => subscribe('claude', pl)}>
+                      Subscribe to {info.label}
+                    </button>
+                  </div>
+                );
+              })}
+              <div className="ai-plan-card ai-plan-enterprise">
+                <div className="ai-plan-name">Claude Enterprise</div>
+                <div className="ai-plan-price">Custom</div>
+                <ul>
+                  <li>{CLAUDE_PLANS.enterprise.blurb}</li>
+                  <li>SSO, audit logs, and admin console</li>
+                  <li>{enterpriseOrg ? `Provided by ${enterpriseOrg.companyName}` : 'Available through participating employers'}</li>
+                </ul>
+                <button type="button" className="ai-subscribe-btn ai-subscribe-outline" disabled={!enterpriseOrg}
+                  onClick={() => enterpriseOrg && subscribe('claude', 'enterprise')}>
+                  {enterpriseOrg ? 'Activate via employer' : 'Contact sales'}
+                </button>
+              </div>
+            </div>
+            <span className="ai-plan-fine">Manage anytime in Settings → Subscriptions.</span>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className={`ai-shell ai-${service}`}>
         <div className="ai-paywall">
@@ -124,7 +187,7 @@ function AiChatSite({ service }: { service: AiService }) {
       <header className="ai-header">
         <span className="ai-header-brand">{meta.icon(20)} <strong>{meta.wordmark}</strong></span>
         <span className="ai-header-model">{meta.model} ▾</span>
-        <span className="ai-header-plan">{plan.plan}</span>
+        <span className="ai-header-plan">{service === 'claude' && sub.plan ? CLAUDE_PLANS[sub.plan].label : plan.plan}</span>
       </header>
       <div className="ai-scroll" ref={scrollRef}>
         {messages.length === 0 ? (

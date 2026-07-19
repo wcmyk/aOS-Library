@@ -268,7 +268,7 @@ export function NeuralApp() {
   return (
     <div className="neural-shell">
       <div className="neural-header">
-        <div className="neural-logo-mark">🧠</div>
+        <div className="neural-logo-mark">◎</div>
         <div>
           <div className="neural-brand">Neural Studio</div>
           <div className="neural-sub">Scratch-trained local LM via FastAPI · status: {apiStatus}</div>

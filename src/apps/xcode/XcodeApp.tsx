@@ -110,10 +110,26 @@ function parsePreview(code: string): { nodes: PreviewNode[]; spacing: number } {
   return { nodes, spacing };
 }
 
-const SF_SYMBOLS: Record<string, string> = {
-  globe: '🌐', heart: '♥️', 'heart.fill': '♥️', star: '⭐', 'star.fill': '⭐',
-  bolt: '⚡', sun: '☀️', 'sun.max': '☀️', moon: '🌙', flame: '🔥',
-  person: '👤', house: '🏠', gear: '⚙️', bell: '🔔', swift: '🐦',
+const SF = (body: string) => (
+  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+    dangerouslySetInnerHTML={{ __html: body }} />
+);
+const SF_SYMBOLS: Record<string, JSX.Element> = {
+  globe: SF('<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.7 2.3 4 5.2 4 8.5s-1.3 6.2-4 8.5c-2.7-2.3-4-5.2-4-8.5s1.3-6.2 4-8.5z"/>'),
+  heart: SF('<path d="M12 20s-7-4.6-9-9c-1.2-2.7.6-6 3.8-6 2 0 3.6 1.2 5.2 3.4C13.6 6.2 15.2 5 17.2 5c3.2 0 5 3.3 3.8 6-2 4.4-9 9-9 9z"/>'),
+  'heart.fill': SF('<path fill="currentColor" d="M12 20s-7-4.6-9-9c-1.2-2.7.6-6 3.8-6 2 0 3.6 1.2 5.2 3.4C13.6 6.2 15.2 5 17.2 5c3.2 0 5 3.3 3.8 6-2 4.4-9 9-9 9z"/>'),
+  star: SF('<path d="M12 4.5 14.3 9.3l5.2.7-3.8 3.6.9 5.2L12 16.3l-4.6 2.5.9-5.2L4.5 10l5.2-.7z"/>'),
+  'star.fill': SF('<path fill="currentColor" d="M12 4.5 14.3 9.3l5.2.7-3.8 3.6.9 5.2L12 16.3l-4.6 2.5.9-5.2L4.5 10l5.2-.7z"/>'),
+  bolt: SF('<path d="M13 3 5 13.5h5L11 21l8-10.5h-5z"/>'),
+  sun: SF('<circle cx="12" cy="12" r="4"/><path d="M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7"/>'),
+  'sun.max': SF('<circle cx="12" cy="12" r="4"/><path d="M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7"/>'),
+  moon: SF('<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/>'),
+  flame: SF('<path d="M12 3s5.5 4.2 5.5 9.5a5.5 5.5 0 0 1-11 0C6.5 9.5 9 8 9.5 5.5c1.2 1 2 2.4 2.5 4C13 8 12 5 12 3z"/>'),
+  person: SF('<circle cx="12" cy="8.5" r="3.5"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>'),
+  house: SF('<path d="M4 11 12 4l8 7"/><path d="M6 10v9h12v-9"/>'),
+  gear: SF('<circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4 18 18M18 6l-1.6 1.6M7.6 16.4 6 18"/>'),
+  bell: SF('<path d="M6 17h12l-1.5-2v-4.5a4.5 4.5 0 0 0-9 0V15z"/><path d="M10.3 19.5a1.8 1.8 0 0 0 3.4 0"/>'),
+  swift: SF('<path fill="#f05138" stroke="none" d="M4 15c4 3 9 3.5 12 1.5 1.5 1 2.5 2 3 3.5.5-2 .2-3.7-.8-5.2C19.5 11 19 6.5 15.5 4c1.5 2.5 1.6 5 .8 7C14 9 11 6.8 8 5.5c2 2.5 4.5 4.8 6.5 6.5C11 12.5 7 12 4 9.5c1 2.3 2.8 4.2 5 5.5-1.7.3-3.4.2-5 0z"/>'),
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -153,10 +169,10 @@ export function XcodeApp() {
     steps.forEach(([ms, msg]) => setTimeout(() => setConsole((c) => [...c, msg]), ms));
     buildTimer.current = setTimeout(() => {
       if (hasError) {
-        setConsole((c) => [...c, '❌ error: expressions are not balanced — check braces/quotes in ContentView.swift', 'Build FAILED (0.9s)']);
+        setConsole((c) => [...c, 'error: expressions are not balanced — check braces/quotes in ContentView.swift', 'Build FAILED (0.9s)']);
         setBuilding(false);
       } else {
-        setConsole((c) => [...c, '✅ Build Succeeded (1.8s)', 'Installing on iPhone 16 Pro (Simulator)…', 'Launching com.aos.MyFirstApp…']);
+        setConsole((c) => [...c, 'Build Succeeded (1.8s)', 'Installing on iPhone 16 Pro (Simulator)…', 'Launching com.aos.MyFirstApp…']);
         setBuilding(false);
         setRunning(true);
       }
@@ -179,7 +195,7 @@ export function XcodeApp() {
           <button type="button" className="xc-stop" onClick={stop} title="Stop">■</button>
         </div>
         <div className="xc-scheme">
-          <span className="xc-scheme-app">📱 MyFirstApp</span>
+          <span className="xc-scheme-app"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M10.5 5h3"/></svg> MyFirstApp</span>
           <span className="xc-scheme-sep">›</span>
           <span>iPhone 16 Pro</span>
         </div>
@@ -198,18 +214,18 @@ export function XcodeApp() {
         {/* Navigator */}
         <aside className="xc-navigator">
           <div className="xc-nav-tabs">
-            <span className="active" title="Project navigator">🗂</span>
-            <span title="Search">🔍</span>
-            <span title="Issues">⚠️</span>
-            <span title="Debug">🐞</span>
+            <span className="active" title="Project navigator"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3.5 7h17v13h-17z"/><path d="M7 7V4.5h10V7M3.5 11h17"/></svg></span>
+            <span title="Search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/></svg></span>
+            <span title="Issues"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 3.5 21.5 20h-19z"/><path d="M12 10v4.5M12 17.4v.4"/></svg></span>
+            <span title="Debug"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><ellipse cx="12" cy="14.5" rx="5" ry="6"/><circle cx="12" cy="6" r="2.5"/><path d="m4 12 4 1.5M4 18l4-.5M20 12l-4 1.5M20 18l-4-.5M12 8.5v12"/></svg></span>
           </div>
           <div className="xc-nav-tree">
-            <div className="xc-nav-project">▾ 📁 MyFirstApp</div>
+            <div className="xc-nav-project">▾ <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3.5 6A1.5 1.5 0 0 1 5 4.5h4l2 2.5h8A1.5 1.5 0 0 1 20.5 8.5V18a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18z"/></svg> MyFirstApp</div>
             {files.map((f) => (
               <button key={f.id} type="button"
                 className={`xc-nav-file ${activeFileId === f.id ? 'active' : ''}`}
                 onClick={() => setActiveFileId(f.id)}>
-                <span className="xc-file-ic">{f.kind === 'swift' ? '🐦' : f.kind === 'assets' ? '🎨' : '⚙️'}</span>
+                <span className="xc-file-ic">{f.kind === 'swift' ? <svg width="13" height="13" viewBox="0 0 24 24" fill="#f05138"><path d="M4 15c4 3 9 3.5 12 1.5 1.5 1 2.5 2 3 3.5.5-2 .2-3.7-.8-5.2C19.5 11 19 6.5 15.5 4c1.5 2.5 1.6 5 .8 7C14 9 11 6.8 8 5.5c2 2.5 4.5 4.8 6.5 6.5C11 12.5 7 12 4 9.5c1 2.3 2.8 4.2 5 5.5-1.7.3-3.4.2-5 0z"/></svg> : f.kind === 'assets' ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c084fc" strokeWidth="1.8"><rect x="3.5" y="5" width="17" height="14" rx="1.5"/><circle cx="8.5" cy="10" r="1.5"/><path d="m5 18 5-5 3 3 3.5-3.5 3 3"/></svg> : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4 18 18M18 6l-1.6 1.6M7.6 16.4 6 18"/></svg>}</span>
                 {f.name}
               </button>
             ))}
@@ -235,7 +251,7 @@ export function XcodeApp() {
               </div>
             ) : (
               <div className="xc-assets">
-                <div className="xc-asset-tile"><span className="xc-asset-thumb">🖼</span>AppIcon</div>
+                <div className="xc-asset-tile"><span className="xc-asset-thumb"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3.5" y="5" width="17" height="14" rx="1.5"/><circle cx="8.5" cy="10" r="1.5"/><path d="m5 18 5-5 3 3 3.5-3.5 3 3"/></svg></span>AppIcon</div>
                 <div className="xc-asset-tile"><span className="xc-asset-thumb" style={{ background: '#2f7cf6' }} />AccentColor</div>
               </div>
             )}
@@ -258,10 +274,10 @@ export function XcodeApp() {
           <div className="xc-phone">
             <div className="xc-phone-island" />
             <div className="xc-phone-screen">
-              <div className="xc-phone-statusbar"><span>9:41</span><span>📶 🔋</span></div>
+              <div className="xc-phone-statusbar"><span>9:41</span><span className="xc-status-ics"><svg width="13" height="9" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="0.8"/><rect x="5" y="5.5" width="3" height="6.5" rx="0.8"/><rect x="10" y="3" width="3" height="9" rx="0.8"/><rect x="15" y="0" width="3" height="12" rx="0.8"/></svg> <svg width="19" height="9" viewBox="0 0 26 12" fill="none" stroke="currentColor" strokeWidth="1.2"><rect x="0.6" y="0.6" width="21" height="10.8" rx="3"/><rect x="2.6" y="2.6" width="14" height="6.8" rx="1.4" fill="currentColor" stroke="none"/><path d="M23.5 4v4a2.2 2.2 0 0 0 0-4z" fill="currentColor" stroke="none"/></svg></span></div>
               <div className="xc-phone-app" style={{ gap: preview.spacing }}>
                 {preview.nodes.map((n, i) => {
-                  if (n.type === 'icon') return <div key={i} className="xc-p-icon">{SF_SYMBOLS[n.name] ?? '❖'}</div>;
+                  if (n.type === 'icon') return <div key={i} className="xc-p-icon">{SF_SYMBOLS[n.name] ?? SF_SYMBOLS.star}</div>;
                   if (n.type === 'button') {
                     return (
                       <button key={i} type="button" className="xc-p-button"

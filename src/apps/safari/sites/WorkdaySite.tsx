@@ -127,15 +127,15 @@ export function WorkdaySite() {
       <header className="wd-topbar">
         <button type="button" className="wd-logo-btn" onClick={() => setView('home')}><WorkdayLogo height={22} /></button>
         <div className="wd-search">
-          <span>🔍</span>
+          <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/></svg></span>
           <input placeholder="Search Workday" />
         </div>
         <div className="wd-topbar-right">
           <button type="button" className="wd-topic" title="Notifications" onClick={() => setView('inbox')}>
-            🔔{openTasks.length > 0 && <span className="wd-bubble">{openTasks.length}</span>}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M6 17h12l-1.5-2v-4.5a4.5 4.5 0 0 0-9 0V15z"/><path d="M10.3 19.5a1.8 1.8 0 0 0 3.4 0"/></svg>{openTasks.length > 0 && <span className="wd-bubble">{openTasks.length}</span>}
           </button>
           <button type="button" className="wd-topic" title="My Tasks" onClick={() => setView('inbox')}>
-            📥{openTasks.length > 0 && <span className="wd-bubble">{openTasks.length}</span>}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4 5.5h16V19H4z"/><path d="M4 13h5a3 3 0 0 0 6 0h5"/></svg>{openTasks.length > 0 && <span className="wd-bubble">{openTasks.length}</span>}
           </button>
           <button type="button" className="wd-avatar" onClick={() => setView('profile')}>{initials(fullName)}</button>
         </div>
@@ -155,20 +155,20 @@ export function WorkdaySite() {
               <section className="wd-card">
                 <header><h3>Awaiting Your Action</h3><button type="button" className="wd-linklike" onClick={() => setView('inbox')}>Go to My Tasks ({openTasks.length})</button></header>
                 {openTasks.slice(0, 3).map(renderTaskRow)}
-                {openTasks.length === 0 && <div className="wd-empty">You're all caught up. 🎉</div>}
+                {openTasks.length === 0 && <div className="wd-empty">You're all caught up.</div>}
               </section>
 
               <section className="wd-card">
                 <header><h3>Your Top Apps</h3></header>
                 <div className="wd-apps-grid">
                   {([
-                    ['💰', 'Pay', 'pay'],
-                    ['🧭', 'Career', 'career'],
-                    ['🌴', 'Time Off', 'timeoff'],
-                    ['🩺', 'Benefits', 'benefits'],
-                    ['👤', 'Personal Info', 'profile'],
-                    ['📥', 'My Tasks', 'inbox'],
-                  ] as Array<[string, string, WdView]>).map(([ic, label, v]) => (
+                    [<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="3" y="6" width="18" height="12" rx="1.5"/><circle cx="12" cy="12" r="2.6"/></svg>, 'Pay', 'pay'],
+                    [<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="12" cy="12" r="8.5"/><path d="m15 9-2 5-4 1 2-5z"/></svg>, 'Career', 'career'],
+                    [<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M12 3a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9z"/><path d="M12 12v6a2 2 0 0 0 4 0"/></svg>, 'Time Off', 'timeoff'],
+                    [<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M12 20s-7-4.6-9-9c-1.2-2.7.6-6 3.8-6 2 0 3.6 1.2 5.2 3.4C13.6 6.2 15.2 5 17.2 5c3.2 0 5 3.3 3.8 6-2 4.4-9 9-9 9z"/></svg>, 'Benefits', 'benefits'],
+                    [<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="12" cy="8.5" r="3.5"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>, 'Personal Info', 'profile'],
+                    [<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4 5.5h16V19H4z"/><path d="M4 13h5a3 3 0 0 0 6 0h5"/></svg>, 'My Tasks', 'inbox'],
+                  ] as Array<[JSX.Element, string, WdView]>).map(([ic, label, v]) => (
                     <button key={label} type="button" className="wd-app-tile" onClick={() => setView(v)}>
                       <span className="wd-app-ic">{ic}</span>
                       <span>{label}</span>
@@ -180,9 +180,9 @@ export function WorkdaySite() {
               <section className="wd-card">
                 <header><h3>Timely Suggestions</h3></header>
                 <div className="wd-suggest">
-                  {latest && <button type="button" className="wd-suggest-row" onClick={() => { setView('pay'); setPayslipId(latest.id); }}>💵 Your payslip for {new Date(latest.payDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} is ready — view details</button>}
-                  <button type="button" className="wd-suggest-row" onClick={() => setView('timeoff')}>🌴 You have {ptoAccrued} hours of PTO available — plan time off</button>
-                  <button type="button" className="wd-suggest-row" onClick={() => setView('benefits')}>🩺 Benefits enrollment window is open until the end of the month</button>
+                  {latest && <button type="button" className="wd-suggest-row" onClick={() => { setView('pay'); setPayslipId(latest.id); }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="3" y="6" width="18" height="12" rx="1.5"/><circle cx="12" cy="12" r="2.6"/></svg> Your payslip for {new Date(latest.payDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} is ready — view details</button>}
+                  <button type="button" className="wd-suggest-row" onClick={() => setView('timeoff')}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M12 3a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9z"/><path d="M12 12v6a2 2 0 0 0 4 0"/></svg> You have {ptoAccrued} hours of PTO available — plan time off</button>
+                  <button type="button" className="wd-suggest-row" onClick={() => setView('benefits')}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M12 20s-7-4.6-9-9c-1.2-2.7.6-6 3.8-6 2 0 3.6 1.2 5.2 3.4C13.6 6.2 15.2 5 17.2 5c3.2 0 5 3.3 3.8 6-2 4.4-9 9-9 9z"/></svg> Benefits enrollment window is open until the end of the month</button>
                 </div>
               </section>
 
@@ -243,8 +243,8 @@ export function WorkdaySite() {
             </div>
             <div className="wd-card">
               <header><h3>Tax Documents</h3></header>
-              <div className="wd-doc-row"><span>📄 W-2 Wage and Tax Statement — {new Date().getFullYear() - 1}</span><button type="button" className="wd-linklike">View/Print</button></div>
-              <div className="wd-doc-row"><span>📄 W-4 Employee's Withholding Certificate (on file)</span><button type="button" className="wd-linklike">Update</button></div>
+              <div className="wd-doc-row"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg> W-2 Wage and Tax Statement — {new Date().getFullYear() - 1}</span><button type="button" className="wd-linklike">View/Print</button></div>
+              <div className="wd-doc-row"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg> W-4 Employee's Withholding Certificate (on file)</span><button type="button" className="wd-linklike">Update</button></div>
             </div>
           </div>
         )}
@@ -283,7 +283,7 @@ export function WorkdaySite() {
             <div className="wd-card">
               <header><h3>Browse Internal Opportunities</h3></header>
               {[`Senior ${active.title}`, `${active.department.toUpperCase()} Team Lead`, 'Rotation Program — 6 months'].map((r) => (
-                <div key={r} className="wd-doc-row"><span>💼 {r} — {active.companyName}</span><button type="button" className="wd-linklike">View Job</button></div>
+                <div key={r} className="wd-doc-row"><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="4" y="7" width="16" height="13" rx="1.5"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M4 12h16"/></svg> {r} — {active.companyName}</span><button type="button" className="wd-linklike">View Job</button></div>
               ))}
             </div>
           </div>
@@ -313,7 +313,7 @@ export function WorkdaySite() {
             <div className="wd-card">
               <header><h3>Upcoming Company Holidays</h3></header>
               {['Labor Day — Sep 7', 'Thanksgiving — Nov 26 & 27', 'Winter Break — Dec 24 → Jan 1'].map((hName) => (
-                <div key={hName} className="wd-doc-row"><span>📅 {hName}</span></div>
+                <div key={hName} className="wd-doc-row"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="4" y="5.5" width="16" height="14.5" rx="1.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg> {hName}</span></div>
               ))}
             </div>
           </div>
@@ -325,14 +325,14 @@ export function WorkdaySite() {
             <div className="wd-page-head"><h2>Benefits</h2><span className="wd-page-sub">Current elections · {active.companyName}</span></div>
             <div className="wd-benefits-grid">
               {[
-                ['🩺', 'Medical', 'PPO Choice Plus', '$87.50 / period'],
-                ['🦷', 'Dental', 'Standard Coverage', '$11.25 / period'],
-                ['👓', 'Vision', 'VSP Basic', '$3.40 / period'],
-                ['📈', '401(k)', '5% Traditional + 4% employer match', `${usd(Math.round(active.compensation * 0.05 / 26))} / period`],
-                ['🛡', 'Life Insurance', '2x annual salary (employer paid)', '$0.00'],
-                ['🧠', 'EAP & Wellness', 'Included', '$0.00'],
-              ].map(([ic, name, plan, cost]) => (
-                <div key={name} className="wd-benefit-card">
+                [<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M12 20s-7-4.6-9-9c-1.2-2.7.6-6 3.8-6 2 0 3.6 1.2 5.2 3.4C13.6 6.2 15.2 5 17.2 5c3.2 0 5 3.3 3.8 6-2 4.4-9 9-9 9z"/></svg>, 'Medical', 'PPO Choice Plus', '$87.50 / period'],
+                [<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M8 4c-2.5 0-4 2-4 4.5 0 4 1.5 5 2 8.5.3 2 .8 3.5 2 3.5s1.3-1.5 1.5-3c.2-1.3.7-2 2.5-2s2.3.7 2.5 2c.2 1.5.3 3 1.5 3s1.7-1.5 2-3.5c.5-3.5 2-4.5 2-8.5C20 6 18.5 4 16 4c-1.5 0-2.5 1-4 1s-2.5-1-4-1z"/></svg>, 'Dental', 'Standard Coverage', '$11.25 / period'],
+                [<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="7" cy="14" r="3.2"/><circle cx="17" cy="14" r="3.2"/><path d="M10.2 14h3.6M3.8 14 5.5 7h2M20.2 14 18.5 7h-2"/></svg>, 'Vision', 'VSP Basic', '$3.40 / period'],
+                [<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4 19h16"/><path d="m5 15 4.5-4.5 3.5 3L19 8M15.5 8H19v3.5"/></svg>, '401(k)', '5% Traditional + 4% employer match', `${usd(Math.round(active.compensation * 0.05 / 26))} / period`],
+                [<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M12 3.5 5 6v5c0 4.5 3 8 7 9.5 4-1.5 7-5 7-9.5V6z"/></svg>, 'Life Insurance', '2x annual salary (employer paid)', '$0.00'],
+                [<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M3.5 12h4l2-5 3 10 2-5h6"/></svg>, 'EAP & Wellness', 'Included', '$0.00'],
+              ].map(([ic, name, plan, cost], bi) => (
+                <div key={bi} className="wd-benefit-card">
                   <span className="wd-benefit-ic">{ic}</span>
                   <strong>{name}</strong>
                   <span className="wd-benefit-plan">{plan}</span>
