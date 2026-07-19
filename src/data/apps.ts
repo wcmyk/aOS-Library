@@ -80,7 +80,7 @@ export const apps: ShellApp[] = [
   {
     id: 'virtue',
     name: 'App Store',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='asg' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%2331aef5'/%3E%3Cstop offset='1' stop-color='%231b6ef3'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23asg)'/%3E%3Cpath d='M32 15 l3.2 5.6 M26.7 24.5 L20 36 h-6 M37.3 24.5 L44 36 h6 M23.4 42 h17.2 M32 15 L18.6 38.5 M32 15 l13.4 23.5' stroke='white' stroke-width='3.6' stroke-linecap='round' fill='none'/%3E%3C/svg%3E`,
+    icon: `${BASE_URL}assets/apps/virtue.png`,
     description: 'Discover and install apps — featured stories, categories, updates, and purchases',
     accent: '#1b6ef3',
     defaultSize: { width: 1180, height: 760 },

@@ -36,6 +36,8 @@ export const virtueCatalog: VirtueCatalog = {
 
     {
       id: 'pycharm',
+      installed: true,
+      updateAvailable: true,
       name: 'PyCharm Professional',
       developer: 'JetBrains',
       tagline: 'Professional Python IDE for serious engineering teams',
@@ -60,6 +62,8 @@ export const virtueCatalog: VirtueCatalog = {
     },
     {
       id: 'banking',
+      installed: true,
+      updateAvailable: true,
       name: 'Chase Bank',
       developer: 'JPMorgan Chase & Co.',
       tagline: 'Banking made simple, powerful, and beautiful',
@@ -83,6 +87,8 @@ export const virtueCatalog: VirtueCatalog = {
     },
     {
       id: 'calculator',
+      installed: true,
+      updateAvailable: true,
       name: 'Calculator',
       developer: 'aOS',
       tagline: 'Scientific, Financial, Programmer & Statistics Calculator',
@@ -169,6 +175,45 @@ export const virtueCatalog: VirtueCatalog = {
       appIds: ['banking', 'realtor', 'pycharm'],
     },
   ],
+  discover: {
+    hero: {
+      eyebrow: 'OUR FAVORITES',
+      title: 'Amazing Productivity & Developer Tools',
+      description: "You'll love these faves, picked by App Store editors.",
+      image: `${BASE_URL}assets/appstore/game.webp`,
+      appId: 'xcode',
+      iconAppId: 'xcode',
+    },
+    cards: [
+      {
+        id: 'limited-time',
+        eyebrow: 'LIMITED TIME',
+        title: 'Pro App Gems — Up to 90% Off',
+        description: 'Treat yourself to these terrific titles, discounted through July 19.',
+        kind: 'cluster',
+        appIds: ['pycharm', 'banking', 'realtor', 'calculator'],
+        appId: 'pycharm',
+      },
+      {
+        id: 'we-love',
+        eyebrow: 'APPS WE LOVE',
+        title: 'Bank Smarter with Chase',
+        description: 'Experience the complete financial hub — including Workday pay sync!',
+        kind: 'image',
+        image: `${BASE_URL}assets/appstore/productivity.webp`,
+        appId: 'banking',
+      },
+    ],
+    bestNewTitle: 'Best New Apps and Updates',
+    bestNewAppIds: ['xcode', 'pycharm', 'banking', 'calculator', 'realtor'],
+  },
+  sections: {
+    arcade: { title: 'Arcade', blurb: 'Play a curated collection of standout apps.', categoryIds: ['education', 'utilities'] },
+    create: { title: 'Create', blurb: 'Design, build, and bring your ideas to life.', categoryIds: ['creativity', 'developer-tools'] },
+    work: { title: 'Work', blurb: 'Get more done with powerful productivity apps.', categoryIds: ['productivity'] },
+    play: { title: 'Play', blurb: 'Have fun with games and playful experiences.', categoryIds: ['utilities', 'education'] },
+    develop: { title: 'Develop', blurb: 'Everything you need to ship great software.', categoryIds: ['developer-tools'] },
+  },
   spotlight: {
     title: 'Chase Bank is here',
     subtitle: 'Full-featured banking with Workday pay sync',
