@@ -27,6 +27,7 @@ const RealtorApp = lazy(() => import('./apps/realtor/RealtorApp').then((m) => ({
 const AppCenterApp = lazy(() => import('./apps/appcenter/AppCenterApp').then((m) => ({ default: m.AppCenterApp })));
 const RentCafeApp = lazy(() => import('./apps/rentcafe/RentCafeApp').then((m) => ({ default: m.RentCafeApp })));
 const PyCharmApp = lazy(() => import('./apps/pycharm/PyCharmApp').then((m) => ({ default: m.PyCharmApp })));
+const XcodeApp = lazy(() => import('./apps/xcode/XcodeApp').then((m) => ({ default: m.XcodeApp })));
 const CalculatorApp = lazy(() => import('./apps/calculator/CalculatorApp').then((m) => ({ default: m.CalculatorApp })));
 const CircuitApp = lazy(() => import('./apps/circuit/CircuitApp').then((m) => ({ default: m.CircuitApp })));
 const ChemistryApp = lazy(() => import('./apps/chemistry/ChemistryApp').then((m) => ({ default: m.ChemistryApp })));
@@ -134,6 +135,7 @@ function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDoc
   if (window.appId === 'appcenter') return <Suspense fallback={null}><AppCenterApp /></Suspense>;
   if (window.appId === 'rentcafe') return <Suspense fallback={null}><RentCafeApp /></Suspense>;
   if (window.appId === 'pycharm') return <Suspense fallback={null}><PyCharmApp /></Suspense>;
+  if (window.appId === 'xcode') return <Suspense fallback={null}><XcodeApp /></Suspense>;
   if (window.appId === 'calculator') return <Suspense fallback={null}><CalculatorApp /></Suspense>;
   if (window.appId === 'circuit') return <Suspense fallback={null}><CircuitApp /></Suspense>;
   if (window.appId === 'chemistry') return <Suspense fallback={null}><ChemistryApp /></Suspense>;

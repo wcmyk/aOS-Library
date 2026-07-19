@@ -162,7 +162,7 @@ function buildOnboardingEmail(meta: JobMeta): Omit<Email, 'id' | 'read' | 'starr
 
 const MORTGAGE_BANKS = ['CHASE', 'WELLS FARGO', 'TD AMERITRADE', 'PNC', '5/3', 'BANK OF AMERICA', 'CITIBANK', 'CAPITAL ONE', 'HUNTINGTON'];
 
-function processHousingAutomation(
+export function processHousingAutomation(
   original: Email,
   replyBody: string,
   sendEmail: (e: Omit<Email, 'id' | 'read' | 'starred'> & { jobMeta?: JobMeta }) => void,
@@ -187,7 +187,7 @@ function processHousingAutomation(
   }
 }
 
-function processAtsReply(
+export function processAtsReply(
   original: Email,
   replyBody: string,
   sendEmail: (e: Omit<Email, 'id' | 'read' | 'starred'> & { jobMeta?: JobMeta }) => void,

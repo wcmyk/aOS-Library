@@ -11,6 +11,30 @@ export const virtueCatalog: VirtueCatalog = {
   apps: [
 
     {
+      id: 'xcode',
+      name: 'Xcode',
+      developer: 'Apple',
+      tagline: 'Build apps for iPhone, iPad, Mac, and more with Swift',
+      description: 'The complete developer toolset for creating iOS apps: Swift editor with syntax highlighting, live SwiftUI canvas preview on a simulated iPhone, build & run console, and project navigator.',
+      longDescription: 'Xcode on aOS brings the real iOS development workflow to the simulation. Write Swift and SwiftUI in a full editor with syntax highlighting, browse your project in the navigator, and watch the live canvas render your UI on a simulated iPhone as you type. Press Run to build — the console streams compiler output, warnings, and your print statements, and the simulator relaunches your app. Includes a starter SwiftUI project with ContentView, an app entry point, and asset catalog, so new graduates can experience the exact loop an iOS engineer works in daily: edit, build, inspect, iterate.',
+      category: 'developer-tools',
+      icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='xg' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23a8d5ff'/%3E%3Cstop offset='1' stop-color='%232f7cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23xg)'/%3E%3Ccircle cx='32' cy='32' r='22' fill='%23fff' opacity='0.92'/%3E%3Cpath d='M26 20 l-4 24 M38 20 l4 24' stroke='%232f7cf6' stroke-width='3.4' stroke-linecap='round'/%3E%3Cpath d='M20 28 l24 8 M20 36 l24-8' stroke='%231b5fd0' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E`,
+      screenshots: [],
+      version: '16.4',
+      size: '3.2 GB',
+      rating: 4.6,
+      reviewsCount: 214887,
+      ageRating: '4+',
+      lastUpdated: '2026-06-10',
+      featured: true,
+      isFree: true,
+      bundleId: 'com.apple.dt.Xcode',
+      compatibility: ['aOS 1.0+'],
+      permissions: ['Files', 'Terminal Access'],
+      releaseNotes: 'Swift 6 toolchain, faster incremental builds, and improved SwiftUI canvas previews.',
+    },
+
+    {
       id: 'pycharm',
       name: 'PyCharm Professional',
       developer: 'JetBrains',
@@ -113,18 +137,28 @@ export const virtueCatalog: VirtueCatalog = {
   ],
   editorialCards: [
     {
+      id: 'featured-xcode',
+      title: 'Start Building for iOS',
+      subtitle: 'DEVELOP',
+      description: 'Write Swift, preview on a live iPhone canvas, and ship your first app — Xcode is now on aOS.',
+      appId: 'xcode',
+      image: `${BASE_URL}assets/appstore/develop.webp`,
+    },
+    {
       id: 'featured-banking',
       title: 'Banking, Reinvented',
-      subtitle: 'Chase Bank',
+      subtitle: 'APP OF THE DAY',
       description: 'A complete financial hub with Workday pay sync, investment tracking, and real-time transactions.',
       appId: 'banking',
+      image: `${BASE_URL}assets/appstore/productivity.webp`,
     },
     {
       id: 'featured-realtor',
       title: 'Find Your Dream Home',
-      subtitle: 'HomeFind',
+      subtitle: 'OUR FAVORITES',
       description: 'Browse 150 properties across 250 US cities. Search by location, price, type, and mile radius.',
       appId: 'realtor',
+      image: `${BASE_URL}assets/appstore/game.webp`,
     },
   ],
   featuredCollections: [

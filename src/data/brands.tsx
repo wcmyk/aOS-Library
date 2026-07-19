@@ -11,7 +11,7 @@ export type BrandKey =
   | 'google' | 'apple' | 'meta' | 'amazon' | 'aws' | 'microsoft' | 'netflix'
   | 'nvidia' | 'adobe' | 'ibm' | 'anthropic' | 'openai' | 'samsung' | 'intuit'
   | 'mckinsey' | 'bain' | 'bcg' | 'deloitte' | 'boozallen' | 'cognizant'
-  | 'jpmorgan' | 'morganstanley' | 'blackrock' | 'citi' | 'bofa' | 'schwab'
+  | 'jpmorgan' | 'morganstanley' | 'blackrock' | 'citi' | 'bofa' | 'schwab' | 'polymarket'
   | 'chase' | 'pnc' | 'huntington' | 'keybank' | 'mtb' | 'fifththird'
   | 'disney' | 'fedex' | 'ebay' | 'tesla' | 'bmw' | 'caterpillar';
 
@@ -288,7 +288,104 @@ export const BRANDS: Record<BrandKey, BrandDef> = {
     </div>
   ) },
   caterpillar:  { match: /caterpillar/i, name: 'Caterpillar Inc.', color: '#FFCD11', tile: (s) => wordTile(s, '#000', '#FFCD11', 'CAT', { weight: 900, sizeRatio: 0.32, font: "'Arial Black', sans-serif" }) },
+  polymarket:   { match: /polymarket/i, name: 'Polymarket', color: '#1d2b39', tile: (s) => (
+    <div style={tileStyle(s, '#1d2b39')}>
+      <svg width={s * 0.55} height={s * 0.55} viewBox="0 0 32 32">
+        <path d="M6 24 V8 l10 8 10-8 v16" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </div>
+  ) },
 };
+
+// ── Standalone marks (sponsors, AI assistants, HR platforms) ─────────────────
+
+export function PolymarketMark({ height = 20, dark = false }: { height?: number; dark?: boolean }) {
+  const fg = dark ? '#fff' : '#1d2b39';
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: height * 0.35, lineHeight: 1 }}>
+      <svg width={height} height={height} viewBox="0 0 32 32">
+        <rect width="32" height="32" rx="7" fill="#1d2b39" />
+        <path d="M8 22 V10 l8 6 8-6 v12" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      <span style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontWeight: 700, fontSize: height * 0.78, color: fg, letterSpacing: '-0.02em' }}>Polymarket</span>
+    </span>
+  );
+}
+
+export function ClaudeSpark({ size = 20 }: { size?: number }) {
+  // Anthropic's Claude starburst
+  const rays = Array.from({ length: 12 }, (_, i) => i * 30);
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32">
+      {rays.map((deg) => (
+        <path key={deg} d="M16 16 L16 3.5" stroke="#D97757" strokeWidth="3.4" strokeLinecap="round" transform={`rotate(${deg} 16 16)`} />
+      ))}
+      <circle cx="16" cy="16" r="4.4" fill="#D97757" />
+    </svg>
+  );
+}
+
+export function ChatGptKnot({ size = 20, color = '#000' }: { size?: number; color?: string }) {
+  // Simplified OpenAI hexagonal knot
+  const arms = Array.from({ length: 6 }, (_, i) => i * 60);
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32">
+      {arms.map((deg) => (
+        <path
+          key={deg}
+          d="M16 5.4 a10.6 10.6 0 0 1 9.18 5.3 l-4.6 8 a5.3 5.3 0 0 1-4.58 2.65"
+          fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+          transform={`rotate(${deg} 16 16)`}
+        />
+      ))}
+    </svg>
+  );
+}
+
+export function WorkdayLogo({ height = 22 }: { height?: number }) {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: height * 0.28, lineHeight: 1 }}>
+      <svg width={height} height={height} viewBox="0 0 32 32">
+        <circle cx="16" cy="16" r="15" fill="#F38B00" />
+        <path d="M7 12 l3.2 9 3-7.4 2.8 7.4 3-7.4 2.8 7.4 3.2-9" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      <span style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontWeight: 600, fontSize: height * 0.82, color: '#005cb9', letterSpacing: '-0.02em' }}>workday<span style={{ color: '#F38B00' }}>.</span></span>
+    </span>
+  );
+}
+
+export function AdpLogo({ height = 22 }: { height?: number }) {
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      background: '#d0271d', borderRadius: height * 0.22,
+      padding: `${height * 0.14}px ${height * 0.36}px`, lineHeight: 1,
+    }}>
+      <span style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontWeight: 800, fontStyle: 'italic', fontSize: height * 0.82, color: '#fff', letterSpacing: '-0.01em' }}>ADP</span>
+    </span>
+  );
+}
+
+export function GmailM({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size * 0.75} viewBox="0 0 48 36">
+      <path d="M4 36 h7 V16 L0 8 v24 a4 4 0 0 0 4 4z" fill="#4285F4" />
+      <path d="M37 36 h7 a4 4 0 0 0 4-4 V8 l-11 8z" fill="#34A853" />
+      <path d="M11 16 24 25.5 37 16 V6 L24 15.5 11 6z" fill="#EA4335" />
+      <path d="M0 8 l11 8 V6 L6.5 2.6 A4 4 0 0 0 0 5.8z" fill="#C5221F" />
+      <path d="M48 8 l-11 8 V6 l4.5-3.4 A4 4 0 0 1 48 5.8z" fill="#FBBC04" />
+    </svg>
+  );
+}
+
+export function GoogleWordmark({ height = 34 }: { height?: number }) {
+  const letters: Array<[string, string]> = [['G', '#4285F4'], ['o', '#EA4335'], ['o', '#FBBC04'], ['g', '#4285F4'], ['l', '#34A853'], ['e', '#EA4335']];
+  return (
+    <span style={{ fontFamily: "'Product Sans', 'Century Gothic', 'Futura', 'Segoe UI', sans-serif", fontWeight: 500, fontSize: height, letterSpacing: '-0.02em', lineHeight: 1 }}>
+      {letters.map(([ch, color], i) => <span key={i} style={{ color }}>{ch}</span>)}
+    </span>
+  );
+}
 
 // Network marks used on payment cards
 export function VisaWordmark({ height = 18, color = '#fff' }: { height?: number; color?: string }) {

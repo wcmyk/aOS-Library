@@ -546,6 +546,8 @@ const REAL_FEED_POSTS: FeedPost[] = [
     text: 'Reminder that observability is not the same as monitoring. Monitoring tells you something is broken. Observability lets you understand why — even for failure modes you have never seen before. Cardinality in your metrics matters.' },
   { id: 9, author: 'Bain & Company', company: 'Bain & Company', banner: true, followers: '2,881,730 followers', time: '3d', reactions: 5107, comments: 156, reposts: 433,
     text: 'Results, not reports. For the 21st consecutive year, Bain has been ranked one of the best places to work. Our Associate Consultant Intern and full-time ACI applications are now open — join a team that measures success by client outcomes.' },
+  { id: 10, author: 'Polymarket', company: 'Polymarket', followers: '412,806 followers', promoted: true, time: '3d', reactions: 3288, comments: 97, reposts: 214,
+    text: 'Proud sponsor of the aOS Workforce Readiness Simulation. Markets are the best forecasters — will tech hiring beat expectations this quarter? Trade what you believe.' },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
