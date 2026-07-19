@@ -160,7 +160,7 @@ export const apps: ShellApp[] = [
   {
     id: 'pycharm',
     name: 'PyCharm',
-    icon: `${BASE_URL}assets/apps/vscode.png`,
+    icon: `${BASE_URL}assets/apps/pycharm.png`,
     description: 'Professional Python IDE with project explorer and integrated terminal',
     accent: '#00c389',
     defaultSize: { width: 1220, height: 760 },
@@ -168,7 +168,7 @@ export const apps: ShellApp[] = [
   {
     id: 'xcode',
     name: 'Xcode',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='xg' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23a8d5ff'/%3E%3Cstop offset='1' stop-color='%232f7cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23xg)'/%3E%3Ccircle cx='32' cy='32' r='22' fill='%23fff' opacity='0.92'/%3E%3Cpath d='M26 20 l-4 24 M38 20 l4 24' stroke='%232f7cf6' stroke-width='3.4' stroke-linecap='round'/%3E%3Cpath d='M20 28 l24 8 M20 36 l24-8' stroke='%231b5fd0' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E`,
+    icon: `${BASE_URL}assets/apps/xcode.png`,
     description: 'Swift iOS development environment with live iPhone canvas, build console, and starter SwiftUI project',
     accent: '#2f7cf6',
     defaultSize: { width: 1280, height: 800 },

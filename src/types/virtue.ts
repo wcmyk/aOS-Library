@@ -91,8 +91,11 @@ export interface VirtueDiscoverCard {
   eyebrow: string;
   title: string;
   description: string;
-  /** 'cluster' renders a ring of app icons, 'image' renders a single circular artwork. */
-  kind: 'cluster' | 'image';
+  /**
+   * 'cluster' renders a ring of app icons, 'image' renders a single circular
+   * artwork, and 'logo' renders a single app's icon as a large rounded square.
+   */
+  kind: 'cluster' | 'image' | 'logo';
   image?: string;
   appId?: string;
   /** Icons used when kind === 'cluster'. */

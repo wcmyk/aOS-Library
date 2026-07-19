@@ -141,6 +141,7 @@ function DiscoverCard({
     .map((id) => appById(id)?.icon)
     .filter(Boolean)
     .slice(0, 4) as string[];
+  const logoApp = card.kind === 'logo' ? appById(card.appId) : undefined;
 
   return (
     <article
@@ -164,6 +165,10 @@ function DiscoverCard({
               <img key={i} src={src} alt="" />
             ))}
           </div>
+        </div>
+      ) : card.kind === 'logo' ? (
+        <div className="mas-card-media logo" aria-hidden="true">
+          {logoApp?.icon ? <img src={logoApp.icon} alt="" /> : null}
         </div>
       ) : (
         <div className="mas-card-media image" aria-hidden="true">
