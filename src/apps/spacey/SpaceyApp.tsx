@@ -39,6 +39,76 @@ const SPACES: Space[] = [
   { id: 's10', name: '5×5 Premium Locker', kind: 'locker', image: 'locker', dims: "5' × 5' × 9'", sqft: 25, price: 69, city: 'Manhattan, NY', desc: 'A premium climate-controlled locker in a concierge-serviced building in the heart of the city — spotless, bright and always secure.', features: ['Concierge building', 'Climate controlled', 'Extra tall', 'App-based access', 'Package acceptance', 'Month-to-month'] },
 ];
 
+// ── Expanded inventory (5× the hand-written selection) ──────────────────────
+type SpaceSeed = [id: string, name: string, kind: Kind, image: string, dims: string, sqft: number, price: number, city: string];
+
+const DESC_BY_KIND: Record<Kind, string> = {
+  unit: 'A clean, well-lit self-storage unit with a wide roll-up door and drive-up access — pull your vehicle right to the door and roll your things straight in.',
+  container: 'A weatherproof steel container delivered to your door. Pack it on your own schedule, and we store it in our secure warehouse or move it wherever you need.',
+  warehouse: 'A dedicated warehouse space with dock and drive-in loading, high clear height and pallet racking — built for businesses that have outgrown a storage unit.',
+  locker: 'A spotless climate-controlled locker in a secure indoor facility — ideal for documents, electronics, seasonal items and anything that needs stable temperature.',
+};
+const FEAT_BY_KIND: Record<Kind, string[]> = {
+  unit: ['Drive-up access', 'Wide roll-up door', 'Gated & alarmed', 'Video monitored', 'Month-to-month', 'Free lock included'],
+  container: ['Delivered & picked up', 'Weatherproof steel', 'Pack at your pace', 'Store or move it', 'Ground-level loading', 'Flexible term'],
+  warehouse: ['Dock & drive-in loading', 'Pallet racking included', 'Forklift on site', 'High clear height', 'Business address use', '24/7 secured access'],
+  locker: ['Climate controlled', '24/7 keypad access', 'Indoor & secure', 'App-based entry', 'Package acceptance', 'Month-to-month'],
+};
+
+const SPACE_SEEDS: SpaceSeed[] = [
+  ['s11', '10×10 Climate Unit', 'unit', 'unit-full', "10' × 10' × 8'", 100, 179, 'Hoboken, NJ'],
+  ['s12', '10×25 XL Drive-Up', 'unit', 'drive-up', "10' × 25' × 9'", 250, 299, 'Newark, NJ'],
+  ['s13', '5×15 Storage Unit', 'unit', 'unit-empty', "5' × 15' × 8'", 75, 119, 'Bronx, NY'],
+  ['s14', '15×20 Business Unit', 'unit', 'facility', "15' × 20' × 10'", 300, 349, 'Elizabeth, NJ'],
+  ['s15', '20×20 Vehicle Unit', 'unit', 'drive-up', "20' × 20' × 12'", 400, 439, 'Yonkers, NY'],
+  ['s16', 'Portable Container — 20 ft', 'container', 'container-yard', "20' × 8' × 8'", 160, 239, 'Delivered to you'],
+  ['s17', 'Portable Container — 12 ft', 'container', 'container', "12' × 8' × 8'", 96, 169, 'Delivered to you'],
+  ['s18', 'Shipping Container Yard Spot', 'container', 'container-yard', "40' × 8' × 9'", 320, 379, 'Bayonne, NJ'],
+  ['s19', 'Warehouse Bay — 750 sq ft', 'warehouse', 'warehouse', "25' × 30' × 16'", 750, 1250, 'Kearny, NJ'],
+  ['s20', 'Warehouse Suite — 2,500 sq ft', 'warehouse', 'warehouse-big', "50' × 50' × 20'", 2500, 3600, 'Secaucus, NJ'],
+  ['s21', 'Distribution Center — 5,000 sq ft', 'warehouse', 'warehouse-big', "100' × 50' × 24'", 5000, 6900, 'Edison, NJ'],
+  ['s22', '5×5 Climate Locker', 'locker', 'climate-hall', "5' × 5' × 8'", 25, 55, 'Long Island City, NY'],
+  ['s23', '5×8 Climate Locker', 'locker', 'climate-hall', "5' × 8' × 8'", 40, 79, 'Jersey City, NJ'],
+  ['s24', 'Private Wine Storage Locker', 'locker', 'wine-room', "6' × 8' × 8'", 48, 149, 'Manhattan, NY'],
+  ['s25', 'Temperature Wine Vault — 200 bottles', 'locker', 'wine-room', "8' × 10' × 9'", 80, 229, 'Brooklyn, NY'],
+  ['s26', '10×10 Drive-Up Unit', 'unit', 'unit-full', "10' × 10' × 8'", 100, 155, 'Staten Island, NY'],
+  ['s27', '10×30 Warehouse Unit', 'unit', 'facility', "10' × 30' × 12'", 300, 399, 'Paterson, NJ'],
+  ['s28', 'Portable Container — 24 ft', 'container', 'container-yard', "24' × 8' × 8'", 192, 279, 'Delivered to you'],
+  ['s29', 'Warehouse Bay — 1,000 sq ft', 'warehouse', 'warehouse', "40' × 25' × 18'", 1000, 1650, 'Elizabeth, NJ'],
+  ['s30', '5×10 Climate Unit', 'unit', 'unit-empty', "5' × 10' × 8'", 50, 99, 'Queens, NY'],
+  ['s31', 'Concierge Locker — Extra Tall', 'locker', 'locker', "5' × 5' × 10'", 25, 89, 'Manhattan, NY'],
+  ['s32', 'Fulfillment Suite — 3,500 sq ft', 'warehouse', 'warehouse-big', "70' × 50' × 22'", 3500, 4900, 'Carteret, NJ'],
+  ['s33', '15×15 Household Unit', 'unit', 'facility', "15' × 15' × 9'", 225, 289, 'New Rochelle, NY'],
+  ['s34', 'Portable Container — 10 ft', 'container', 'container', "10' × 7' × 8'", 70, 149, 'Delivered to you'],
+  ['s35', 'Archive Document Locker', 'locker', 'climate-hall', "6' × 6' × 8'", 36, 69, 'Jersey City, NJ'],
+  ['s36', '10×20 Business Drive-Up', 'unit', 'drive-up', "10' × 20' × 10'", 200, 259, 'Newark, NJ'],
+  ['s37', 'Warehouse Suite — 1,800 sq ft', 'warehouse', 'warehouse', "45' × 40' × 18'", 1800, 2650, 'Linden, NJ'],
+  ['s38', 'Container Yard — Double Spot', 'container', 'container-yard', "40' × 16' × 9'", 640, 559, 'Bayonne, NJ'],
+  ['s39', 'Grand Wine Cellar Vault', 'locker', 'wine-room', "10' × 12' × 9'", 120, 349, 'Manhattan, NY'],
+  ['s40', '20×30 Fleet Unit', 'unit', 'drive-up', "20' × 30' × 14'", 600, 649, 'Elizabeth, NJ'],
+  ['s41', '5×5 Student Locker', 'locker', 'locker', "5' × 5' × 8'", 25, 39, 'Bronx, NY'],
+  ['s42', 'Portable Container — 40 ft', 'container', 'container-yard', "40' × 8' × 9'", 320, 429, 'Delivered to you'],
+  ['s43', 'Warehouse Bay — 600 sq ft', 'warehouse', 'warehouse', "20' × 30' × 16'", 600, 999, 'Kearny, NJ'],
+  ['s44', '10×15 Climate Unit', 'unit', 'unit-full', "10' × 15' × 8'", 150, 209, 'Hoboken, NJ'],
+  ['s45', 'Cold Storage Locker', 'locker', 'climate-hall', "6' × 10' × 8'", 60, 179, 'Long Island City, NY'],
+  ['s46', 'Mega Distribution — 8,000 sq ft', 'warehouse', 'warehouse-big', "100' × 80' × 26'", 8000, 9800, 'Edison, NJ'],
+  ['s47', '10×12 Drive-Up Unit', 'unit', 'facility', "10' × 12' × 8'", 120, 169, 'Yonkers, NY'],
+  ['s48', 'Portable Container — 28 ft', 'container', 'container', "28' × 8' × 8'", 224, 309, 'Delivered to you'],
+  ['s49', 'Reserve Wine Vault — 500 bottles', 'locker', 'wine-room', "10' × 14' × 9'", 140, 399, 'Brooklyn, NY'],
+  ['s50', '5×7 Climate Locker', 'locker', 'climate-hall', "5' × 7' × 8'", 35, 65, 'Jersey City, NJ'],
+];
+
+function buildSpaces(): Space[] {
+  return SPACE_SEEDS.map(([id, name, kind, image, dims, sqft, price, city]) => ({
+    id, name, kind, image, dims, sqft, price, city,
+    desc: DESC_BY_KIND[kind],
+    features: FEAT_BY_KIND[kind],
+  }));
+}
+
+// Append the expanded inventory after the seed tables are initialised.
+SPACES.push(...buildSpaces());
+
 const CARDS = [
   { id: 'chk', name: 'Chase Total Checking (Debit)', last4: '1666', kind: 'checking' as const },
   { id: 'cc-freedom', name: 'Chase Freedom Unlimited', last4: '6399', kind: 'credit' as const },
