@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { apps } from './data/apps';
 import { Dock } from './components/Dock';
 import { MenuBar } from './components/MenuBar';
+import { MacSystem } from './components/MacSystem';
 import { Spotlight } from './components/Spotlight';
 import { WindowFrame } from './components/WindowFrame';
 import { useDriveStore, type DriveDocument } from './state/useDriveStore';
@@ -198,8 +199,7 @@ export default function App() {
   useEffect(() => {
     const el = document.querySelector('.desktop') as HTMLElement | null;
     if (el) {
-      el.style.backgroundImage =
-        "linear-gradient(145deg, rgba(15, 18, 24, 0.95), rgba(15, 18, 24, 0.7)), url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1600&q=60')";
+      el.style.backgroundImage = `url('${import.meta.env.BASE_URL}assets/wallpaper.jpg')`;
       el.style.backgroundSize = 'cover';
       el.style.backgroundPosition = 'center';
       el.style.backgroundAttachment = 'fixed';
@@ -225,6 +225,7 @@ export default function App() {
   const visibleWindows = windows.filter((win) => !win.minimized);
   const runningJobs = jobs.filter((job) => job.status !== 'Done');
   const systemState = runningJobs.length > 0 ? 'Running Jobs' : 'Idle';
+  const frontWindow = visibleWindows.slice().sort((a, b) => a.zIndex - b.zIndex).pop();
 
   const openDriveDocument = (doc: DriveDocument) => {
     setActiveDocument(doc.id);
@@ -255,6 +256,7 @@ export default function App() {
         workspaceName={workspaceName}
         stateText={systemState}
         jobCount={runningJobs.length}
+        activeAppName={frontWindow ? visibleApps.find((a) => a.id === frontWindow.appId)?.name : undefined}
         onToggleSpotlight={() => toggleSpotlight(true)}
       />
 
@@ -308,6 +310,8 @@ export default function App() {
 
         <Dock apps={visibleApps} windows={windows} onLaunch={openWindow} />
       </div>
+
+      <MacSystem />
     </div>
   );
 }
