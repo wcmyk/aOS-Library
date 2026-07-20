@@ -15,9 +15,10 @@
 
 /* Header */
 .chb-header {
-  height: 56px; background: #117ACA;
+  height: 56px; background: linear-gradient(180deg, #1583d6, #0f70ba);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 20px; flex-shrink: 0;
+  padding: 0 20px 0 84px; flex-shrink: 0;
 }
 .chb-header-brand { display: flex; align-items: center; gap: 10px; }
 .chb-header-wordmark { color: #fff; font-size: 21px; font-weight: 700; letter-spacing: 0.12em; font-family: 'Trebuchet MS', 'Segoe UI', sans-serif; }
@@ -264,3 +265,10 @@
 }
 
 .chb-debit { color: #b91c1c; font-weight: 600; }
+
+/* Higgsfield-generated Chase octagon; the image bg matches the header blue and
+   blends in, showing only the white octagon mark. */
+.chb-header-octagon {
+  width: 30px; height: 30px; border-radius: 6px;
+  mix-blend-mode: screen; object-fit: cover; transform: scale(1.15);
+}

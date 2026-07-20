@@ -272,7 +272,7 @@ export function BankingApp() {
       {/* Brand header */}
       <header className="chb-header">
         <div className="chb-header-brand">
-          <ChaseOctagon size={26} color="#fff" />
+          <img className="chb-header-octagon" src={`${import.meta.env.BASE_URL}assets/banking/chase-octagon.webp`} alt="" />
           <span className="chb-header-wordmark">CHASE</span>
         </div>
         <nav className="chb-header-nav">

@@ -36,6 +36,7 @@ export const apps: ShellApp[] = [
     description: 'Mac-style browser shell for custom AoS websites',
     accent: '#2563eb',
     defaultSize: { width: 1120, height: 700 },
+    frameless: true,
   },
 
   {
@@ -85,6 +86,7 @@ export const apps: ShellApp[] = [
     description: 'Discover and install apps — featured stories, categories, updates, and purchases',
     accent: '#1b6ef3',
     defaultSize: { width: 1180, height: 760 },
+    frameless: true,
   },
   {
     id: 'settings',
@@ -102,6 +104,7 @@ export const apps: ShellApp[] = [
     description: 'Chat with managers, recruiters & your network — plus carrier notices and live sign-in verification codes',
     accent: '#34c759',
     defaultSize: { width: 860, height: 600 },
+    frameless: true,
   },
   {
     id: 'oracle',
@@ -158,6 +161,7 @@ export const apps: ShellApp[] = [
     description: 'Full-featured banking app with Chase-like UI, transactions, investments and mortgage',
     accent: '#1a6abf',
     defaultSize: { width: 1100, height: 700 },
+    frameless: true,
   },
   {
     id: 'realtor',
@@ -199,6 +203,7 @@ export const apps: ShellApp[] = [
     description: 'Interviews, task deadlines, paydays, and start dates from across the simulation',
     accent: '#ff3b30',
     defaultSize: { width: 1150, height: 720 },
+    frameless: true,
   },
   {
     id: 'zoom',
