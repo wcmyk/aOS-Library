@@ -11,6 +11,7 @@ type WindowFrameProps = {
   onMove: (id: string, x: number, y: number) => void;
   onResize: (id: string, width: number, height: number) => void;
   onToggleMaximize: (id: string) => void;
+  chromeless?: boolean;
   children: React.ReactNode;
 };
 
@@ -22,6 +23,7 @@ export function WindowFrame({
   onResize,
   onFocus,
   onToggleMaximize,
+  chromeless,
   children,
 }: WindowFrameProps) {
   const frameRef = useRef<HTMLElement | null>(null);
@@ -212,25 +214,45 @@ export function WindowFrame({
       <div className="window-edge window-edge-right" onMouseDown={handleEdgeMouseDown} />
       <div className="window-edge window-edge-bottom" onMouseDown={handleEdgeMouseDown} />
 
-      <div className="window-header" onMouseDown={handleHeaderMouseDown}>
-        <div className="traffic-lights">
-          <button className="light red" onClick={() => onClose(frame.id)} aria-label="Close window" type="button" />
-          <button
-            className="light yellow"
-            onClick={() => onMinimize(frame.id)}
-            aria-label="Minimize window"
-            type="button"
-          />
-          <button
-            className="light green"
-            aria-label={frame.maximized ? 'Restore window size' : 'Maximize window'}
-            onClick={() => onToggleMaximize(frame.id)}
-            type="button"
-          />
-        </div>
-        <span className="window-title">{frame.title}</span>
-      </div>
-      <div className="window-body">{children}</div>
+      {chromeless ? (
+        <>
+          {/* Frameless: content fills the window; traffic lights float inside it */}
+          <div className="window-dragstrip" onMouseDown={handleHeaderMouseDown} />
+          <div className="traffic-lights traffic-floating">
+            <button className="light red" onClick={() => onClose(frame.id)} aria-label="Close window" type="button" />
+            <button className="light yellow" onClick={() => onMinimize(frame.id)} aria-label="Minimize window" type="button" />
+            <button
+              className="light green"
+              aria-label={frame.maximized ? 'Restore window size' : 'Maximize window'}
+              onClick={() => onToggleMaximize(frame.id)}
+              type="button"
+            />
+          </div>
+          <div className="window-body window-body-full">{children}</div>
+        </>
+      ) : (
+        <>
+          <div className="window-header" onMouseDown={handleHeaderMouseDown}>
+            <div className="traffic-lights">
+              <button className="light red" onClick={() => onClose(frame.id)} aria-label="Close window" type="button" />
+              <button
+                className="light yellow"
+                onClick={() => onMinimize(frame.id)}
+                aria-label="Minimize window"
+                type="button"
+              />
+              <button
+                className="light green"
+                aria-label={frame.maximized ? 'Restore window size' : 'Maximize window'}
+                onClick={() => onToggleMaximize(frame.id)}
+                type="button"
+              />
+            </div>
+            <span className="window-title">{frame.title}</span>
+          </div>
+          <div className="window-body">{children}</div>
+        </>
+      )}
     </section>
   );
 }

@@ -280,6 +280,7 @@ export default function App() {
             onResize={resizeWindow}
             onFocus={focusWindow}
             onToggleMaximize={toggleMaximizeWindow}
+            chromeless={apps.find((a) => a.id === window.appId)?.frameless}
           >
             {renderWindowContent(window, openDriveDocument)}
           </WindowFrame>

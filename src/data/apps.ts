@@ -6,6 +6,7 @@ export type ShellApp = {
   accent: string;
   defaultSize: { width: number; height: number };
   dockHidden?: boolean;
+  frameless?: boolean;
 };
 
 const BASE_URL = import.meta.env.BASE_URL;
@@ -92,6 +93,7 @@ export const apps: ShellApp[] = [
     description: 'System Settings: Wi-Fi, appearance, subscriptions, and developer controls',
     accent: '#60a5fa',
     defaultSize: { width: 1040, height: 700 },
+    frameless: true,
   },
   {
     id: 'messages',
