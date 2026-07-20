@@ -4312,3 +4312,14 @@ kbd {
   background: transparent;
 }
 .axl-menu button:hover { background: rgba(94, 140, 205, 0.2); }
+
+/* Frameless windows: content fills the frame; traffic lights float inside */
+.window-dragstrip {
+  position: absolute; top: 0; left: 0; right: 0; height: 34px;
+  z-index: 25; cursor: default;
+}
+.traffic-floating {
+  position: absolute; top: 15px; left: 16px; z-index: 30;
+  display: flex; gap: 8px;
+}
+.window-body-full { height: 100%; }

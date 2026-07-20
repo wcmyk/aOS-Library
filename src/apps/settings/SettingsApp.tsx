@@ -211,32 +211,41 @@ export function SettingsApp() {
     <div className="mst-shell">
       {/* Sidebar */}
       <aside className="mst-sidebar">
-        <div className="mst-searchwrap">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="rgba(255,255,255,0.45)"><path d="M21.41 18.59l-5.27-5.28A6.83 6.83 0 0 0 17 10a7 7 0 1 0-7 7 6.83 6.83 0 0 0 3.31-.86l5.28 5.27a2 2 0 0 0 2.82-2.82zM5 10a5 5 0 1 1 5 5 5 5 0 0 1-5-5z"/></svg>
-          <input placeholder="Search" value={search} onChange={(e) => setSearch(e.target.value)} />
+        {/* Fixed zone: traffic-light clearance + search. Only this persists on scroll. */}
+        <div className="mst-side-top">
+          <div className="mst-searchwrap">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="rgba(255,255,255,0.45)"><path d="M21.41 18.59l-5.27-5.28A6.83 6.83 0 0 0 17 10a7 7 0 1 0-7 7 6.83 6.83 0 0 0 3.31-.86l5.28 5.27a2 2 0 0 0 2.82-2.82zM5 10a5 5 0 1 1 5 5 5 5 0 0 1-5-5z"/></svg>
+            <input placeholder="Search" value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
         </div>
-        <button type="button" className={`mst-account ${pane === 'account' ? 'active' : ''}`} onClick={() => setPane('account')}>
-          <img src={personPhoto(profile.fullName)} alt="" />
-          <div>
-            <div className="mst-account-name">{profile.fullName}</div>
-            <div className="mst-account-sub">Apple Account</div>
-          </div>
-        </button>
-        <button type="button" className="mst-suggestrow" onClick={() => setPane('account')}>
-          <span>Apple Account<br />Suggestions</span>
-          <span className="mst-redbadge">3</span>
-        </button>
-        <button type="button" className="mst-promorow" onClick={() => setPane('siri')}>Image Playground Is Here</button>
-        {[1, 2, 3].map((group) => (
-          <div key={group} className="mst-sidegroup">
-            {filteredSidebar.filter((r) => r.group === group).map((r) => (
-              <button key={r.id} type="button" className={`mst-siderow ${pane === r.id ? 'active' : ''}`} onClick={() => setPane(r.id)}>
-                <SideIcon bg={r.bg}>{r.icon}</SideIcon>
-                <span>{r.label}</span>
-              </button>
-            ))}
-          </div>
-        ))}
+        <div className="mst-sidescroll">
+          <button type="button" className={`mst-account ${pane === 'account' ? 'active' : ''}`} onClick={() => setPane('account')}>
+            <img src={personPhoto(profile.fullName)} alt="" />
+            <div>
+              <div className="mst-account-name">{profile.fullName}</div>
+              <div className="mst-account-sub">Apple Account</div>
+            </div>
+          </button>
+          <button type="button" className="mst-suggestrow" onClick={() => setPane('account')}>
+            <span>Apple Account<br />Suggestions</span>
+            <span className="mst-redbadge">3</span>
+          </button>
+          <button type="button" className="mst-promorow" onClick={() => setPane('siri')}>Image Playground Is Here</button>
+          <button type="button" className="mst-suggestrow mst-swupdate" onClick={() => setPane('general')}>
+            <span>Software Update Available</span>
+            <span className="mst-redbadge">1</span>
+          </button>
+          {[1, 2, 3].map((group) => (
+            <div key={group} className="mst-sidegroup">
+              {filteredSidebar.filter((r) => r.group === group).map((r) => (
+                <button key={r.id} type="button" className={`mst-siderow ${pane === r.id ? 'active' : ''}`} onClick={() => setPane(r.id)}>
+                  <SideIcon bg={r.bg}>{r.icon}</SideIcon>
+                  <span>{r.label}</span>
+                </button>
+              ))}
+            </div>
+          ))}
+        </div>
       </aside>
 
       {/* Content */}
