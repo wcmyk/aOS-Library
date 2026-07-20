@@ -20,6 +20,7 @@ const VisionApp = lazy(() => import('./apps/vision/VisionApp').then((m) => ({ de
 const SettingsApp = lazy(() => import('./apps/settings/SettingsApp').then((m) => ({ default: m.SettingsApp })));
 const CoLabApp = lazy(() => import('./apps/colab/CoLabApp').then((m) => ({ default: m.CoLabApp })));
 const WorkHubApp = lazy(() => import('./apps/workhub/WorkHubApp').then((m) => ({ default: m.WorkHubApp })));
+const SpaceyApp = lazy(() => import('./apps/spacey/SpaceyApp').then((m) => ({ default: m.SpaceyApp })));
 const NeuralApp = lazy(() => import('./apps/neural/NeuralApp').then((m) => ({ default: m.NeuralApp })));
 const VirtueApp = lazy(() => import('./apps/virtue/VirtueApp').then((m) => ({ default: m.VirtueApp })));
 const BankingApp = lazy(() => import('./apps/banking/BankingApp').then((m) => ({ default: m.BankingApp })));
@@ -132,6 +133,7 @@ function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDoc
   if (window.appId === 'virtue') return <Suspense fallback={null}><VirtueApp /></Suspense>;
   if (window.appId === 'banking') return <Suspense fallback={null}><BankingApp /></Suspense>;
   if (window.appId === 'realtor') return <Suspense fallback={null}><RealtorApp /></Suspense>;
+  if (window.appId === 'spacey') return <Suspense fallback={null}><SpaceyApp /></Suspense>;
   if (window.appId === 'appcenter') return <Suspense fallback={null}><AppCenterApp /></Suspense>;
   if (window.appId === 'rentcafe') return <Suspense fallback={null}><RentCafeApp /></Suspense>;
   if (window.appId === 'pycharm') return <Suspense fallback={null}><PyCharmApp /></Suspense>;

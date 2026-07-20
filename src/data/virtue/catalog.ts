@@ -7,8 +7,47 @@ const BASE_URL = import.meta.env.BASE_URL;
  *
  * Add apps here (or swap this file to API data) when you're ready to publish your catalog.
  */
+// [id, name, developer, tagline, rating, reviews, price(0=free), ageRating]
+const GAME_ROWS: [string, string, string, string, number, number, number, string][] = [
+  ['game-nova', 'Nova Vanguard', 'Stellar Forge Studios', 'Pilot an elite starfighter against the Void Armada', 4.8, 128400, 0, '9+'],
+  ['game-aetheria', 'Aetheria: Realms', 'Mythic Anvil', 'A vast open-world fantasy RPG of blades and runes', 4.9, 214870, 0, '12+'],
+  ['game-apex', 'Apex Circuit', 'Redline Interactive', 'Hyper-real street racing on neon night circuits', 4.7, 98230, 0, '4+'],
+  ['game-deadsignal', 'Dead Signal', 'Hollow Point Games', 'Survive the fog. Everything is trying to find you.', 4.6, 76540, 0, '17+'],
+  ['game-prism', 'Prism Pop', 'Sugarbyte', 'The dazzling match-3 puzzle everyone is playing', 4.8, 342100, 0, '4+'],
+  ['game-meadowvale', 'Meadowvale Farm', 'Cozy Acre', 'Build your dream farm in a warm little valley', 4.9, 187600, 0, '4+'],
+  ['game-bastion', 'Iron Bastion', 'Rampart Interactive', 'Command towers and hold the line in epic sieges', 4.7, 64120, 0, '9+'],
+  ['game-strikers', 'Strikers United', 'Goalline Studios', 'Fast, physical arcade soccer with online leagues', 4.6, 110300, 0, '4+'],
+  ['game-shadowdash', 'Shadow Dash', 'Kunai Collective', 'A lightning-fast ninja action-platformer', 4.8, 89450, 0, '9+'],
+  ['game-cardmasters', 'Card Masters: Arcanum', 'Emberdeck', 'Collect, build decks, and duel in arcane battles', 4.7, 156800, 0, '9+'],
+];
+const GAMES = GAME_ROWS.map(([id, name, developer, tagline, rating, reviewsCount, price, ageRating]) => ({
+  id,
+  name,
+  developer,
+  tagline,
+  description: `${tagline}. ${name} is a premium mobile game from ${developer}, featuring stunning visuals, deep progression and regular live events.`,
+  longDescription: `${name} by ${developer} delivers a console-quality experience on aOS. ${tagline}. Enjoy hand-crafted levels, cinematic audio, cloud saves, controller support and seasonal content updates. Free to play with optional in-app purchases.`,
+  category: 'games',
+  icon: `${BASE_URL}assets/games/${id.replace('game-', '')}.jpg`,
+  screenshots: [],
+  version: '2.4.0',
+  size: `${(rating * 90).toFixed(0)} MB`,
+  rating,
+  reviewsCount,
+  ageRating,
+  lastUpdated: '2026-07-12',
+  featured: true,
+  isFree: price === 0,
+  price: price === 0 ? undefined : `$${price.toFixed(2)}`,
+  bundleId: `com.aos.${id.replace('game-', '')}`,
+  compatibility: ['aOS 1.0+'],
+  permissions: ['Notifications'],
+  releaseNotes: 'New seasonal event, balance tuning, and performance improvements.',
+}));
+
 export const virtueCatalog: VirtueCatalog = {
   apps: [
+    ...GAMES,
 
     {
       id: 'xcode',
@@ -158,6 +197,7 @@ export const virtueCatalog: VirtueCatalog = {
     },
   ],
   categories: [
+    { id: 'games', name: 'Games', blurb: 'Console-quality games — action, racing, puzzle, and more.' },
     { id: 'productivity', name: 'Productivity', blurb: 'Focused tools for getting meaningful work done.' },
     { id: 'utilities', name: 'Utilities', blurb: 'System helpers, workflow accelerators, and practical tools.' },
     { id: 'creativity', name: 'Creativity', blurb: 'Design, media, and creative expression software.' },
@@ -201,21 +241,21 @@ export const virtueCatalog: VirtueCatalog = {
   discover: {
     hero: {
       eyebrow: 'OUR FAVORITES',
-      title: 'Amazing Productivity & Developer Tools',
+      title: 'Amazing Action & Adventure Games',
       description: "You'll love these faves, picked by App Store editors.",
       image: `${BASE_URL}assets/appstore/game.webp`,
-      appId: 'xcode',
-      iconAppId: 'xcode',
+      appId: 'game-aetheria',
+      iconAppId: 'game-aetheria',
     },
     cards: [
       {
         id: 'limited-time',
-        eyebrow: 'LIMITED TIME',
-        title: 'Pro Dev Apps — Up to 90% Off',
-        description: 'Treat yourself to Xcode, VS Code, and more — discounted through July 19.',
+        eyebrow: 'GAMES WE LOVE',
+        title: 'Blockbuster Games — Free to Play',
+        description: 'Jump into Nova Vanguard, Apex Circuit, and more top hits.',
         kind: 'cluster',
-        appIds: ['xcode', 'vscode', 'pycharm', 'calculator'],
-        appId: 'vscode',
+        appIds: ['game-nova', 'game-apex', 'game-deadsignal', 'game-bastion'],
+        appId: 'game-nova',
       },
       {
         id: 'we-love',
@@ -227,13 +267,13 @@ export const virtueCatalog: VirtueCatalog = {
       },
     ],
     bestNewTitle: 'Best New Apps and Updates',
-    bestNewAppIds: ['xcode', 'vscode', 'pycharm', 'banking', 'calculator', 'realtor'],
+    bestNewAppIds: ['game-prism', 'game-meadowvale', 'game-strikers', 'game-shadowdash', 'xcode', 'banking'],
   },
   sections: {
-    arcade: { title: 'Arcade', blurb: 'Play a curated collection of standout apps.', categoryIds: ['education', 'utilities'] },
+    arcade: { title: 'Arcade', blurb: 'Play a curated collection of standout games.', categoryIds: ['games'] },
     create: { title: 'Create', blurb: 'Design, build, and bring your ideas to life.', categoryIds: ['creativity', 'developer-tools'] },
     work: { title: 'Work', blurb: 'Get more done with powerful productivity apps.', categoryIds: ['productivity'] },
-    play: { title: 'Play', blurb: 'Have fun with games and playful experiences.', categoryIds: ['utilities', 'education'] },
+    play: { title: 'Play', blurb: 'Have fun with games and playful experiences.', categoryIds: ['games', 'utilities'] },
     develop: { title: 'Develop', blurb: 'Everything you need to ship great software.', categoryIds: ['developer-tools'] },
   },
   spotlight: {

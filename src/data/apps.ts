@@ -183,6 +183,14 @@ export const apps: ShellApp[] = [
     defaultSize: { width: 1100, height: 700 },
   },
   {
+    id: 'spacey',
+    name: 'Spacey',
+    icon: `${BASE_URL}assets/apps/spacey.png`,
+    description: 'Rent secure, flexible storage space — lockers, units, containers and warehouses',
+    accent: '#6d5efc',
+    defaultSize: { width: 1180, height: 760 },
+  },
+  {
     id: 'calculator',
     name: 'Calculator',
     icon: `${BASE_URL}assets/apps/calculator.png`,
