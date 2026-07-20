@@ -5,6 +5,8 @@ import { AdpSite } from './sites/AdpSite';
 import { GmailSite } from './sites/GmailSite';
 import { GoogleSite } from './sites/GoogleSite';
 import { ClaudeSite, ChatGptSite, GeminiSite } from './sites/AiAssistantSites';
+import { AmazonSite } from './sites/AmazonSite';
+import { GitHubSite, GitHubMark } from './sites/GitHubSite';
 import { ProjectHubSite } from './sites/ProjectHubSite';
 import { WorkfrontSite } from './sites/WorkfrontSite';
 import { RadarSite } from './sites/RadarSite';
@@ -28,6 +30,8 @@ type SiteId =
   | 'claude'
   | 'chatgpt'
   | 'gemini'
+  | 'amazon'
+  | 'github'
   | 'workfront'
   | 'radar'
   | 'buganizer'
@@ -89,6 +93,8 @@ const CORE_SITES: SiteEntry[] = [
   { id: 'workday',       title: 'Workday',               domain: 'workday.company.io',          component: WorkdaySite },
   { id: 'adp',           title: 'myADP',                 domain: 'my.adp.com',                  component: AdpSite },
   { id: 'gmail',         title: 'Gmail',                 domain: 'mail.google.com',             component: GmailSite },
+  { id: 'amazon',        title: 'Amazon',                domain: 'amazon.com',                  component: AmazonSite },
+  { id: 'github',        title: 'GitHub',                domain: 'github.com',                  component: GitHubSite },
   { id: 'claude',        title: 'Claude',                domain: 'claude.ai',                   component: ClaudeSite },
   { id: 'chatgpt',       title: 'ChatGPT',               domain: 'chatgpt.com',                 component: ChatGptSite },
   { id: 'gemini',        title: 'Gemini',                domain: 'gemini.google.com',           component: GeminiSite },
@@ -119,18 +125,18 @@ function resolveSiteId(url: string, companies: { domain: string; name: string }[
 // ─── Bookmark homepage grid ────────────────────────────────────────────────────
 
 const FAVICON_COLORS: Record<string, string> = {
-  linkedin: '#0a66c2', workday: '#f38b00', adp: '#d0271d', gmail: '#ea4335', google: '#4285f4', claude: '#D97757', chatgpt: '#10a37f', gemini: '#4285F4', workfront: '#e8232a',
+  linkedin: '#0a66c2', workday: '#f38b00', adp: '#d0271d', gmail: '#ea4335', google: '#4285f4', amazon: '#131921', claude: '#D97757', chatgpt: '#10a37f', gemini: '#4285F4', workfront: '#e8232a',
   radar: '#0071e3', buganizer: '#34a853', 'project-sail': '#003087',
   'project-hub': '#6366f1', colab: '#5b5fc7', 'samsung-portal': '#1428a0',
   curcuit: '#7dd3fc',
 };
 
 function SiteFavicon({ siteId, size = 28 }: { siteId: string; size?: number }) {
-  const wrap = (child: ReactNode, bg = '#fff', border = true) => (
+  const wrap = (child: ReactNode, bg = '#fff') => (
     <span style={{
       width: size, height: size, borderRadius: size * 0.22, background: bg,
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-      border: border ? '1px solid rgba(0,0,0,0.08)' : 'none', overflow: 'hidden', flexShrink: 0,
+      overflow: 'hidden', flexShrink: 0,
     }}>{child}</span>
   );
   switch (siteId) {
@@ -295,7 +301,7 @@ export function SafariApp() {
           <div className={`sf-address ${editingAddress ? 'editing' : ''}`} onClick={() => setEditingAddress(true)}>
             {!editingAddress && currentPage ? (
               <>
-                <span className="sf-lock">🔒</span>
+                <span className="sf-lock"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10V8a5 5 0 0 1 10 0v2h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V8a3 3 0 0 0-6 0z"/></svg></span>
                 <span className="sf-host">{displayHost}</span>
                 <button type="button" className="sf-reload" title="Reload" onClick={(e) => { e.stopPropagation(); openPage(currentPage.url, currentPage.siteId, currentPage.title); }}>
                   <svg width="13" height="13" viewBox="0 0 16 16"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 1v3.5H10" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>

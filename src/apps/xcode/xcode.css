@@ -178,3 +178,5 @@
 }
 .xc-canvas-tip { font-size: 11px; color: #7c7c84; text-align: center; padding: 0 18px; line-height: 1.5; }
 .xc-canvas-tip code { color: #a8c7f0; }
+
+.xc-status-ics { display: inline-flex; align-items: center; gap: 4px; }

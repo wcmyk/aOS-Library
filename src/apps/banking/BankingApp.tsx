@@ -76,26 +76,6 @@ type WalletCard = {
   darkText?: boolean;
 };
 
-const HuntingtonHex = (
-  <span className="chb-bankmark">
-    <svg width="20" height="20" viewBox="0 0 32 32">
-      <path d="M16 1 L30 9 v14 L16 31 L2 23 V9 Z" fill="#5B8F22" />
-      <path d="M10 9 h4 v5 h4 V9 h4 v14 h-4 v-5 h-4 v5 h-4 Z" fill="#fff" />
-    </svg>
-    <span style={{ fontWeight: 700, letterSpacing: '0.01em' }}>Huntington</span>
-  </span>
-);
-
-const PncMarkSmall = (
-  <span className="chb-bankmark">
-    <svg width="18" height="18" viewBox="0 0 30 30">
-      <path d="M15 2 L28 26 H2 Z" fill="#F58025" />
-      <path d="M15 9 L23 26 H7 Z" fill="#fff" />
-    </svg>
-    <span style={{ fontWeight: 800, letterSpacing: '0.02em' }}>PNC</span>
-  </span>
-);
-
 function buildWallet(holder: string): WalletCard[] {
   const h = holder.toUpperCase();
   return [
@@ -114,31 +94,6 @@ function buildWallet(holder: string): WalletCard[] {
       product: <div className="chb-product-stack"><span>FREEDOM</span><span className="chb-product-sub">UNLIMITED</span></div>,
       network: <div className="chb-network-stack"><VisaWordmark height={22} /><span className="chb-network-tier">Signature</span></div>,
       holder: h, last4: '6399', expiry: '03/29', linked: 'Freedom Unlimited',
-    },
-    {
-      id: 'huntington',
-      className: 'chb-card-huntington',
-      bank: HuntingtonHex,
-      product: <div className="chb-product-stack"><span style={{ fontSize: 13, letterSpacing: '0.14em' }}>VOICE REWARDS</span></div>,
-      network: <MastercardCircles height={30} />,
-      holder: h, last4: '4821', expiry: '07/29', linked: 'Huntington Voice',
-      lightChip: true, darkText: true,
-    },
-    {
-      id: 'pnc',
-      className: 'chb-card-pnc',
-      bank: PncMarkSmall,
-      product: <div className="chb-product-stack"><span style={{ fontSize: 13, letterSpacing: '0.14em' }}>CASH REWARDS</span></div>,
-      network: <div className="chb-network-stack"><VisaWordmark height={22} /><span className="chb-network-tier">Signature</span></div>,
-      holder: h, last4: '9034', expiry: '01/31', linked: 'PNC Cash Rewards',
-    },
-    {
-      id: 'worldelite',
-      className: 'chb-card-worldelite',
-      bank: <span className="chb-bankmark" style={{ fontWeight: 600, letterSpacing: '0.16em', fontSize: 11 }}>WORLD ELITE</span>,
-      product: <div className="chb-product-stack" />,
-      network: <MastercardCircles height={34} />,
-      holder: h, last4: '5512', expiry: '09/30', linked: 'World Elite Mastercard',
     },
     {
       id: 'debit',
@@ -315,7 +270,7 @@ export function BankingApp() {
         <span className="chb-subnav-static">Plan & track</span>
         <span className="chb-subnav-static">Investments</span>
         <span className="chb-subnav-static">Security & privacy</span>
-        <span className="chb-secure">🔒 Secure session</span>
+        <span className="chb-secure"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10V8a5 5 0 0 1 10 0v2h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V8a3 3 0 0 0-6 0z"/></svg> Secure session</span>
       </nav>
 
       <div className="chb-body">
@@ -329,7 +284,7 @@ export function BankingApp() {
               {wallet.map((card) => (
                 <div key={card.id} className="chb-wallet-item">
                   <CardArt card={card} />
-                  {lockedCards[card.id] && <div className="chb-card-lockedover">🔒 Card locked</div>}
+                  {lockedCards[card.id] && <div className="chb-card-lockedover"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10V8a5 5 0 0 1 10 0v2h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V8a3 3 0 0 0-6 0z"/></svg> Card locked</div>}
                   <div className="chb-wallet-meta">
                     <div>
                       <div className="chb-wallet-linked">{card.linked}</div>
@@ -384,8 +339,18 @@ export function BankingApp() {
                     <label>Amount
                       <input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="$0.00" />
                     </label>
-                    <button type="button" className="chb-primary-btn" onClick={() => setConfirmation(`Transfer scheduled for ${amount ? `$${amount}` : '$0.00'} — confirmation #${Math.floor(Math.random() * 900000000 + 100000000)}`)}>
-                      Schedule transfer
+                    <button type="button" className="chb-primary-btn" onClick={() => {
+                      const amt = parseFloat(amount);
+                      if (Number.isNaN(amt) || amt <= 0) { setConfirmation('Enter a valid amount.'); return; }
+                      const fromBal = accounts.find((a) => a.id === from)?.balance ?? 0;
+                      if ((from === 'chk' || from === 'sav') && amt > fromBal) { setConfirmation(`Insufficient funds: available ${fmt(fromBal)}.`); return; }
+                      if (to === 'cc-freedom') { payCard('freedom', amt); }
+                      else if (to === 'cc-sapphire') { payCard('sapphire', amt); }
+                      else { addTransfer(from, to, amt); }
+                      setAmount('');
+                      setConfirmation(`Transfer complete — ${fmt(amt)} moved. Confirmation #${String(Date.now()).slice(-9)}`);
+                    }}>
+                      Transfer money
                     </button>
                   </div>
                   {confirmation && <div className="chb-confirm">✓ {confirmation}</div>}

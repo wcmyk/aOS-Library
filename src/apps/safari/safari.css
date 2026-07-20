@@ -116,8 +116,12 @@
 .sf-fav:hover { background: rgba(0,0,0,0.05); }
 .sf-fav-icon {
   width: 64px; height: 64px; border-radius: 14px;
-  background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.14);
   display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.sf-fav-icon > span, .sf-fav-icon > svg, .sf-fav-icon > div {
+  width: 100% !important; height: 100% !important; border-radius: 14px !important;
 }
 .sf-fav-label { font-size: 12px; color: #1d1d1f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 

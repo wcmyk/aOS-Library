@@ -89,12 +89,12 @@ export function SanctumApp({ onOpenDocument }: SanctumAppProps) {
     });
   };
 
-  const navItems: { id: NavSection; label: string; icon: string; count?: number }[] = [
+  const navItems: { id: NavSection; label: string; icon: JSX.Element | string; count?: number }[] = [
     { id: 'home', label: 'Home', icon: '⌂' },
-    { id: 'my-drive', label: 'My Drive', icon: '☁', count: stats.mine },
-    { id: 'shared', label: 'Shared', icon: '👥', count: stats.shared },
+    { id: 'my-drive', label: 'My Drive', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M7 18a4 4 0 0 1-.6-7.96 5.5 5.5 0 0 1 10.8 1.1A3.5 3.5 0 0 1 17 18z"/></svg>, count: stats.mine },
+    { id: 'shared', label: 'Shared', icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="9" cy="8.5" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="M15.5 6a3 3 0 0 1 0 5.6M16.5 13.6A5.5 5.5 0 0 1 20.5 19"/></svg>, count: stats.shared },
     { id: 'recent', label: 'Recent', icon: '⏱' },
-    { id: 'starred', label: 'Starred', icon: '⭐', count: starred.size },
+    { id: 'starred', label: 'Starred', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M12 4.5 14.3 9.3l5.2.7-3.8 3.6.9 5.2L12 16.3l-4.6 2.5.9-5.2L4.5 10l5.2-.7z"/></svg>, count: starred.size },
   ];
 
   const navLabel = navItems.find((n) => n.id === nav)?.label ?? 'Home';
@@ -139,9 +139,9 @@ export function SanctumApp({ onOpenDocument }: SanctumAppProps) {
 
         <div className="sct-sidebar-section-title" style={{ marginTop: 12 }}>Quick Access</div>
         <div className="sct-quick-access">
-          <button type="button" className="sct-quick-btn">📄 Documents</button>
-          <button type="button" className="sct-quick-btn">📊 Workbooks</button>
-          <button type="button" className="sct-quick-btn">🗂 Archive</button>
+          <button type="button" className="sct-quick-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg> Documents</button>
+          <button type="button" className="sct-quick-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="4" y="4" width="16" height="16" rx="1.5"/><path d="M8 16v-5M12 16V8M16 16v-3"/></svg> Workbooks</button>
+          <button type="button" className="sct-quick-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M3.5 7h17v13h-17z"/><path d="M7 7V4.5h10V7M3.5 11h17"/></svg> Archive</button>
         </div>
       </aside>
 
@@ -206,28 +206,28 @@ export function SanctumApp({ onOpenDocument }: SanctumAppProps) {
         {nav === 'home' && (
           <div className="sct-stats-row">
             <div className="sct-stat-card">
-              <div className="sct-stat-icon" style={{ background: 'rgba(43,87,154,0.3)', color: '#6faaff' }}>📄</div>
+              <div className="sct-stat-icon" style={{ background: 'rgba(43,87,154,0.3)', color: '#6faaff' }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg></div>
               <div>
                 <div className="sct-stat-value">{stats.mine}</div>
                 <div className="sct-stat-label">My Files</div>
               </div>
             </div>
             <div className="sct-stat-card">
-              <div className="sct-stat-icon" style={{ background: 'rgba(33,115,70,0.3)', color: '#5de09a' }}>📊</div>
+              <div className="sct-stat-icon" style={{ background: 'rgba(33,115,70,0.3)', color: '#5de09a' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="4" y="4" width="16" height="16" rx="1.5"/><path d="M8 16v-5M12 16V8M16 16v-3"/></svg></div>
               <div>
                 <div className="sct-stat-value">{stats.sheets}</div>
                 <div className="sct-stat-label">Workbooks</div>
               </div>
             </div>
             <div className="sct-stat-card">
-              <div className="sct-stat-icon" style={{ background: 'rgba(180,100,30,0.3)', color: '#ffa94d' }}>👥</div>
+              <div className="sct-stat-icon" style={{ background: 'rgba(180,100,30,0.3)', color: '#ffa94d' }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="9" cy="8.5" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="M15.5 6a3 3 0 0 1 0 5.6M16.5 13.6A5.5 5.5 0 0 1 20.5 19"/></svg></div>
               <div>
                 <div className="sct-stat-value">{stats.shared}</div>
                 <div className="sct-stat-label">Shared</div>
               </div>
             </div>
             <div className="sct-stat-card">
-              <div className="sct-stat-icon" style={{ background: 'rgba(100,60,180,0.3)', color: '#c084fc' }}>⭐</div>
+              <div className="sct-stat-icon" style={{ background: 'rgba(100,60,180,0.3)', color: '#c084fc' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M12 4.5 14.3 9.3l5.2.7-3.8 3.6.9 5.2L12 16.3l-4.6 2.5.9-5.2L4.5 10l5.2-.7z"/></svg></div>
               <div>
                 <div className="sct-stat-value">{starred.size}</div>
                 <div className="sct-stat-label">Starred</div>
@@ -239,7 +239,7 @@ export function SanctumApp({ onOpenDocument }: SanctumAppProps) {
         {/* Files */}
         {visibleDocs.length === 0 ? (
           <div className="sct-empty">
-            <div className="sct-empty-icon">📂</div>
+            <div className="sct-empty-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M3.5 6A1.5 1.5 0 0 1 5 4.5h4l2 2.5h8A1.5 1.5 0 0 1 20.5 8.5V18a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18z"/></svg></div>
             <div className="sct-empty-title">No files here</div>
             <div className="sct-empty-sub">
               {search ? 'Try a different search term.' : 'Files you add will appear here.'}

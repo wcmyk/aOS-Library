@@ -16,7 +16,9 @@ export type BrandKey =
   | 'disney' | 'fedex' | 'ebay' | 'tesla' | 'bmw' | 'caterpillar'
   | 'mmm' | 'att' | 'ge' | 'chevron' | 'exxon' | 'homedepot' | 'humana'
   | 'abbvie' | 'amgen' | 'aecom' | 'activision' | 'comcast' | 'ford' | 'gm'
-  | 'mercedes' | 'airbnb' | 'hp' | 'dell' | 'leidos' | 'biogen' | 'bms' | 'iqvia';
+  | 'mercedes' | 'airbnb' | 'hp' | 'dell' | 'leidos' | 'biogen' | 'bms' | 'iqvia'
+  | 'target' | 'walmart' | 'costco' | 'bestbuy' | 'kroger' | 'cvs' | 'walgreens'
+  | 'lowes' | 'macys' | 'nordstrom' | 'dollargeneral' | 'starbucks';
 
 type BrandDef = {
   match: RegExp;
@@ -370,6 +372,74 @@ export const BRANDS: Record<BrandKey, BrandDef> = {
   biogen:       { match: /biogen/i, name: 'Biogen', color: '#00539B', tile: (s) => wordTile(s, '#fff', '#00539B', 'Biogen', { weight: 700, sizeRatio: 0.24 }) },
   bms:          { match: /bristol/i, name: 'Bristol Myers Squibb', color: '#BE2BBB', tile: (s) => wordTile(s, '#fff', '#BE2BBB', 'BMS', { weight: 800, sizeRatio: 0.3 }) },
   iqvia:        { match: /iqvia/i, name: 'IQVIA', color: '#00AEEF', tile: (s) => wordTile(s, '#fff', '#005587', 'IQVIA', { weight: 800, sizeRatio: 0.26 }) },
+  target:       { match: /\btarget\b/i, name: 'Target', color: '#CC0000', tile: (s) => (
+    <div style={tileStyle(s, '#fff', { border: '1px solid #e8e8e8' })}>
+      <svg width={s * 0.62} height={s * 0.62} viewBox="0 0 40 40">
+        <circle cx="20" cy="20" r="19" fill="#CC0000" />
+        <circle cx="20" cy="20" r="12.5" fill="#fff" />
+        <circle cx="20" cy="20" r="6.5" fill="#CC0000" />
+      </svg>
+    </div>
+  ), banner: `${BANNERS}/target.webp` },
+  walmart:      { match: /walmart/i, name: 'Walmart', color: '#0071CE', tile: (s) => (
+    <div style={tileStyle(s, '#0071CE')}>
+      <svg width={s * 0.58} height={s * 0.58} viewBox="0 0 40 40">
+        {[0, 60, 120, 180, 240, 300].map((deg) => (
+          <rect key={deg} x="17.6" y="4" width="4.8" height="11" rx="2.4" fill="#FFC220" transform={`rotate(${deg} 20 20)`} />
+        ))}
+      </svg>
+    </div>
+  ), banner: `${BANNERS}/walmart.webp` },
+  costco:       { match: /costco/i, name: 'Costco Wholesale', color: '#E31837', tile: (s) => (
+    <div style={tileStyle(s, '#fff', { border: '1px solid #e8e8e8', flexDirection: 'column', gap: 0 })}>
+      <span style={{ color: '#E31837', fontWeight: 800, fontSize: s * 0.24, letterSpacing: '-0.02em' }}>COSTCO</span>
+      <span style={{ color: '#005DAA', fontWeight: 700, fontSize: s * 0.11, letterSpacing: '0.1em' }}>WHOLESALE</span>
+    </div>
+  ) },
+  bestbuy:      { match: /best buy/i, name: 'Best Buy', color: '#0046BE', tile: (s) => (
+    <div style={tileStyle(s, '#0046BE')}>
+      <svg width={s * 0.6} height={s * 0.5} viewBox="0 0 44 36">
+        <path d="M2 12 L34 4 L34 28 L2 34 Z" fill="#FFF200" />
+        <text x="17" y="23" textAnchor="middle" fontSize="9" fontWeight="800" fill="#0046BE" fontFamily="Arial" transform="rotate(-6 17 20)">BEST</text>
+      </svg>
+    </div>
+  ) },
+  kroger:       { match: /kroger/i, name: 'Kroger', color: '#0F4C92', tile: (s) => wordTile(s, '#fff', '#0F4C92', 'Kroger', { weight: 800, sizeRatio: 0.24, italic: true }) },
+  cvs:          { match: /\bcvs\b/i, name: 'CVS Health', color: '#CC0000', tile: (s) => (
+    <div style={tileStyle(s, '#fff', { border: '1px solid #e8e8e8', flexDirection: 'column', gap: s * 0.02 })}>
+      <span style={{ color: '#CC0000', fontWeight: 900, fontSize: s * 0.3, letterSpacing: '-0.02em' }}>CVS</span>
+      <svg width={s * 0.4} height={s * 0.14} viewBox="0 0 40 12"><path d="M4 6 C10 0 14 0 20 6 C26 12 30 12 36 6" fill="none" stroke="#CC0000" strokeWidth="3.4" strokeLinecap="round" /></svg>
+    </div>
+  ) },
+  walgreens:    { match: /walgreens/i, name: 'Walgreens', color: '#E31837', tile: (s) => (
+    <div style={tileStyle(s, '#E31837')}>
+      <span style={{ color: '#fff', fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 700, fontSize: s * 0.5 }}>W</span>
+    </div>
+  ) },
+  lowes:        { match: /lowe'?s/i, name: "Lowe's", color: '#004990', tile: (s) => (
+    <div style={tileStyle(s, '#004990', { flexDirection: 'column', gap: 0 })}>
+      <svg width={s * 0.6} height={s * 0.28} viewBox="0 0 40 16"><path d="M2 14 L20 2 L38 14 Z" fill="none" stroke="#fff" strokeWidth="2.6" /></svg>
+      <span style={{ color: '#fff', fontWeight: 800, fontSize: s * 0.17, letterSpacing: '0.06em' }}>LOWE'S</span>
+    </div>
+  ) },
+  macys:        { match: /macy'?s/i, name: "Macy's", color: '#E21A2C', tile: (s) => (
+    <div style={tileStyle(s, '#fff', { border: '1px solid #e8e8e8' })}>
+      <svg width={s * 0.55} height={s * 0.55} viewBox="0 0 32 32">
+        <path d="M16 2 L19.4 11.6 L29.6 11.8 L21.5 18 L24.4 27.8 L16 22 L7.6 27.8 L10.5 18 L2.4 11.8 L12.6 11.6 Z" fill="#E21A2C" />
+      </svg>
+    </div>
+  ) },
+  nordstrom:    { match: /nordstrom/i, name: 'Nordstrom', color: '#000', tile: (s) => wordTile(s, '#000', '#fff', 'N', { weight: 400, sizeRatio: 0.55, font: 'Georgia, serif' }) },
+  dollargeneral:{ match: /dollar general/i, name: 'Dollar General', color: '#FFC726', tile: (s) => wordTile(s, '#FFC726', '#000', 'DG', { weight: 900, sizeRatio: 0.42 }) },
+  starbucks:    { match: /starbucks/i, name: 'Starbucks', color: '#00704A', tile: (s) => (
+    <div style={tileStyle(s, '#00704A')}>
+      <svg width={s * 0.6} height={s * 0.6} viewBox="0 0 40 40">
+        <circle cx="20" cy="20" r="18" fill="none" stroke="#fff" strokeWidth="2" />
+        <circle cx="20" cy="14" r="4.4" fill="#fff" />
+        <path d="M13 22 C13 18 27 18 27 22 C27 28 24 31 20 31 C16 31 13 28 13 22 Z" fill="#fff" />
+      </svg>
+    </div>
+  ) },
 };
 
 // ── Standalone marks (sponsors, AI assistants, HR platforms) ─────────────────

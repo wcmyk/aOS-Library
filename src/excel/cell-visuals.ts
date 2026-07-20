@@ -253,17 +253,17 @@ export class CellVisualsEngine {
 
       case 'traffic':
         if (value < thresholds[0]) {
-          icon = '🔴';
+          icon = '◆';
         } else if (value < thresholds[1]) {
-          icon = '🟡';
+          icon = '▲';
         } else {
-          icon = '🟢';
+          icon = '●';
         }
         break;
 
       case 'flags':
         if (value < thresholds[0]) {
-          icon = '🚩';
+          icon = '⚑';
           color = '#dc2626';
         } else if (value < thresholds[1]) {
           icon = '⚐';
