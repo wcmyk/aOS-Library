@@ -2,7 +2,9 @@
 @tailwind utilities;
 
 :root {
-  font-family: 'SF Pro Display', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* Prioritise San Francisco (the macOS system font) via -apple-system, then
+     SF Pro, before any web fallbacks so system text matches real macOS. */
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Inter', system-ui, 'Segoe UI', sans-serif;
   color: #e8ebf4;
   background-color: #0b0d10;
   line-height: 1.5;
