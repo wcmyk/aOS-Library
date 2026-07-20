@@ -1,4 +1,19 @@
-export type VirtueView = 'discover' | 'apps' | 'categories' | 'updates' | 'purchased' | 'search' | 'detail';
+export type VirtueView =
+  | 'discover'
+  | 'arcade'
+  | 'create'
+  | 'work'
+  | 'play'
+  | 'develop'
+  | 'apps'
+  | 'categories'
+  | 'updates'
+  | 'purchased'
+  | 'search'
+  | 'detail';
+
+/** A section reachable from the sidebar that renders a themed browse grid. */
+export type VirtueSection = 'arcade' | 'create' | 'work' | 'play' | 'develop';
 
 export type VirtueInstallState = 'not_installed' | 'installing' | 'installed' | 'update_available';
 
@@ -60,11 +75,48 @@ export interface VirtueApp {
   owned?: boolean;
 }
 
+export interface VirtueDiscoverHero {
+  eyebrow: string;
+  title: string;
+  description: string;
+  image?: string;
+  /** App opened when the hero is clicked. */
+  appId?: string;
+  /** App icon that floats over the hero artwork. */
+  iconAppId?: string;
+}
+
+export interface VirtueDiscoverCard {
+  id: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  /**
+   * 'cluster' renders a ring of app icons, 'image' renders a single circular
+   * artwork, and 'logo' renders a single app's icon as a large rounded square.
+   */
+  kind: 'cluster' | 'image' | 'logo';
+  image?: string;
+  appId?: string;
+  /** Icons used when kind === 'cluster'. */
+  appIds?: string[];
+}
+
+export interface VirtueDiscover {
+  hero: VirtueDiscoverHero;
+  cards: VirtueDiscoverCard[];
+  bestNewTitle: string;
+  bestNewAppIds: string[];
+}
+
 export interface VirtueCatalog {
   apps: VirtueApp[];
   categories: VirtueCategory[];
   editorialCards: VirtueEditorialCard[];
   featuredCollections: VirtueCollection[];
+  discover?: VirtueDiscover;
+  /** Maps a sidebar section to the category ids it aggregates. */
+  sections?: Partial<Record<VirtueSection, { title: string; blurb: string; categoryIds: string[] }>>;
   spotlight?: {
     title: string;
     subtitle?: string;

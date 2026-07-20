@@ -4,14 +4,19 @@ import './appstore.css';
 import { inferInstallState, useVirtueStore } from '../../hooks/virtue/useVirtueStore';
 import { filterApps, sortApps } from './utils/catalog';
 import { Sidebar } from './components/Sidebar';
-import { SearchBar } from './components/SearchBar';
 import { DiscoverPage } from './pages/DiscoverPage';
+import { SectionPage } from './pages/SectionPage';
 import { AppsPage } from './pages/AppsPage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { UpdatesList } from './components/UpdatesList';
 import { PurchasedPage } from './pages/PurchasedPage';
 import { SearchPage } from './pages/SearchPage';
 import { AppDetailPage } from './pages/AppDetailPage';
+import type { VirtueSection } from '../../types/virtue';
+
+const SECTION_VIEWS: VirtueSection[] = ['arcade', 'create', 'work', 'play', 'develop'];
+const USER_NAME = 'Michael Pou';
+const USER_INITIALS = 'MP';
 
 export function VirtueApp() {
   const catalog = getVirtueCatalog();
@@ -24,15 +29,12 @@ export function VirtueApp() {
     sortMode,
     recentSearches,
     installStates,
-    downloadProgress,
     setView,
     setSelectedApp,
     setSearchQuery,
     addRecentSearch,
     clearRecentSearches,
     setCategory,
-    setLayoutMode,
-    setSortMode,
     installApp,
     openApp,
     updateApp,
@@ -45,11 +47,11 @@ export function VirtueApp() {
   );
 
   const selectedApp = catalog.apps.find((app) => app.id === selectedAppId) ?? null;
-  const featuredApps = catalog.apps.filter((app) => app.featured);
   const updateApps = catalog.apps.filter((app) => inferInstallState(app.id, installStates) === 'update_available');
   const purchasedApps = catalog.apps.filter(
     (app) => app.owned || ['installed', 'update_available'].includes(inferInstallState(app.id, installStates)),
   );
+  const getInstallState = (appId: string) => inferInstallState(appId, installStates);
 
   const openDetail = (appId: string) => {
     setSelectedApp(appId);
@@ -61,9 +63,25 @@ export function VirtueApp() {
       return (
         <DiscoverPage
           catalog={catalog}
-          featuredApps={featuredApps}
           onOpenDetail={openDetail}
-          getInstallState={(appId) => inferInstallState(appId, installStates)}
+          onSeeAll={() => setView('apps')}
+          getInstallState={getInstallState}
+          onInstall={installApp}
+          onOpen={openApp}
+          onUpdate={updateApp}
+        />
+      );
+    }
+
+    if (SECTION_VIEWS.includes(activeView as VirtueSection)) {
+      const section = activeView as VirtueSection;
+      return (
+        <SectionPage
+          section={section}
+          config={catalog.sections?.[section]}
+          apps={catalog.apps}
+          getInstallState={getInstallState}
+          onOpenDetail={openDetail}
           onInstall={installApp}
           onOpen={openApp}
           onUpdate={updateApp}
@@ -79,7 +97,7 @@ export function VirtueApp() {
           selectedCategory={selectedCategory}
           setCategory={setCategory}
           layoutMode={layoutMode}
-          getInstallState={(appId) => inferInstallState(appId, installStates)}
+          getInstallState={getInstallState}
           onOpenDetail={openDetail}
           onInstall={installApp}
           onOpen={openApp}
@@ -110,7 +128,7 @@ export function VirtueApp() {
         <PurchasedPage
           apps={purchasedApps}
           layoutMode={layoutMode}
-          getInstallState={(appId) => inferInstallState(appId, installStates)}
+          getInstallState={getInstallState}
           onOpenDetail={openDetail}
           onInstall={installApp}
           onOpen={openApp}
@@ -131,7 +149,7 @@ export function VirtueApp() {
             addRecentSearch(query);
           }}
           onClearRecents={clearRecentSearches}
-          getInstallState={(appId) => inferInstallState(appId, installStates)}
+          getInstallState={getInstallState}
           onOpenDetail={openDetail}
           onInstall={installApp}
           onOpen={openApp}
@@ -143,7 +161,7 @@ export function VirtueApp() {
     return (
       <AppDetailPage
         app={selectedApp}
-        installState={selectedApp ? inferInstallState(selectedApp.id, installStates) : 'not_installed'}
+        installState={selectedApp ? getInstallState(selectedApp.id) : 'not_installed'}
         onInstall={() => selectedApp && installApp(selectedApp.id)}
         onOpen={() => selectedApp && openApp(selectedApp.id)}
         onUpdate={() => selectedApp && updateApp(selectedApp.id)}
@@ -152,47 +170,26 @@ export function VirtueApp() {
   };
 
   return (
-    <div className="virtue-shell" role="application" aria-label="Virtue App Store">
+    <div className="virtue-shell" role="application" aria-label="App Store">
       <Sidebar
         activeView={activeView}
         onChangeView={(view) => {
           setView(view);
+          if (view !== 'search') setSearchQuery('');
           setSelectedApp(null);
         }}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearchSubmit={() => {
+          setView('search');
+          addRecentSearch(searchQuery);
+        }}
+        updateCount={updateApps.length}
+        userName={USER_NAME}
+        userInitials={USER_INITIALS}
       />
 
       <section className="virtue-main">
-        <header className="virtue-toolbar">
-          <SearchBar
-            query={searchQuery}
-            onQueryChange={setSearchQuery}
-            onSubmit={() => {
-              setView('search');
-              addRecentSearch(searchQuery);
-            }}
-          />
-          <div className="virtue-toolbar-controls">
-            <button
-              type="button"
-              className="virtue-plain-button"
-              onClick={() => setLayoutMode(layoutMode === 'grid' ? 'list' : 'grid')}
-              aria-label={`Switch to ${layoutMode === 'grid' ? 'list' : 'grid'} view`}
-            >
-              {layoutMode === 'grid' ? 'List' : 'Grid'}
-            </button>
-            <select
-              aria-label="Sort apps"
-              value={sortMode}
-              onChange={(event) => setSortMode(event.target.value as typeof sortMode)}
-            >
-              <option value="name-asc">Name (A-Z)</option>
-              <option value="name-desc">Name (Z-A)</option>
-              <option value="rating-desc">Highest Rated</option>
-              <option value="updated-desc">Recently Updated</option>
-            </select>
-          </div>
-        </header>
-
         <main className="virtue-content">{renderView()}</main>
       </section>
     </div>

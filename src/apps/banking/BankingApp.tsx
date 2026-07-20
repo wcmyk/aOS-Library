@@ -2,7 +2,8 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { useCompanyStore } from '../../state/useCompanyStore';
 import { useProfileStore } from '../../state/useProfileStore';
 import { useDevStore, subscriptionCharges } from '../../state/useDevStore';
-import { VisaWordmark, ChaseOctagon } from '../../data/brands';
+import { useWalletStore } from '../../state/useWalletStore';
+import { VisaWordmark, MastercardCircles, ChaseOctagon } from '../../data/brands';
 import './banking.css';
 
 type Tab = 'accounts' | 'transfer' | 'wallet';
@@ -135,10 +136,7 @@ export function BankingApp() {
   const profileName = useProfileStore((s) => s.fullName);
   const cashAdjustment = useDevStore((s) => s.cashAdjustment);
   const subscriptions = useDevStore((s) => s.subscriptions);
-  const bankTransfers = useDevStore((s) => s.bankTransfers);
-  const cardCharges = useDevStore((s) => s.cardCharges);
-  const addTransfer = useDevStore((s) => s.addTransfer);
-  const payCard = useDevStore((s) => s.payCard);
+  const orders = useWalletStore((s) => s.orders);
   const [tab, setTab] = useState<Tab>('accounts');
   const [from, setFrom] = useState('chk');
   const [to, setTo] = useState('sav');
@@ -163,18 +161,13 @@ export function BankingApp() {
       const merchant = c.service === 'claude' ? 'ANTHROPIC PBC — CLAUDE PRO' : c.service === 'chatgpt' ? 'OPENAI *CHATGPT PLUS' : 'GOOGLE *AI PRO';
       txns.push({ id: c.id, accountId: 'chk', date: c.date, desc: `Recurring Payment — ${merchant}`, amount: -c.amount, balance: 0 });
     });
-    const accName = (id: string) => id === 'chk' ? 'Chase Total Checking (...1666)' : id === 'sav' ? 'Chase Savings (...5462)' : id === 'card-freedom' ? 'Freedom Unlimited (...6399)' : id === 'card-sapphire' ? 'Sapphire Reserve (...0077)' : id;
-    bankTransfers.forEach((t) => {
-      txns.push({ id: `${t.id}-out`, accountId: t.from, date: t.date, desc: `Online Transfer to ${accName(t.to)}`, amount: -t.amount, balance: 0 });
-      if (t.to === 'chk' || t.to === 'sav') {
-        txns.push({ id: `${t.id}-in`, accountId: t.to, date: t.date, desc: `Online Transfer from ${accName(t.from)}`, amount: t.amount, balance: 0 });
-      }
-    });
-    cardCharges.forEach((c) => {
-      txns.push({ id: c.id, accountId: `cc-${c.card}`, date: c.date, desc: c.desc, amount: -c.amount, balance: 0 });
+    orders.forEach((o) => {
+      // Debit accounts: money out (negative). Credit cards: balance owed goes up (positive).
+      const amount = o.accountKind === 'credit' ? o.total : -o.total;
+      txns.push({ id: `amz-${o.id}`, accountId: o.accountId, date: o.date, desc: o.desc, amount, balance: 0 });
     });
     return txns;
-  }, [cashAdjustment, subscriptions, bankTransfers, cardCharges]);
+  }, [cashAdjustment, subscriptions, orders]);
 
   const salaryTxns = useMemo<Txn[]>(() => {
     if (activeEmployment.length === 0) return [];
@@ -220,22 +213,26 @@ export function BankingApp() {
     };
   }), [activeEmployment, salaryTxns]);
 
-  const ledgerFor = (accountId: string) => extraTxns.filter((t) => t.accountId === accountId).reduce((n, t) => n + t.amount, 0);
-  const checkingBalance = Math.round((payrollAccounts.reduce((sum, p) => sum + p.balance, 0) + ledgerFor('chk')) * 100) / 100;
-  const savingsBalance = Math.round(ledgerFor('sav') * 100) / 100;
-  const freedomOwed = Math.round(cardCharges.filter((c) => c.card === 'freedom').reduce((n, c) => n + c.amount, 0) * 100) / 100;
-  const sapphireOwed = Math.round(cardCharges.filter((c) => c.card === 'sapphire').reduce((n, c) => n + c.amount, 0) * 100) / 100;
+  const checkingBalance = payrollAccounts.reduce((sum, p) => sum + p.balance, 0)
+    + extraTxns.filter((t) => t.accountId === 'chk').reduce((sum, t) => sum + t.amount, 0);
+
+  // Credit-card balances (amount owed) accumulate from Amazon orders charged to them.
+  const creditBalances = useMemo<Record<string, number>>(() => {
+    const map: Record<string, number> = {};
+    extraTxns.forEach((t) => {
+      if (t.accountId.startsWith('cc-')) map[t.accountId] = (map[t.accountId] ?? 0) + t.amount;
+    });
+    return map;
+  }, [extraTxns]);
 
   const accounts = useMemo<Account[]>(() => ([
     ...BASE_ACCOUNTS.map((a) => {
       if (a.id === 'chk') return { ...a, balance: checkingBalance, available: checkingBalance };
-      if (a.id === 'sav') return { ...a, balance: savingsBalance, available: savingsBalance };
-      if (a.id === 'cc-freedom') return { ...a, balance: freedomOwed };
-      if (a.id === 'cc-sapphire') return { ...a, balance: sapphireOwed };
+      if (a.kind === 'credit' && creditBalances[a.id]) return { ...a, balance: creditBalances[a.id] };
       return a;
     }),
     ...payrollAccounts,
-  ]), [checkingBalance, savingsBalance, freedomOwed, sapphireOwed, payrollAccounts]);
+  ]), [checkingBalance, payrollAccounts, creditBalances]);
 
   const selectedAccount = accounts.find((a) => a.id === selectedAccountId) ?? accounts[0];
   const accountTxns = [...salaryTxns, ...extraTxns].filter((t) => t.accountId === selectedAccount.id).sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
