@@ -6,11 +6,22 @@ const BASE_URL = import.meta.env.BASE_URL;
 const img = (id: string) => `${BASE_URL}assets/amazon/${id}.jpg`;
 
 /** Payment methods mirror the Chase accounts in the banking app. */
-const CARDS: { id: string; kind: 'checking' | 'credit'; name: string; last4: string; network: string }[] = [
-  { id: 'chk', kind: 'checking', name: 'Chase Total Checking (Debit)', last4: '1666', network: 'Visa Debit' },
-  { id: 'cc-freedom', kind: 'credit', name: 'Chase Freedom Unlimited', last4: '6399', network: 'Visa' },
-  { id: 'cc-sapphire', kind: 'credit', name: 'Chase Sapphire Reserve', last4: '0077', network: 'Visa' },
+const CARDS: { id: string; kind: 'checking' | 'credit'; name: string; short: string; last4: string; network: string; grad: string }[] = [
+  { id: 'chk', kind: 'checking', name: 'Chase Total Checking (Debit)', short: 'TOTAL CHECKING', last4: '1666', network: 'VISA DEBIT', grad: 'linear-gradient(135deg,#1657a8,#2f7bd6)' },
+  { id: 'cc-freedom', kind: 'credit', name: 'Chase Freedom Unlimited', short: 'FREEDOM', last4: '6399', network: 'VISA', grad: 'linear-gradient(135deg,#2f7bd6,#59a5ec)' },
+  { id: 'cc-sapphire', kind: 'credit', name: 'Chase Sapphire Reserve', short: 'SAPPHIRE RESERVE', last4: '0077', network: 'VISA', grad: 'linear-gradient(135deg,#0a1c3a,#173d78)' },
 ];
+
+function MiniCard({ grad, short, last4 }: { grad: string; short: string; last4: string }) {
+  return (
+    <span className="az-minicard" style={{ background: grad }} aria-hidden="true">
+      <span className="az-minicard-brand">CHASE</span>
+      <span className="az-minicard-chip" />
+      <span className="az-minicard-name">{short}</span>
+      <span className="az-minicard-num">•••• {last4}</span>
+    </span>
+  );
+}
 const TAX_RATE = 0.08875; // NYC combined sales tax
 
 /* ─── Product catalog ────────────────────────────────────────────────────────── */
@@ -703,8 +714,11 @@ export function AmazonSite() {
                   {CARDS.map((c) => (
                     <label key={c.id} className={`az-pay-card ${payCardId === c.id ? 'sel' : ''}`}>
                       <input type="radio" name="paycard" checked={payCardId === c.id} onChange={() => setPayCardId(c.id)} />
-                      <span className="az-pay-chip" />
-                      <span className="az-pay-name">{c.name}</span>
+                      <MiniCard grad={c.grad} short={c.short} last4={c.last4} />
+                      <span className="az-pay-meta">
+                        <span className="az-pay-name">{c.name}</span>
+                        <span className="az-pay-sub">No recent transactions history</span>
+                      </span>
                       <span className="az-pay-num">{c.network} ••••{c.last4}</span>
                     </label>
                   ))}
