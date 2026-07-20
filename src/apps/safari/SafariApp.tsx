@@ -41,6 +41,7 @@ type SiteId =
   | 'colab'
   | 'samsung-portal'
   | 'curcuit'
+  | 'amazon'
   | 'company-site'
   | 'new-tab';
 
@@ -107,6 +108,7 @@ const CORE_SITES: SiteEntry[] = [
   { id: 'colab',         title: 'CoLab',                 domain: 'colab.aos',                   component: CoLabSite },
   { id: 'samsung-portal',title: 'Samsung PLCM',          domain: 'portal.samsung-dev.net',      component: SamsungPortalSite },
   { id: 'curcuit',       title: 'CIRCUTE',               domain: 'circute.aos',                 component: CurcuitSite },
+  { id: 'amazon',        title: 'Amazon',                domain: 'amazon.com',                  component: AmazonSite },
   { id: 'google',        title: 'Google',                domain: 'google.com',                  component: GoogleSite },
   { id: 'company-site',  title: 'Company',               domain: '.com',                        component: CompanySite },
   { id: 'new-tab',       title: 'New Tab',               domain: '',                            component: NewTabPage },
@@ -132,9 +134,10 @@ const FAVICON_COLORS: Record<string, string> = {
 };
 
 function SiteFavicon({ siteId, size = 28 }: { siteId: string; size?: number }) {
-  const wrap = (child: ReactNode, bg = '#fff') => (
+  const wrap = (child: ReactNode, bg = '#fff', border = true) => (
     <span style={{
       width: size, height: size, borderRadius: size * 0.22, background: bg,
+      border: border && (bg === '#fff' || bg === 'transparent') ? '1px solid rgba(0,0,0,0.08)' : 'none',
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
       overflow: 'hidden', flexShrink: 0,
     }}>{child}</span>
@@ -143,28 +146,26 @@ function SiteFavicon({ siteId, size = 28 }: { siteId: string; size?: number }) {
     case 'linkedin': return (
       <svg width={size} height={size} viewBox="0 0 34 34" style={{ flexShrink: 0 }}><rect width="34" height="34" rx="7" fill="#0a66c2" /><path d="M8.4 13.3h3.7V26H8.4zM10.2 7.5a2.15 2.15 0 1 1 0 4.3 2.15 2.15 0 0 1 0-4.3zM14.6 13.3h3.55v1.74h.05c.5-.94 1.7-1.93 3.51-1.93 3.76 0 4.45 2.47 4.45 5.69V26h-3.7v-6.4c0-1.53-.03-3.5-2.13-3.5-2.13 0-2.46 1.66-2.46 3.38V26h-3.7z" fill="#fff" /></svg>
     );
+    case 'gmail': return wrap(<GmailM size={size * 0.72} />);
+    case 'google': return wrap(<svg width={size * 0.6} height={size * 0.6} viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>);
+    case 'claude': return wrap(<ClaudeSpark size={size * 0.68} />, '#F0EEE6');
+    case 'chatgpt': return wrap(<ChatGptKnot size={size * 0.68} color="#fff" />, '#000', false);
+    case 'gemini': return wrap(<GeminiSpark size={size * 0.68} />);
+    case 'workday': return wrap(<WorkdayLogo height={size * 0.6} />);
+    case 'adp': return wrap(<AdpLogo height={size * 0.52} />, 'transparent', false);
+    case 'radar': return wrap(<CompanyLogo company="Apple" size={size} />, 'transparent', false);
+    case 'buganizer': return wrap(<svg width={size * 0.6} height={size * 0.6} viewBox="0 0 32 32"><ellipse cx="16" cy="19" rx="8" ry="10" fill="#34a853"/><circle cx="16" cy="8" r="5" fill="#34a853"/><path d="M4 14 l6 3 M4 22 l6 1 M28 14 l-6 3 M28 22 l-6 1" stroke="#34a853" strokeWidth="2" strokeLinecap="round"/><path d="M12 15 v8 M16 14 v10 M20 15 v8" stroke="#fff" strokeWidth="1.6"/></svg>);
     case 'amazon': return wrap(
-      <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 0.7 }}>
-        <span style={{ color: '#fff', fontWeight: 800, fontSize: size * 0.5, letterSpacing: '-0.05em', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>a</span>
-        <svg width={size * 0.55} height={size * 0.16} viewBox="0 0 60 14"><path d="M2 3 C 18 13, 42 13, 56 5" fill="none" stroke="#FF9900" strokeWidth="4" strokeLinecap="round" /><path d="M56 5 l-5.5-2.2 M56 5 l-2 5.4" fill="none" stroke="#FF9900" strokeWidth="3.4" strokeLinecap="round" /></svg>
-      </span>, '#131921');
+      <svg width={size * 0.72} height={size * 0.72} viewBox="0 0 32 32" style={{ flexShrink: 0 }}>
+        <text x="16" y="17" textAnchor="middle" fontFamily="Helvetica Neue, Arial" fontWeight="800" fontSize="9.5" letterSpacing="-0.6" fill="#131921">amazon</text>
+        <path d="M6 20 C 13 24, 22 24, 27 19.5" fill="none" stroke="#ff9900" strokeWidth="2.1" strokeLinecap="round" />
+        <path d="M27 19.5 l-4-1.3 M27 19.5 l-1.2 4" fill="none" stroke="#ff9900" strokeWidth="1.9" strokeLinecap="round" />
+      </svg>,
+      '#fff',
+    );
     case 'github': return wrap(<GitHubMark size={size * 0.82} color="#fff" />, '#1f2328');
     case 'turbotax': return wrap(
       <svg width={size * 0.7} height={size * 0.7} viewBox="0 0 32 32"><circle cx="16" cy="16" r="15" fill="#d52b1e" /><path d="m9.5 16.5 4.5 4.5 8.5-9.5" fill="none" stroke="#fff" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" /></svg>, '#fff');
-    case 'gmail': return wrap(<GmailM size={size * 0.78} />, '#fff');
-    case 'google': return wrap(<svg width={size * 0.72} height={size * 0.72} viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>);
-    case 'claude': return wrap(<ClaudeSpark size={size * 0.7} />, '#F0EEE6');
-    case 'chatgpt': return wrap(<ChatGptKnot size={size * 0.7} color="#fff" />, '#000');
-    case 'gemini': return wrap(<GeminiSpark size={size * 0.72} />, '#fff');
-    case 'workday': return wrap(
-      <svg width={size * 0.72} height={size * 0.72} viewBox="0 0 32 32">
-        <circle cx="16" cy="16" r="15" fill="#fff" opacity="0.16" />
-        <path d="M7 12 l3.2 9 3-7.4 2.8 7.4 3-7.4 2.8 7.4 3.2-9" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>, '#F38B00');
-    case 'adp': return wrap(<span style={{ color: '#fff', fontWeight: 800, fontStyle: 'italic', fontSize: size * 0.34, fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>ADP</span>, '#d0271d');
-    case 'radar': return wrap(<CompanyLogo company="Apple" size={size} />, '#000');
-    case 'buganizer': return wrap(
-      <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 32 32"><ellipse cx="16" cy="19" rx="8" ry="10" fill="#fff"/><circle cx="16" cy="8" r="5" fill="#fff"/><path d="M4 14 l6 3 M4 22 l6 1 M28 14 l-6 3 M28 22 l-6 1" stroke="#fff" strokeWidth="2" strokeLinecap="round"/><path d="M12 15 v8 M16 14 v10 M20 15 v8" stroke="#34a853" strokeWidth="1.6"/></svg>, '#34a853');
     default: {
       const color = FAVICON_COLORS[siteId] ?? '#475569';
       const letter = (siteId.charAt(0) ?? 'W').toUpperCase();
