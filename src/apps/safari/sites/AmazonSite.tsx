@@ -15,7 +15,7 @@ const TAX_RATE = 0.08875; // NYC combined sales tax
 
 /* ─── Product catalog ────────────────────────────────────────────────────────── */
 
-type Dept = 'electronics' | 'components' | 'grocery';
+type Dept = 'electronics' | 'components' | 'grocery' | 'chemicals';
 type Badge = { kind: 'overall' | 'choice' | 'best' | 'deal'; text: string };
 
 type Product = {
@@ -23,6 +23,7 @@ type Product = {
   title: string;
   dept?: Dept; // defaults to 'grocery'
   condition?: string; // e.g. 'Renewed', 'Used - Like New'
+  imageId?: string; // overrides the default image (id) — used by shared chemical container photos
   price: number;
   listPrice?: number;
   unit?: string;
@@ -37,7 +38,62 @@ type Product = {
   fastest?: string;
 };
 
+/* ── Industrial & Scientific: 30 lab / household / industrial chemicals ── */
+// [title, container image, price, rating, reviews]
+const CHEM: [string, string, number, number, number][] = [
+  ['Sodium Chloride (Fine Lab-Grade Salt), 2.5 kg', 'powder-jar', 14.99, 4.8, 4120],
+  ['Sodium Bicarbonate (Pure Baking Soda), 5 lb', 'powder-jar', 12.49, 4.9, 9870],
+  ['Citric Acid (Anhydrous, Food Grade), 2 lb', 'powder-jar', 13.99, 4.8, 15230],
+  ['Isopropyl Alcohol 99% (Technical Grade), 1 Gallon', 'jug', 24.99, 4.8, 22100],
+  ['Acetone (ACS Reagent Grade), 1 Gallon', 'jug', 29.99, 4.7, 6410],
+  ['Hydrogen Peroxide 3% (Stabilized), 500 mL', 'clear-bottle', 8.49, 4.7, 5340],
+  ['Distilled Water (Lab Purified), 1 Gallon', 'jug', 6.99, 4.9, 31200],
+  ['Denatured Ethanol (95% Lab Solvent), 1 Gallon', 'jug', 27.5, 4.6, 4180],
+  ['Vegetable Glycerin (USP Kosher), 32 oz', 'clear-bottle', 15.99, 4.8, 18900],
+  ['White Distilled Vinegar (Acetic Acid 5%), 1 Gal', 'jug', 7.49, 4.8, 12040],
+  ['Epsom Salt (Magnesium Sulfate USP), 5 lb', 'crystal-bag', 11.99, 4.9, 27600],
+  ['Borax (Sodium Tetraborate), 4 lb', 'powder-jar', 13.49, 4.8, 16720],
+  ['Copper(II) Sulfate Pentahydrate, 2 lb', 'crystal-bag', 21.99, 4.7, 3980],
+  ['Potassium Nitrate (Saltpeter, 99%), 2 lb', 'crystal-bag', 18.99, 4.6, 5210],
+  ['Calcium Chloride (Anhydrous Pellets), 5 lb', 'powder-jar', 16.99, 4.7, 6870],
+  ['Sodium Hydroxide (Lye, Food Grade), 2 lb', 'powder-jar', 15.49, 4.8, 9240],
+  ['Ammonium Hydroxide Solution (10%), 500 mL', 'amber-bottle', 12.99, 4.5, 2110],
+  ['Muriatic Acid (Hydrochloric Acid 31.45%), 1 Gal', 'amber-bottle', 19.99, 4.6, 4530],
+  ['Activated Charcoal Powder (Ultra Fine), 1 lb', 'powder-jar', 17.99, 4.8, 20130],
+  ['Ascorbic Acid (Vitamin C, Pharma Grade), 2 lb', 'powder-jar', 22.99, 4.9, 13420],
+  ['Potassium Chloride (Fine Powder, 99%), 2 lb', 'powder-jar', 15.99, 4.7, 4890],
+  ['Zinc Oxide Powder (USP, Non-Nano), 1 lb', 'vial-box', 13.99, 4.7, 6210],
+  ['Titanium Dioxide (Cosmetic Grade), 1 lb', 'vial-box', 16.49, 4.6, 3320],
+  ['Sodium Thiosulfate Pentahydrate, 2 lb', 'crystal-bag', 18.49, 4.6, 2740],
+  ['Silver Nitrate (ACS Reagent, 25 g)', 'amber-bottle', 39.99, 4.7, 1180],
+  ['Iron(III) Oxide (Red Rouge Powder), 1 lb', 'vial-box', 12.99, 4.6, 4410],
+  ['Methylene Blue Solution (1%, Lab Stain), 100 mL', 'amber-bottle', 14.99, 4.7, 2560],
+  ['Calcium Carbonate (Precipitated, 99%), 5 lb', 'powder-jar', 14.49, 4.8, 7130],
+  ['Propylene Glycol (USP/Food Grade), 1 Gallon', 'jug', 23.99, 4.8, 15980],
+  ['70% Isopropyl Alcohol Surface Spray, 32 oz', 'spray-bottle', 9.99, 4.7, 33410],
+];
+const CHEM_BADGES: Record<number, Badge> = {
+  0: { kind: 'best', text: '#1 Best Seller' },
+  10: { kind: 'choice', text: "Amazon's Choice" },
+  18: { kind: 'overall', text: 'Overall Pick' },
+  29: { kind: 'choice', text: "Amazon's Choice" },
+};
+const CHEM_PRODUCTS: Product[] = CHEM.map(([title, container, price, rating, reviews], i) => ({
+  id: `chem-${i}`,
+  dept: 'chemicals' as const,
+  imageId: `chem-${container}`,
+  title,
+  price,
+  rating,
+  reviews,
+  badge: CHEM_BADGES[i],
+  bought: reviews > 15000 ? '2K+ bought in past month' : undefined,
+  prime: true,
+  delivery: i % 3 === 0 ? 'Tomorrow, Jul 20' : 'Mon, Jul 22',
+}));
+
 const PRODUCTS: Product[] = [
+  ...CHEM_PRODUCTS,
   /* ── Electronics ── */
   {
     id: 'macbook', dept: 'electronics',
@@ -286,6 +342,7 @@ const DEPARTMENTS: { id: 'all' | Dept; label: string; query: string; results: st
   { id: 'all', label: 'All Departments', query: 'today’s deals', results: 'over 30,000' },
   { id: 'electronics', label: 'Electronics', query: 'laptops, phones & tablets', results: 'over 8,000' },
   { id: 'components', label: 'Computers & Components', query: 'pc components & chips', results: 'over 6,000' },
+  { id: 'chemicals', label: 'Industrial & Scientific', query: 'lab chemicals & reagents', results: 'over 5,000' },
   { id: 'grocery', label: 'Grocery & Gourmet Food', query: 'instant ramen', results: 'over 4,000' },
 ];
 
@@ -293,10 +350,12 @@ const BRANDS: Record<'all' | Dept, string[]> = {
   all: ['Apple', 'Samsung', 'Google', 'NVIDIA', 'Nissin', 'Samyang'],
   electronics: ['Apple', 'Samsung', 'Google', 'Sony', 'Anker'],
   components: ['Intel', 'AMD', 'NVIDIA', 'Corsair', 'Kingston', 'Samsung'],
+  chemicals: ['LabPure', 'ChemWorld', 'Duda Energy', 'Pure Organic', 'Alpha Chem'],
   grocery: ['Samyang', 'Nissin', 'Nongshim', 'Maruchan', 'Indomie', 'Ottogi'],
 };
 
 const deptOf = (p: Product): Dept => p.dept ?? 'grocery';
+const prodImg = (id: string) => img(PRODUCTS.find((p) => p.id === id)?.imageId ?? id);
 
 function Stars({ value }: { value: number }) {
   const pct = (value / 5) * 100;
@@ -469,8 +528,8 @@ export function AmazonSite() {
         <a onClick={() => setDept('all')}>Today&apos;s Deals</a>
         <a onClick={() => setDept('electronics')}>Electronics</a>
         <a onClick={() => setDept('components')}>Computers</a>
+        <a onClick={() => setDept('chemicals')}>Industrial</a>
         <a onClick={() => setDept('grocery')}>Grocery</a>
-        <a>Gift Cards</a>
         <a>Sell</a>
         <span className="spacer" />
         <a className="deal" onClick={() => setDept('electronics')}>
@@ -554,7 +613,7 @@ export function AmazonSite() {
                     <span className="az-badge-spacer" />
                   ) : null}
                   <div className="az-thumb">
-                    <img src={img(p.id)} alt={p.title} loading="lazy" />
+                    <img src={prodImg(p.id)} alt={p.title} loading="lazy" />
                   </div>
                   <div className="az-title">{p.title}</div>
                   {p.condition ? <div className="az-condition">{p.condition}</div> : null}
@@ -629,7 +688,7 @@ export function AmazonSite() {
                 <div className="az-cart-lines">
                   {cartLines.map((l) => (
                     <div key={l.id} className="az-cart-line">
-                      <div className="az-cart-thumb"><img src={img(l.id)} alt="" /></div>
+                      <div className="az-cart-thumb"><img src={prodImg(l.id)} alt="" /></div>
                       <div className="az-cart-info">
                         <div className="az-cart-title">{l.title}</div>
                         <div className="az-cart-qty">Qty: {l.qty}</div>
