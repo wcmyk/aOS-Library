@@ -9,13 +9,23 @@ type DockProps = {
 };
 
 const DOCK_ORDER_KEY = 'aos-dock-order-v2';
+const BASE_SIZE = 52; // preferred icon size
+const MIN_SIZE = 30; // shrink floor before the dock would overflow
+const GAP = 8;
 
 export function Dock({ apps, windows, onLaunch }: DockProps) {
   const [launchingId, setLaunchingId] = useState<string | null>(null);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
   const [order, setOrder] = useState<string[]>([]);
+  const [vw, setVw] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1440));
   const openApps = new Set(windows.filter((win) => !win.minimized).map((win) => win.appId));
+
+  useEffect(() => {
+    const onResize = () => setVw(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem(DOCK_ORDER_KEY);
@@ -36,6 +46,13 @@ export function Dock({ apps, windows, onLaunch }: DockProps) {
     return order.filter((id) => map.has(id)).map((id) => map.get(id)).filter(Boolean) as ShellApp[];
   }, [apps, order]);
 
+  // Responsive sizing: shrink icons so the whole dock always fits on screen
+  // (mirrors how the macOS dock scales down when it runs out of room).
+  const slots = orderedApps.length + 1; // + Launchpad
+  const available = vw - 48 /* screen margins */ - 28 /* dock padding + divider */;
+  const size = Math.max(MIN_SIZE, Math.min(BASE_SIZE, Math.floor(available / slots) - GAP));
+  const canMagnify = size >= 44; // only bounce when there is room to grow
+
   const handleDrop = (targetId: string) => {
     if (!dragId || dragId === targetId) return;
     setOrder((prev) => {
@@ -51,11 +68,11 @@ export function Dock({ apps, windows, onLaunch }: DockProps) {
   };
 
   return (
-    <div className="dock" onMouseLeave={() => setHoverIndex(null)}>
+    <div className="dock" style={{ gap: GAP }} onMouseLeave={() => setHoverIndex(null)}>
       {orderedApps.map((app, index) => {
-        const dist = hoverIndex == null ? 99 : Math.abs(hoverIndex - index);
-        const scale = hoverIndex == null ? 1 : dist === 0 ? 1.32 : dist === 1 ? 1.18 : dist === 2 ? 1.07 : 1;
-        const lift = hoverIndex == null ? 0 : dist === 0 ? -18 : dist === 1 ? -12 : dist === 2 ? -6 : 0;
+        const dist = hoverIndex == null || !canMagnify ? 99 : Math.abs(hoverIndex - index);
+        const scale = dist === 0 ? 1.34 : dist === 1 ? 1.2 : dist === 2 ? 1.08 : 1;
+        const lift = dist === 0 ? -18 : dist === 1 ? -12 : dist === 2 ? -6 : 0;
         return (
           <button
             key={app.id}
@@ -71,16 +88,35 @@ export function Dock({ apps, windows, onLaunch }: DockProps) {
               setTimeout(() => setLaunchingId(null), 420);
               onLaunch(app.id);
             }}
-            style={{ transform: `translateY(${lift}px) scale(${scale})` }}
+            style={{ width: size, height: size, transform: `translateY(${lift}px) scale(${scale})`, transformOrigin: 'bottom center' }}
             type="button"
             aria-label={`Open ${app.name}`}
           >
-            <img src={app.icon} alt={app.name} className="dock-icon" style={{ width: 58, height: 58, borderRadius: 12 }} />
+            <img src={app.icon} alt={app.name} className="dock-icon" style={{ width: size, height: size, borderRadius: size * 0.23 }} />
             <span className="dock-label">{app.name}</span>
             {openApps.has(app.id) && <span className="dock-indicator" />}
           </button>
         );
       })}
+
+      <span className="dock-divider" aria-hidden="true" />
+
+      <button
+        className="dock-item"
+        onMouseEnter={() => setHoverIndex(null)}
+        onClick={() => onLaunch('appcenter')}
+        style={{ width: size, height: size }}
+        type="button"
+        aria-label="Open Launchpad"
+      >
+        <span className="dock-launchpad" style={{ width: size, height: size, borderRadius: size * 0.23 }} aria-hidden="true">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <span key={i} />
+          ))}
+        </span>
+        <span className="dock-label">Launchpad</span>
+        {openApps.has('appcenter') && <span className="dock-indicator" />}
+      </button>
     </div>
   );
 }

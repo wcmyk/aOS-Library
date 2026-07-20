@@ -3,6 +3,7 @@ import { apps } from './data/apps';
 import { Dock } from './components/Dock';
 import { NotificationCenter } from './components/NotificationCenter';
 import { MenuBar } from './components/MenuBar';
+import { MacSystem } from './components/MacSystem';
 import { Spotlight } from './components/Spotlight';
 import { WindowFrame } from './components/WindowFrame';
 import { useDriveStore, type DriveDocument } from './state/useDriveStore';
@@ -10,6 +11,7 @@ import { useShellStore, type WindowState } from './state/useShellStore';
 import { useCircuitLabStore } from './state/useCircuitLabStore';
 import { useEdenStore } from './state/useEdenStore';
 import { useThothWidgetStore } from './state/useThothWidgetStore';
+import { useWallpaperStore, wallpaperById } from './state/useWallpaperStore';
 
 const AccelApp = lazy(() => import('./apps/accel/AccelApp').then((m) => ({ default: m.AccelApp })));
 const OracleApp = lazy(() => import('./apps/oracle/OracleApp').then((m) => ({ default: m.OracleApp })));
@@ -22,6 +24,7 @@ const SettingsApp = lazy(() => import('./apps/settings/SettingsApp').then((m) =>
 const CoLabApp = lazy(() => import('./apps/colab/CoLabApp').then((m) => ({ default: m.CoLabApp })));
 const WorkHubApp = lazy(() => import('./apps/workhub/WorkHubApp').then((m) => ({ default: m.WorkHubApp })));
 const SpaceyApp = lazy(() => import('./apps/spacey/SpaceyApp').then((m) => ({ default: m.SpaceyApp })));
+const MessagesApp = lazy(() => import('./apps/messages/MessagesApp').then((m) => ({ default: m.MessagesApp })));
 const NeuralApp = lazy(() => import('./apps/neural/NeuralApp').then((m) => ({ default: m.NeuralApp })));
 const VirtueApp = lazy(() => import('./apps/virtue/VirtueApp').then((m) => ({ default: m.VirtueApp })));
 const BankingApp = lazy(() => import('./apps/banking/BankingApp').then((m) => ({ default: m.BankingApp })));
@@ -166,6 +169,7 @@ function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDoc
   if (window.appId === 'spotify') return <Suspense fallback={null}><SpotifyApp /></Suspense>;
   if (window.appId === 'safari') return <Suspense fallback={null}><SafariApp /></Suspense>;
   if (window.appId === 'settings') return <Suspense fallback={null}><SettingsApp /></Suspense>;
+  if (window.appId === 'messages') return <Suspense fallback={null}><MessagesApp /></Suspense>;
   if (window.appId === 'colab') return <Suspense fallback={null}><CoLabApp /></Suspense>;
   if (window.appId === 'sentinel-flow') return <Suspense fallback={null}><WorkHubApp /></Suspense>;
   if (window.appId === 'neural') return <Suspense fallback={null}><NeuralApp /></Suspense>;
@@ -200,18 +204,18 @@ export default function App() {
   const exportedSystems = useCircuitLabStore((s) => s.exportedSystems);
   const edenUnlocked = useEdenStore((s) => s.unlocked);
   const { widgets } = useThothWidgetStore();
+  const wallpaperFile = wallpaperById(useWallpaperStore((s) => s.selectedId)).file;
 
-  // Defer background image load so it doesn't block initial paint
+  // Desktop wallpaper — reactively follows the user's choice in Settings.
   useEffect(() => {
     const el = document.querySelector('.desktop') as HTMLElement | null;
     if (el) {
-      el.style.backgroundImage =
-        "linear-gradient(145deg, rgba(15, 18, 24, 0.95), rgba(15, 18, 24, 0.7)), url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1600&q=60')";
+      el.style.backgroundImage = `url('${wallpaperFile}')`;
       el.style.backgroundSize = 'cover';
       el.style.backgroundPosition = 'center';
       el.style.backgroundAttachment = 'fixed';
     }
-  }, []);
+  }, [wallpaperFile]);
 
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
@@ -232,6 +236,7 @@ export default function App() {
   const visibleWindows = windows.filter((win) => !win.minimized);
   const runningJobs = jobs.filter((job) => job.status !== 'Done');
   const systemState = runningJobs.length > 0 ? 'Running Jobs' : 'Idle';
+  const frontWindow = visibleWindows.slice().sort((a, b) => a.zIndex - b.zIndex).pop();
 
   const openDriveDocument = (doc: DriveDocument) => {
     setActiveDocument(doc.id);
@@ -262,6 +267,7 @@ export default function App() {
         workspaceName={workspaceName}
         stateText={systemState}
         jobCount={runningJobs.length}
+        activeAppName={frontWindow ? visibleApps.find((a) => a.id === frontWindow.appId)?.name : undefined}
         onToggleSpotlight={() => toggleSpotlight(true)}
       />
 
@@ -316,6 +322,8 @@ export default function App() {
         <Dock apps={visibleApps} windows={windows} onLaunch={openWindow} />
         <Suspense fallback={null}><NotificationCenter /></Suspense>
       </div>
+
+      <MacSystem />
     </div>
   );
 }

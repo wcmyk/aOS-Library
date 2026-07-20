@@ -366,6 +366,24 @@
 .virtue-app-content p { margin: 1px 0 0 !important; font-size: 12.5px !important; color: var(--vt-text-2) !important; }
 .virtue-app-content small { font-size: 12px !important; color: var(--vt-text-3) !important; display: block; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px; }
 
+/* ── Games editorial page (App Store "Games" tab) ─────────────────────────── */
+.mas-gsec { }
+.mas-ghead { margin-bottom: 6px; }
+.mas-ghead h3 { margin: 0; font-size: 24px; font-weight: 800; color: var(--vt-text); letter-spacing: -0.02em; }
+.mas-ghead h3 .chev { color: var(--vt-text-2); font-weight: 600; }
+.mas-ghead p { margin: 2px 0 0; font-size: 14.5px; color: var(--vt-text-2); }
+.mas-glist { margin-top: 8px; }
+.mas-grow { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-top: 1px solid var(--vt-divider); }
+.mas-grow.first { border-top: none; }
+.mas-gmain { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; background: none; border: none; cursor: pointer; text-align: left; color: inherit; padding: 0; }
+.mas-gicon { width: 64px; height: 64px; border-radius: 15px; overflow: hidden; flex-shrink: 0; background: #1a1a1c; box-shadow: 0 0 0 0.5px rgba(255,255,255,0.08); }
+.mas-gicon img { width: 100%; height: 100%; object-fit: cover; }
+.mas-gcopy { min-width: 0; flex: 1; }
+.mas-gcopy h4 { margin: 0; font-size: 16px; font-weight: 600; color: var(--vt-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mas-gcopy p { margin: 2px 0 0; font-size: 13.5px; color: var(--vt-text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mas-gright { display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; }
+.mas-giap { font-size: 10.5px; color: var(--vt-text-3); white-space: nowrap; }
+
 /* ── Category pills / cards ───────────────────────────────────────────────── */
 .virtue-category-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
 .virtue-category-pill {
