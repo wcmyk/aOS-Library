@@ -194,6 +194,7 @@ export function WindowFrame({
     <section
       ref={frameRef}
       className={`window ${chromeless ? 'window-chromeless' : ''}`}
+      data-app={frame.appId}
       style={{
         width: frame.width,
         height: frame.height,
