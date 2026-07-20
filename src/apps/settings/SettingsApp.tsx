@@ -9,6 +9,8 @@ import { personPhoto } from '../../data/people';
 import { useWallpaperStore, WALLPAPERS } from '../../state/useWallpaperStore';
 import './settings.css';
 
+const BASE_URL = import.meta.env.BASE_URL;
+
 // macOS System Settings replica: dark translucent sidebar with colored icon
 // rows, search, Apple Account header, and grouped content panes. Functional
 // panes: Apple Account (identity), General > About, Subscriptions, Developer.
@@ -101,14 +103,31 @@ function NetIcons({ lock = true, more = true }: { lock?: boolean; more?: boolean
   );
 }
 
-function Row({ label, value, onClick, first, last }: { label: string; value?: string; onClick?: () => void; first?: boolean; last?: boolean }) {
+function Row({ label, value, onClick, first, last, icon }: { label: string; value?: string; onClick?: () => void; first?: boolean; last?: boolean; icon?: React.ReactNode }) {
   return (
     <button type="button" className={`mst-row ${first ? 'first' : ''} ${last ? 'last' : ''}`} onClick={onClick}>
-      <span>{label}</span>
+      <span className="mst-row-label">{icon}{label}</span>
       <span className="mst-row-right">{value && <span className="mst-row-value">{value}</span>}<span className="mst-chev">›</span></span>
     </button>
   );
 }
+
+// Leading row icons for the General pane — replicas of the real System Settings glyphs.
+function RowIcon({ bg, children }: { bg: string; children: React.ReactNode }) {
+  return <span className="mst-rowicon" style={{ background: bg }}>{children}</span>;
+}
+const GEN_IC = {
+  about: <RowIcon bg="#8e8e93"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8"><rect x="4" y="5.5" width="16" height="11" rx="1.6"/><path d="M2.8 19h18.4"/></svg></RowIcon>,
+  update: <RowIcon bg="#8e8e93"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 3.8V8.2h-4.4"/></svg></RowIcon>,
+  storage: <RowIcon bg="#8e8e93"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8"><rect x="3.5" y="8" width="17" height="8" rx="4"/><circle cx="16.5" cy="12" r="1.3" fill="#fff" stroke="none"/></svg></RowIcon>,
+  applecare: <RowIcon bg="#f5f5f7"><svg width="14" height="14" viewBox="0 0 24 24" fill="#ff3b30"><path d="M17.06 12.7c-.03-2.55 2.08-3.77 2.17-3.83-1.18-1.73-3.02-1.97-3.68-2-1.56-.16-3.05.92-3.85.92-.79 0-2.02-.9-3.32-.87-1.71.03-3.29 1-4.17 2.53-1.78 3.09-.45 7.66 1.28 10.16.85 1.22 1.86 2.6 3.18 2.55 1.28-.05 1.76-.83 3.3-.83 1.55 0 1.98.83 3.33.8 1.38-.02 2.25-1.25 3.09-2.48.97-1.42 1.37-2.79 1.4-2.86-.03-.02-2.69-1.04-2.73-4.09zM14.53 4.9c.7-.85 1.18-2.03 1.05-3.21-1.01.04-2.24.68-2.97 1.52-.65.75-1.22 1.95-1.07 3.1 1.13.09 2.28-.57 2.99-1.41z"/></svg></RowIcon>,
+  airdrop: <RowIcon bg="#2d7ff9"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.7"><circle cx="12" cy="12" r="2"/><path d="M7.8 16.2a6 6 0 0 1 0-8.4M16.2 7.8a6 6 0 0 1 0 8.4M5 19a10 10 0 0 1 0-14M19 5a10 10 0 0 1 0 14"/></svg></RowIcon>,
+  autofill: <RowIcon bg="#5e5ce6"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8"><circle cx="8.5" cy="8.5" r="4"/><path d="M11.5 11.5 20 20M16.5 16.5l2.5-2.5M13.8 13.8l2.2-2.2"/></svg></RowIcon>,
+  datetime: <RowIcon bg="#2d7ff9"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/></svg></RowIcon>,
+  language: <RowIcon bg="#2d7ff9"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.6"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.3 3.9 5.1 3.9 8.5s-1.3 6.2-3.9 8.5c-2.6-2.3-3.9-5.1-3.9-8.5s1.3-6.2 3.9-8.5z"/></svg></RowIcon>,
+  loginitems: <RowIcon bg="#8e8e93"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.9"><path d="M4 6.5h10M4 12h10M4 17.5h10M17.5 9.5 21 12l-3.5 2.5z"/></svg></RowIcon>,
+  sharing: <RowIcon bg="#2d7ff9"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8"><circle cx="12" cy="9" r="3.2"/><path d="M5.5 19.5a6.5 6.5 0 0 1 13 0"/><path d="M3.5 9a8.5 8.5 0 0 1 2.4-5M20.5 9a8.5 8.5 0 0 0-2.4-5"/></svg></RowIcon>,
+};
 
 export function SettingsApp() {
   const profile = useProfileStore();
@@ -261,26 +280,27 @@ export function SettingsApp() {
         {pane === 'general' && (
           <>
             <div className="mst-hero">
-              <span className="mst-hero-icon" style={{ background: '#8e8e93' }}>{IC.gear}</span>
+              <span className="mst-hero-icon mst-hero-img"><img src={`${BASE_URL}assets/settings/general-icon.webp`} alt="" /></span>
               <h1>General</h1>
               <p>Manage your overall setup and preferences for aOS, such as software updates, device language, AirDrop, and more.</p>
             </div>
             <div className="mst-group">
-              <Row first label="About" onClick={() => setPane('about')} />
-              <Row label="Software Update" value="aOS 1.4" />
-              <Row last label="Storage" value="128 GB available" />
+              <Row first label="About" icon={GEN_IC.about} onClick={() => setPane('about')} />
+              <Row label="Software Update" icon={GEN_IC.update} value="aOS 1.4" />
+              <Row last label="Storage" icon={GEN_IC.storage} value="128 GB available" />
             </div>
             <div className="mst-group">
-              <Row first last label="AppleCare & Warranty" />
+              <Row first last label="AppleCare & Warranty" icon={GEN_IC.applecare} />
             </div>
             <div className="mst-group">
-              <Row first last label="AirDrop & Handoff" />
+              <Row first last label="AirDrop & Handoff" icon={GEN_IC.airdrop} />
             </div>
             <div className="mst-group">
-              <Row first label="AutoFill & Passwords" />
-              <Row label="Date & Time" value={new Date().toLocaleDateString('en-US', { timeZoneName: 'short' }).split(', ').pop()} />
-              <Row label="Language & Region" value="English (US)" />
-              <Row last label="Login Items & Extensions" />
+              <Row first label="AutoFill & Passwords" icon={GEN_IC.autofill} />
+              <Row label="Date & Time" icon={GEN_IC.datetime} value={new Date().toLocaleDateString('en-US', { timeZoneName: 'short' }).split(', ').pop()} />
+              <Row label="Language & Region" icon={GEN_IC.language} value="English (US)" />
+              <Row label="Login Items & Extensions" icon={GEN_IC.loginitems} />
+              <Row last label="Sharing" icon={GEN_IC.sharing} />
             </div>
           </>
         )}
