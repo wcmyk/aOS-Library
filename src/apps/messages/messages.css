@@ -1,0 +1,94 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   MESSAGES (msg- namespace) — Apple Messages replica
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.msg-shell {
+  height: 100%;
+  display: flex;
+  background: #ffffff;
+  color: #1d1d1f;
+  font-family: -apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+  font-size: 13px;
+  overflow: hidden;
+}
+.msg-shell button { font-family: inherit; cursor: pointer; }
+
+/* Sidebar */
+.msg-sidebar {
+  width: 300px; flex-shrink: 0; border-right: 1px solid rgba(0,0,0,0.1);
+  background: #f5f5f7; display: flex; flex-direction: column;
+}
+.msg-search {
+  margin: 10px 12px; display: flex; align-items: center; gap: 6px;
+  background: rgba(120,120,128,0.12); border-radius: 8px; padding: 5px 8px;
+}
+.msg-search input { flex: 1; border: none; outline: none; background: transparent; font-size: 13px; }
+.msg-list { flex: 1; overflow-y: auto; padding: 0 6px 10px; }
+.msg-row {
+  width: 100%; display: flex; align-items: center; gap: 6px;
+  background: none; border: none; text-align: left;
+  border-radius: 10px; padding: 9px 6px;
+}
+.msg-row.active { background: #0a84ff; color: #fff; }
+.msg-row.active .msg-row-preview, .msg-row.active .msg-row-time { color: rgba(255,255,255,0.75); }
+.msg-unread-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.msg-unread-dot.on { background: #0a84ff; }
+.msg-row.active .msg-unread-dot.on { background: #fff; }
+.msg-avatar {
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.msg-avatar-sm { width: 30px; height: 30px; }
+.msg-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.msg-row-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.msg-row-top strong { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.msg-row-time { font-size: 11.5px; color: rgba(60,60,67,0.6); white-space: nowrap; }
+.msg-row-preview {
+  font-size: 12.5px; color: rgba(60,60,67,0.6);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* Main */
+.msg-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.msg-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; border-bottom: 1px solid rgba(0,0,0,0.08); flex-shrink: 0;
+}
+.msg-head-name { font-weight: 600; font-size: 13.5px; }
+.msg-head-sub { font-size: 11.5px; color: rgba(60,60,67,0.6); }
+.msg-head-actions { margin-left: auto; display: flex; gap: 16px; align-items: center; }
+.msg-thread { flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 3px; }
+.msg-daychip { text-align: center; font-size: 11px; color: rgba(60,60,67,0.55); margin-bottom: 10px; }
+.msg-bubble-row { display: flex; }
+.msg-bubble-row.me { justify-content: flex-end; }
+.msg-bubble {
+  max-width: 68%; padding: 8px 12px; border-radius: 18px;
+  font-size: 13.5px; line-height: 1.35; white-space: pre-wrap; word-break: break-word;
+}
+.msg-bubble.gray { background: #e9e9eb; color: #1d1d1f; border-bottom-left-radius: 5px; }
+.msg-bubble.blue { background: #0a84ff; color: #fff; border-bottom-right-radius: 5px; }
+.msg-empty {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  color: rgba(60,60,67,0.45); font-size: 15px;
+}
+
+/* Composer */
+.msg-composer {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px 12px; flex-shrink: 0;
+}
+.msg-plus {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(120,120,128,0.14); border: none; color: rgba(60,60,67,0.7);
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.msg-input-pill {
+  flex: 1; display: flex; align-items: center; gap: 6px;
+  border: 1px solid rgba(0,0,0,0.16); border-radius: 18px; padding: 4px 4px 4px 12px;
+}
+.msg-input-pill input { flex: 1; border: none; outline: none; font-size: 13.5px; background: transparent; }
+.msg-send {
+  width: 26px; height: 26px; border-radius: 50%; border: none;
+  background: #0a84ff; display: inline-flex; align-items: center; justify-content: center;
+}
+.msg-send:disabled { background: rgba(120,120,128,0.3); cursor: default; }

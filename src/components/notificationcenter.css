@@ -1,0 +1,24 @@
+.ntc-stack {
+  position: fixed; top: 44px; right: 14px; z-index: 4000;
+  display: flex; flex-direction: column; gap: 10px; width: 356px;
+  pointer-events: none;
+}
+.ntc-banner {
+  display: flex; gap: 11px; align-items: flex-start;
+  background: rgba(245,245,247,0.88); backdrop-filter: blur(28px);
+  border: 0.5px solid rgba(0,0,0,0.12); border-radius: 14px;
+  padding: 11px 14px; box-shadow: 0 10px 34px rgba(0,0,0,0.28);
+  cursor: pointer; pointer-events: auto;
+  animation: ntcIn 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+  color: #1d1d1f;
+  font-family: -apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+}
+@keyframes ntcIn { from { transform: translateX(120%); opacity: 0; } to { transform: none; opacity: 1; } }
+.ntc-icon { width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0; margin-top: 2px; }
+.ntc-body { min-width: 0; }
+.ntc-app { font-size: 10.5px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: rgba(60,60,67,0.6); }
+.ntc-title { font-size: 13px; font-weight: 700; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ntc-text {
+  font-size: 12.5px; color: rgba(60,60,67,0.85); margin-top: 1px; line-height: 1.35;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}

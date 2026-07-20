@@ -100,6 +100,25 @@ export function SettingsApp() {
   const [promoSteps, setPromoSteps] = useState(1);
   const [promoNote, setPromoNote] = useState('');
 
+  const endEmployment = useCompanyStore((s) => s.endEmployment);
+
+  const terminate = () => {
+    const acc = promotable.find((a) => a.id === promoAccountId) ?? promotable[0];
+    if (!acc) return;
+    const ended = endEmployment(acc.id);
+    if (!ended) return;
+    const finalPay = Math.round((acc.compensation / 26) * 100) / 100;
+    sendEmail({
+      from: `People Operations <hr@${acc.domain}>`,
+      to: 'user@workspace.aos',
+      subject: `Notice of separation — ${acc.companyName}`,
+      date: new Date().toISOString(),
+      folder: 'inbox',
+      body: `<p>This letter confirms that your employment with <strong>${acc.companyName}</strong> as ${acc.title} ends effective today.</p><ul><li><strong>Final paycheck:</strong> $${finalPay.toLocaleString(undefined, { minimumFractionDigits: 2 })} (current pay period), paid on the normal payroll date, including accrued unused PTO where required by state law.</li><li><strong>Benefits:</strong> Medical, dental, and vision coverage continue through the end of the month. A COBRA continuation-of-coverage election notice will arrive by mail within 14 days.</li><li><strong>Equipment:</strong> Return your badge and laptop within 5 business days using the prepaid label.</li><li><strong>Systems:</strong> Access to ${acc.companyName} email, Teams, and Workday self-service is now read-only for payroll and tax documents.</li></ul><p>You may be eligible for state unemployment insurance; you can file as early as your first day of unemployment.</p><p>We wish you the best going forward.</p><p>People Operations, ${acc.companyName}</p>`,
+    });
+    setPromoNote(`${acc.companyName}: employment ended. Separation notice sent to your personal inbox; payroll deposits stop after the final check.`);
+  };
+
   const grantPromotion = () => {
     const acc = promotable.find((a) => a.id === promoAccountId) ?? promotable[0];
     if (!acc) return;
@@ -356,6 +375,7 @@ export function SettingsApp() {
                     <option value={3}>3 levels up</option>
                   </select>
                   <button type="button" className="mst-btn-green" onClick={grantPromotion}>Promote</button>
+                  <button type="button" className="mst-btn-danger" onClick={terminate}>End employment</button>
                 </div>
               )}
               {promoNote && <div className="mst-note-ok">{promoNote}</div>}

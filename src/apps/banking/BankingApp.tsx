@@ -138,6 +138,7 @@ export function BankingApp() {
   const bankTransfers = useDevStore((s) => s.bankTransfers);
   const cardCharges = useDevStore((s) => s.cardCharges);
   const addTransfer = useDevStore((s) => s.addTransfer);
+  const taxRefunds = useDevStore((s) => s.taxRefunds);
   const payCard = useDevStore((s) => s.payCard);
   const [tab, setTab] = useState<Tab>('accounts');
   const [from, setFrom] = useState('chk');
@@ -170,11 +171,18 @@ export function BankingApp() {
         txns.push({ id: `${t.id}-in`, accountId: t.to, date: t.date, desc: `Online Transfer from ${accName(t.from)}`, amount: t.amount, balance: 0 });
       }
     });
+    taxRefunds.forEach((r) => {
+      txns.push({
+        id: r.id, accountId: 'chk', date: r.date,
+        desc: r.amount >= 0 ? 'IRS TREAS 310 — TAX REF' : 'IRS USATAXPYMT — Balance Due',
+        amount: r.amount, balance: 0,
+      });
+    });
     cardCharges.forEach((c) => {
       txns.push({ id: c.id, accountId: `cc-${c.card}`, date: c.date, desc: c.desc, amount: -c.amount, balance: 0 });
     });
     return txns;
-  }, [cashAdjustment, subscriptions, bankTransfers, cardCharges]);
+  }, [cashAdjustment, subscriptions, bankTransfers, cardCharges, taxRefunds]);
 
   const salaryTxns = useMemo<Txn[]>(() => {
     if (activeEmployment.length === 0) return [];

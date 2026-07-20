@@ -29,6 +29,7 @@ export type Subscription = { active: boolean; since?: string; plan?: ClaudePlan 
 
 export type BankTransfer = { id: string; from: string; to: string; amount: number; date: string };
 export type CardCharge = { id: string; card: 'freedom' | 'sapphire'; desc: string; amount: number; date: string };
+export type TaxRefund = { id: string; year: number; amount: number; date: string };
 
 type DevStore = {
   cashAdjustment: number;
@@ -36,6 +37,8 @@ type DevStore = {
   devOffersGranted: number;
   bankTransfers: BankTransfer[];
   cardCharges: CardCharge[];
+  taxRefunds: TaxRefund[];
+  addTaxRefund: (year: number, amount: number) => void;
   setCashAdjustment: (amount: number) => void;
   addCash: (delta: number) => void;
   subscribe: (service: AiService, plan?: ClaudePlan) => void;
@@ -58,6 +61,12 @@ export const useDevStore = create<DevStore>()(
       devOffersGranted: 0,
       bankTransfers: [],
       cardCharges: [],
+      taxRefunds: [],
+      addTaxRefund: (year, amount) => set((s) => (
+        s.taxRefunds.some((r) => r.year === year)
+          ? {}
+          : { taxRefunds: [...s.taxRefunds, { id: `ref-${year}`, year, amount: Math.round(amount * 100) / 100, date: new Date().toISOString() }] }
+      )),
       setCashAdjustment: (amount) => set({ cashAdjustment: amount }),
       addCash: (delta) => set((s) => ({ cashAdjustment: Math.round((s.cashAdjustment + delta) * 100) / 100 })),
       subscribe: (service, plan) => set((s) => ({

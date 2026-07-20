@@ -173,3 +173,9 @@
   background: #f5f6fd; border: 1px solid #e3e5f5; border-radius: 8px;
   padding: 10px 12px; font-size: 12px; color: #616161; line-height: 1.5;
 }
+
+.tms-linklike {
+  background: none; border: none; color: #5b5fc7; font-size: 12.5px;
+  cursor: pointer; margin-top: 8px; font-family: inherit;
+}
+.tms-linklike:hover { text-decoration: underline; }

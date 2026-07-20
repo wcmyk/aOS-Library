@@ -6,7 +6,7 @@ import { buildPaychecks, usd, amountInWords, type Paycheck } from '../../../data
 import { generateRoleTasks, loadTaskStates, saveTaskStates, formatCountdown, type TaskState } from '../../../data/simulator/roleTasks';
 import './workday.css';
 
-type WdView = 'home' | 'inbox' | 'pay' | 'career' | 'timeoff' | 'benefits' | 'profile';
+type WdView = 'home' | 'inbox' | 'pay' | 'career' | 'timeoff' | 'benefits' | 'profile' | 'performance';
 
 const COMPLEXITY_TONE: Record<string, string> = {
   Starter: 'wd-chip-green', Moderate: 'wd-chip-blue', Complex: 'wd-chip-amber', Critical: 'wd-chip-red',
@@ -167,6 +167,7 @@ export function WorkdaySite() {
                     [<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M12 3a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9z"/><path d="M12 12v6a2 2 0 0 0 4 0"/></svg>, 'Time Off', 'timeoff'],
                     [<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M12 20s-7-4.6-9-9c-1.2-2.7.6-6 3.8-6 2 0 3.6 1.2 5.2 3.4C13.6 6.2 15.2 5 17.2 5c3.2 0 5 3.3 3.8 6-2 4.4-9 9-9 9z"/></svg>, 'Benefits', 'benefits'],
                     [<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="12" cy="8.5" r="3.5"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>, 'Personal Info', 'profile'],
+                    [<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4 19h16"/><path d="m5 15 4.5-4.5 3.5 3L19 8M15.5 8H19v3.5"/></svg>, 'Performance', 'performance'],
                     [<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4 5.5h16V19H4z"/><path d="M4 13h5a3 3 0 0 0 6 0h5"/></svg>, 'My Tasks', 'inbox'],
                   ] as Array<[JSX.Element, string, WdView]>).map(([ic, label, v]) => (
                     <button key={label} type="button" className="wd-app-tile" onClick={() => setView(v)}>
@@ -318,6 +319,51 @@ export function WorkdaySite() {
             </div>
           </div>
         )}
+
+        {/* ── Performance ── */}
+        {view === 'performance' && (() => {
+          const submitted = tasks.filter((t) => (taskStates[t.id]?.status ?? 'open') !== 'open');
+          const overdue = tasks.filter((t) => (taskStates[t.id]?.status ?? 'open') === 'open' && t.dueAt < Date.now());
+          const rating = submitted.length >= 2 && overdue.length === 0 ? 'Exceeds Expectations'
+            : overdue.length <= 1 ? 'Meets Expectations'
+            : 'Needs Improvement';
+          const ratingTone = rating === 'Exceeds Expectations' ? '#0f7b48' : rating === 'Meets Expectations' ? '#1a6fb5' : '#b3261e';
+          const half = new Date().getMonth() < 6 ? 'H1' : 'H2';
+          const competencies: Array<[string, number]> = [
+            ['Delivery & execution', Math.min(100, 55 + submitted.length * 15 - overdue.length * 20)],
+            ['Quality of work', Math.min(100, 60 + submitted.length * 12 - overdue.length * 10)],
+            ['Communication', 72],
+            ['Collaboration', 78],
+          ];
+          return (
+            <div className="wd-page">
+              <div className="wd-page-head"><h2>Performance</h2><span className="wd-page-sub">{half} {new Date().getFullYear()} review cycle · {active.companyName}</span></div>
+              <div className="wd-perf-grid">
+                <section className="wd-card">
+                  <header><h3>Current rating</h3></header>
+                  <div className="wd-perf-rating" style={{ color: ratingTone }}>{rating}</div>
+                  <p className="wd-perf-note">
+                    Based on {submitted.length} submitted deliverable{submitted.length === 1 ? '' : 's'} and {overdue.length} overdue task{overdue.length === 1 ? '' : 's'} this cycle.
+                    {rating === 'Needs Improvement' ? ' Repeated missed deadlines can lead to a performance improvement plan.' : ' Sustained performance at this level supports promotion in the next review.'}
+                  </p>
+                  <div className="wd-kv"><span>Manager</span><strong>{active.managerName}</strong></div>
+                  <div className="wd-kv"><span>Next review</span><strong>{half === 'H1' ? 'June 30' : 'December 15'}, {new Date().getFullYear()}</strong></div>
+                </section>
+                <section className="wd-card">
+                  <header><h3>Competencies</h3></header>
+                  {competencies.map(([label, pct]) => (
+                    <div key={label} className="wd-comp-row">
+                      <span>{label}</span>
+                      <span className="wd-comp-bar"><i style={{ width: `${Math.max(8, pct)}%`, background: pct >= 75 ? '#0f7b48' : pct >= 55 ? '#1a6fb5' : '#b3261e' }} /></span>
+                      <strong>{Math.max(8, pct)}</strong>
+                    </div>
+                  ))}
+                  <p className="wd-perf-note">Delivery and quality scores update live from your submissions in My Tasks. Deadlines matter — overdue work pulls the rating down.</p>
+                </section>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ── Benefits ── */}
         {view === 'benefits' && (
