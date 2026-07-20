@@ -15,7 +15,7 @@ export const apps: ShellApp[] = [
   {
     id: 'sentinel-flow',
     name: 'SentinelFlow',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23111a2b'/%3E%3Cpath d='M10 18h44v7H10zM10 29h30v7H10zM10 40h22v7H10z' fill='%233b82f6'/%3E%3Ccircle cx='48' cy='43' r='8' fill='%2393c5fd'/%3E%3C/svg%3E`,
+    icon: `${BASE_URL}assets/apps/sentinel-flow.png`,
     description: 'Enterprise work management platform for operations and PMO teams',
     accent: '#3b82f6',
     defaultSize: { width: 1380, height: 820 },
@@ -40,7 +40,7 @@ export const apps: ShellApp[] = [
   {
     id: 'colab',
     name: 'CoLab',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%235b5fc7'/%3E%3Cpath d='M17 20h30a5 5 0 0 1 5 5v16a5 5 0 0 1-5 5H27l-10 8v-8h0a5 5 0 0 1-5-5V25a5 5 0 0 1 5-5z' fill='white' opacity='0.96'/%3E%3Ccircle cx='28' cy='33' r='3' fill='%235b5fc7'/%3E%3Ccircle cx='36' cy='33' r='3' fill='%235b5fc7'/%3E%3Ccircle cx='44' cy='33' r='3' fill='%235b5fc7'/%3E%3C/svg%3E`,
+    icon: `${BASE_URL}assets/apps/colab.png`,
     description: 'Company-scoped team chat and collaboration workspace',
     accent: '#5b5fc7',
     defaultSize: { width: 1100, height: 700 },
@@ -48,7 +48,7 @@ export const apps: ShellApp[] = [
   {
     id: 'vision',
     name: 'Vision',
-    icon: `${BASE_URL}assets/apps/vision.svg`,
+    icon: `${BASE_URL}assets/apps/vision.png`,
     description: 'Google-style search with a polished workspace-native UI',
     accent: '#4f8cff',
     defaultSize: { width: 980, height: 640 },
@@ -72,7 +72,7 @@ export const apps: ShellApp[] = [
   {
     id: 'neural',
     name: 'Neural Studio',
-    icon: `${BASE_URL}assets/apps/neural-ai.svg`,
+    icon: `${BASE_URL}assets/apps/neural.png`,
     description: 'Train and interact with 5 specialized AI agents: Math, Automation, Coding, General, Science',
     accent: '#c084fc',
     defaultSize: { width: 900, height: 580 },
@@ -228,7 +228,7 @@ export const apps: ShellApp[] = [
   {
     id: 'notepad',
     name: 'Notepad',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f172a'/%3E%3Crect x='14' y='10' width='36' height='44' rx='6' fill='%23f8fafc'/%3E%3Crect x='20' y='22' width='24' height='2.8' rx='1.4' fill='%233b82f6'/%3E%3Crect x='20' y='29' width='24' height='2.8' rx='1.4' fill='%2364758b'/%3E%3Crect x='20' y='36' width='19' height='2.8' rx='1.4' fill='%2364758b'/%3E%3Ccircle cx='18' cy='14' r='1.5' fill='%23f59e0b'/%3E%3Ccircle cx='24' cy='14' r='1.5' fill='%2310b981'/%3E%3Ccircle cx='30' cy='14' r='1.5' fill='%236366f1'/%3E%3C/svg%3E`,
+    icon: `${BASE_URL}assets/apps/notepad.png`,
     description: 'Simple notes with hidden EDEN unlock trigger',
     accent: '#3b82f6',
     defaultSize: { width: 780, height: 560 },
@@ -236,7 +236,7 @@ export const apps: ShellApp[] = [
   {
     id: 'eden',
     name: 'EDENS GARDEN',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2302050c'/%3E%3Cpath d='M13 44h38v7H13z' fill='%2306512f'/%3E%3Cpath d='M18 20h28v20H18z' fill='none' stroke='%2322c55e' stroke-width='2.6'/%3E%3Cpath d='M22 27h8M22 31h17M22 35h13' stroke='%2386efac' stroke-width='2'/%3E%3Ccircle cx='49' cy='17' r='5' fill='%2310b981'/%3E%3C/svg%3E`,
+    icon: `${BASE_URL}assets/apps/eden.png`,
     description: 'Hidden terminal archive simulator unlocked via Notepad trigger',
     accent: '#22c55e',
     defaultSize: { width: 980, height: 640 },
@@ -245,7 +245,7 @@ export const apps: ShellApp[] = [
   {
     id: 'inventory',
     name: 'Inventory',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230f172a'/%3E%3Cstop offset='1' stop-color='%231e3a8a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Crect x='12' y='16' width='40' height='34' rx='8' fill='none' stroke='%2393c5fd' stroke-width='2.6'/%3E%3Cpath d='M24 16v-4a8 8 0 0 1 16 0v4' fill='none' stroke='%23c4b5fd' stroke-width='2.6'/%3E%3Crect x='18' y='24' width='28' height='4' rx='2' fill='%2338bdf8'/%3E%3Crect x='18' y='31' width='20' height='4' rx='2' fill='%2360a5fa'/%3E%3Crect x='18' y='38' width='24' height='4' rx='2' fill='%23a78bfa'/%3E%3C/svg%3E`,
+    icon: `${BASE_URL}assets/apps/inventory.png`,
     description: 'Track lab materials bought from CIRCUTE and consumed by circuit builds',
     accent: '#7dd3fc',
     defaultSize: { width: 780, height: 540 },
@@ -253,7 +253,7 @@ export const apps: ShellApp[] = [
   {
     id: 'mnemo',
     name: 'Thoth',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a1520'/%3E%3Cellipse cx='26' cy='37' rx='12' ry='8.5' fill='%23f59e0b'/%3E%3Cellipse cx='22' cy='36' rx='7' ry='5' fill='%23d97706'/%3E%3Cpath d='M35 30 C42 22 38 16 36 10' fill='none' stroke='%23f59e0b' stroke-width='3.2' stroke-linecap='round'/%3E%3Ccircle cx='35' cy='9' r='5' fill='%23f59e0b'/%3E%3Cpath d='M39 7 C45 4 50 6 52 10' fill='none' stroke='%23f59e0b' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='37' cy='8' r='1.8' fill='%230a1520'/%3E%3Cline x1='22' y1='45' x2='18' y2='57' stroke='%23f59e0b' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='30' y1='45' x2='34' y2='57' stroke='%23f59e0b' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M18 57 L15 59 M18 57 L18 60 M18 57 L21 59' stroke='%23f59e0b' stroke-width='1.5' stroke-linecap='round'/%3E%3Ccircle cx='8' cy='10' r='1' fill='%237dd3fc' opacity='0.7'/%3E%3Ccircle cx='14' cy='6' r='1.5' fill='%237dd3fc' opacity='0.6'/%3E%3Ccircle cx='55' cy='42' r='1' fill='%237dd3fc' opacity='0.5'/%3E%3C/svg%3E`,
+    icon: `${BASE_URL}assets/apps/mnemo.png`,
     description: 'Study smarter with Thoth — flashcards, adaptive learning, and games',
     accent: '#f59e0b',
     defaultSize: { width: 1200, height: 780 },
@@ -261,7 +261,7 @@ export const apps: ShellApp[] = [
   {
     id: 'chemistry',
     name: 'Chem Lab',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a1628'/%3E%3Cpath d='M24 8L24 28L10 50L54 50L40 28L40 8Z' fill='none' stroke='%237dd3fc' stroke-width='2.2' stroke-linejoin='round'/%3E%3Cline x1='22' y1='8' x2='42' y2='8' stroke='%237dd3fc' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='22' cy='38' r='3.5' fill='%23a78bfa'/%3E%3Ccircle cx='34' cy='42' r='2.5' fill='%2334d399'/%3E%3Ccircle cx='28' cy='33' r='1.8' fill='%237dd3fc'/%3E%3Crect x='8' y='46' width='48' height='8' rx='3' fill='%230e2040'/%3E%3C/svg%3E`,
+    icon: `${BASE_URL}assets/apps/chemistry.png`,
     description: 'Virtual chemistry lab simulator with SVG equipment, reaction engine, stoichiometry, and guided experiments',
     accent: '#7dd3fc',
     defaultSize: { width: 1360, height: 820 },
@@ -269,7 +269,7 @@ export const apps: ShellApp[] = [
   {
     id: 'circuit',
     name: 'aOS Circuits',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2306111f'/%3E%3Ccircle cx='12' cy='32' r='5' fill='none' stroke='%237dd3fc' stroke-width='2.5'/%3E%3Ccircle cx='52' cy='32' r='5' fill='none' stroke='%237dd3fc' stroke-width='2.5'/%3E%3Crect x='24' y='26' width='16' height='12' rx='3' fill='none' stroke='%23a78bfa' stroke-width='2.5'/%3E%3Cline x1='17' y1='32' x2='24' y2='32' stroke='%237dd3fc' stroke-width='2.5'/%3E%3Cline x1='40' y1='32' x2='47' y2='32' stroke='%237dd3fc' stroke-width='2.5'/%3E%3Ccircle cx='32' cy='14' r='4' fill='%2334d399'/%3E%3Cline x1='32' y1='18' x2='32' y2='26' stroke='%2334d399' stroke-width='2' stroke-dasharray='3 2'/%3E%3C/svg%3E`,
+    icon: `${BASE_URL}assets/apps/circuit.png`,
     description: 'Interactive circuit builder with battery, resistor, and LED simulation. Inspect structured execution traces.',
     accent: '#7dd3fc',
     defaultSize: { width: 1280, height: 820 },
@@ -277,7 +277,7 @@ export const apps: ShellApp[] = [
   {
     id: 'chess',
     name: 'aOS Chess',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d111a'/%3E%3Crect x='12' y='12' width='40' height='40' rx='6' fill='%23e2e8f0'/%3E%3Cpath d='M12 24h40M12 36h40M24 12v40M36 12v40' stroke='%2394a3b8' stroke-width='2'/%3E%3Cpath d='M45 18h-6l2-4h-4l-2 4h-4v4h14z' fill='%23b91c1c'/%3E%3Ccircle cx='21' cy='43' r='5' fill='%231e293b'/%3E%3C/svg%3E`,
+    icon: `${BASE_URL}assets/apps/chess.png`,
     description: 'Competitive online chess platform with separated site/FIDE ratings, bot fallback, tournaments, and title badges',
     accent: '#ef4444',
     defaultSize: { width: 1320, height: 860 },

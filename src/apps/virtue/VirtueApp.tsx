@@ -6,6 +6,7 @@ import { filterApps, sortApps } from './utils/catalog';
 import { Sidebar } from './components/Sidebar';
 import { DiscoverPage } from './pages/DiscoverPage';
 import { SectionPage } from './pages/SectionPage';
+import { GamesPage } from './pages/GamesPage';
 import { AppsPage } from './pages/AppsPage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { UpdatesList } from './components/UpdatesList';
@@ -71,6 +72,22 @@ export function VirtueApp() {
           onUpdate={updateApp}
         />
       );
+    }
+
+    if (activeView === 'arcade' || activeView === 'play') {
+      const games = catalog.apps.filter((app) => app.category === 'games');
+      if (games.length > 0) {
+        return (
+          <GamesPage
+            games={games}
+            getInstallState={getInstallState}
+            onOpenDetail={openDetail}
+            onInstall={installApp}
+            onOpen={openApp}
+            onUpdate={updateApp}
+          />
+        );
+      }
     }
 
     if (SECTION_VIEWS.includes(activeView as VirtueSection)) {
