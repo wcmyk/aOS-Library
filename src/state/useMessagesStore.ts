@@ -5,7 +5,21 @@ import { persist } from 'zustand/middleware';
 // text, and live two-factor verification codes for enterprise sign-ins.
 
 export type SmsMessage = { text: string; at: string; fromMe?: boolean };
-export type SmsThread = { id: string; sender: string; shortcode?: boolean; messages: SmsMessage[] };
+
+// Human contacts get contextual auto-replies from the reply engine, keyed to
+// their relationship persona. Shortcode senders never reply.
+export type Contact = {
+  id: string;
+  name: string;
+  relationship: 'manager' | 'recruiter' | 'colleague' | 'linkedin' | 'mentor' | 'hr' | 'client';
+  company: string;
+  role?: string;
+};
+
+// Reply-engine view of a conversation turn.
+export type ChatMessage = { from: 'me' | 'them'; text: string; at: string };
+
+export type SmsThread = { id: string; sender: string; shortcode?: boolean; contact?: Contact; messages: SmsMessage[] };
 
 type MessagesStore = {
   threads: SmsThread[];
@@ -18,6 +32,30 @@ type MessagesStore = {
 const iso = (minsAgo: number) => new Date(Date.now() - minsAgo * 60 * 1000).toISOString();
 
 const SEED_THREADS: SmsThread[] = [
+  {
+    id: 'ct-recruiter',
+    sender: 'Naomi Calloway',
+    contact: { id: 'ct-recruiter', name: 'Naomi Calloway', relationship: 'recruiter', company: 'Google', role: 'Talent Acquisition' },
+    messages: [
+      { text: 'Hi! Naomi here — I sourced your profile on LinkedIn. When you have a minute I would love to hear what you are looking for in your next role.', at: iso(60 * 30) },
+    ],
+  },
+  {
+    id: 'ct-mentor',
+    sender: 'Prof. Alvarez',
+    contact: { id: 'ct-mentor', name: 'Prof. Alvarez', relationship: 'mentor', company: 'University of Michigan', role: 'Faculty Mentor' },
+    messages: [
+      { text: 'Saw your graduation photos — congratulations again. Keep me posted on the job hunt, and lean on me for references anytime.', at: iso(60 * 50) },
+    ],
+  },
+  {
+    id: 'ct-colleague',
+    sender: 'Marcus Thornton',
+    contact: { id: 'ct-colleague', name: 'Marcus Thornton', relationship: 'colleague', company: 'aOS', role: 'Senior Engineer' },
+    messages: [
+      { text: 'Yo — lunch crew is trying the new taqueria on 5th at noon Friday. You in?', at: iso(60 * 9) },
+    ],
+  },
   {
     id: 'vzw',
     sender: '899-88',

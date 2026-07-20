@@ -97,7 +97,7 @@ export const apps: ShellApp[] = [
     id: 'messages',
     name: 'Messages',
     icon: `${BASE_URL}assets/apps/messages.png`,
-    description: 'Chat with managers, recruiters & your network',
+    description: 'Chat with managers, recruiters & your network — plus carrier notices and live sign-in verification codes',
     accent: '#34c759',
     defaultSize: { width: 860, height: 600 },
   },
@@ -197,14 +197,6 @@ export const apps: ShellApp[] = [
     description: 'Interviews, task deadlines, paydays, and start dates from across the simulation',
     accent: '#ff3b30',
     defaultSize: { width: 1150, height: 720 },
-  },
-  {
-    id: 'messages',
-    name: 'Messages',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='mg' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%236fdf6a'/%3E%3Cstop offset='1' stop-color='%2314bd2e'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23mg)'/%3E%3Cpath d='M32 12c-12.2 0-22 8-22 18 0 5.7 3.2 10.7 8.2 14-.3 2.5-1.4 4.8-3.2 6.6 3.3-.3 6.4-1.6 8.9-3.6 2.5.7 5.3 1 8.1 1 12.2 0 22-8 22-18s-9.8-18-22-18z' fill='%23fff'/%3E%3C/svg%3E`,
-    description: 'Texts, carrier notices, and live verification codes for enterprise sign-ins',
-    accent: '#14bd2e',
-    defaultSize: { width: 940, height: 640 },
   },
   {
     id: 'zoom',

@@ -149,31 +149,9 @@ export function BankingApp() {
   const [confirmation, setConfirmation] = useState('');
   const [selectedAccountId, setSelectedAccountId] = useState('chk');
   const [lockedCards, setLockedCards] = useState<Record<string, boolean>>({});
-  const [transfers, setTransfers] = useState<Txn[]>([]);
 
   const activeEmployment = employerAccounts.filter((a) => a.employmentStatus === 'active' || a.employmentStatus === 'onboarding');
   const holderName = profileName || 'AOS MEMBER';
-
-  const addTransfer = (fromId: string, toId: string, amt: number) => {
-    const now = new Date().toISOString();
-    const stamp = Date.now();
-    setTransfers((t) => [
-      ...t,
-      { id: `xfer-${stamp}-o`, accountId: fromId, date: now, desc: `Transfer to ${toId.toUpperCase()}`, amount: -amt, balance: 0 },
-      { id: `xfer-${stamp}-i`, accountId: toId, date: now, desc: `Transfer from ${fromId.toUpperCase()}`, amount: amt, balance: 0 },
-    ]);
-  };
-
-  const payCard = (cardKey: 'freedom' | 'sapphire', amt: number) => {
-    const cardId = cardKey === 'freedom' ? 'cc-freedom' : 'cc-sapphire';
-    const now = new Date().toISOString();
-    const stamp = Date.now();
-    setTransfers((t) => [
-      ...t,
-      { id: `pay-${stamp}-c`, accountId: 'chk', date: now, desc: `Payment — ${cardKey === 'freedom' ? 'Freedom Unlimited' : 'Sapphire Reserve'} Card`, amount: -amt, balance: 0 },
-      { id: `pay-${stamp}-d`, accountId: cardId, date: now, desc: 'Card Payment — Thank You', amount: -amt, balance: 0 },
-    ]);
-  };
 
   const extraTxns = useMemo<Txn[]>(() => {
     const txns: Txn[] = [];
@@ -210,7 +188,6 @@ export function BankingApp() {
       const amount = o.accountKind === 'credit' ? o.total : -o.total;
       txns.push({ id: `amz-${o.id}`, accountId: o.accountId, date: o.date, desc: o.desc, amount, balance: 0 });
     });
-    txns.push(...transfers);
     return txns;
   }, [cashAdjustment, subscriptions, bankTransfers, cardCharges, taxRefunds, orders]);
 
