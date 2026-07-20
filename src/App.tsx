@@ -24,7 +24,6 @@ const SettingsApp = lazy(() => import('./apps/settings/SettingsApp').then((m) =>
 const CoLabApp = lazy(() => import('./apps/colab/CoLabApp').then((m) => ({ default: m.CoLabApp })));
 const WorkHubApp = lazy(() => import('./apps/workhub/WorkHubApp').then((m) => ({ default: m.WorkHubApp })));
 const SpaceyApp = lazy(() => import('./apps/spacey/SpaceyApp').then((m) => ({ default: m.SpaceyApp })));
-const MessagesApp = lazy(() => import('./apps/messages/MessagesApp').then((m) => ({ default: m.MessagesApp })));
 const NeuralApp = lazy(() => import('./apps/neural/NeuralApp').then((m) => ({ default: m.NeuralApp })));
 const VirtueApp = lazy(() => import('./apps/virtue/VirtueApp').then((m) => ({ default: m.VirtueApp })));
 const BankingApp = lazy(() => import('./apps/banking/BankingApp').then((m) => ({ default: m.BankingApp })));
@@ -169,7 +168,6 @@ function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDoc
   if (window.appId === 'spotify') return <Suspense fallback={null}><SpotifyApp /></Suspense>;
   if (window.appId === 'safari') return <Suspense fallback={null}><SafariApp /></Suspense>;
   if (window.appId === 'settings') return <Suspense fallback={null}><SettingsApp /></Suspense>;
-  if (window.appId === 'messages') return <Suspense fallback={null}><MessagesApp /></Suspense>;
   if (window.appId === 'colab') return <Suspense fallback={null}><CoLabApp /></Suspense>;
   if (window.appId === 'sentinel-flow') return <Suspense fallback={null}><WorkHubApp /></Suspense>;
   if (window.appId === 'neural') return <Suspense fallback={null}><NeuralApp /></Suspense>;

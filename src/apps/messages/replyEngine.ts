@@ -58,7 +58,7 @@ const GENERIC: Record<Intent, (c: Ctx) => string[]> = {
   greeting: ({ first }) => [`Hey ${first}! Good to hear from you. What's up?`, `Hi ${first} — how's it going?`],
   thanks: () => [`Of course — anytime.`, `Happy to help. That's what I'm here for.`],
   apology: () => [`No worries at all, honestly. These things happen.`, `Don't sweat it — we're good.`],
-  congrats: () => [`Thank you! That means a lot coming from you.`, `Appreciate it 🙏`],
+  congrats: () => [`Thank you! That means a lot coming from you.`, `Appreciate it.`],
   raise: ({ first }) => [`That's a fair thing to raise, ${first}. Let's find time to talk it through properly.`],
   pto: () => [`Sounds good — go recharge. We'll hold things down.`, `Enjoy the time off, you've earned it.`],
   deadline: () => [`Let me check the timeline and get back to you with a firm date.`],
@@ -69,7 +69,7 @@ const GENERIC: Record<Intent, (c: Ctx) => string[]> = {
   networking: () => [`Happy to connect. Always glad to make time for people doing good work.`],
   availability: () => [`I've got some open time this afternoon and tomorrow morning. What suits you?`],
   status: ({ first }) => [`Things are moving along, ${first}. Anything specific you wanted an update on?`],
-  smalltalk: () => [`👍`, `Sounds good.`, `For sure.`],
+  smalltalk: () => [`Sounds good.`, `For sure.`],
 };
 
 const BANKS: Record<Contact['relationship'], Bank> = {
@@ -115,7 +115,7 @@ const BANKS: Record<Contact['relationship'], Bank> = {
     deadline: () => [`i think we're okay on timing but the review step always takes longer than people expect. wanna pair on it tomorrow so we're not scrambling friday?`],
     smalltalk: () => [`haha yeah`, `fr`, `100%`],
     status: ({ first }) => [`going alright ${first}, just buried in reviews. you? need anything from me?`],
-    thanks: () => [`anytime dude 🙌`],
+    thanks: () => [`anytime dude`],
     availability: () => [`free most of the afternoon, ping me whenever`],
   },
   linkedin: {
@@ -162,9 +162,9 @@ const BANKS: Record<Contact['relationship'], Bank> = {
  * Generate a contextual reply. `turnSeed` (e.g. the message count) is used to
  * rotate through response variants so repeated intents don't repeat verbatim.
  */
-export function generateReply(contact: Contact, userText: string, history: ChatMessage[]): string {
+export function generateReply(contact: Contact, userText: string, history: ChatMessage[], firstName = 'there'): string {
   const intent = classify(userText);
-  const first = 'Michael';
+  const first = firstName;
   const ctx: Ctx = { contact, first };
   const bank = BANKS[contact.relationship] ?? {};
   const options = (bank[intent]?.(ctx) ?? GENERIC[intent](ctx)).filter((s) => s.trim().length > 0);

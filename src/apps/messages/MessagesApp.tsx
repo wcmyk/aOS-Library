@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
-import { useMessagesStore } from '../../state/useMessagesStore';
+import { useMessagesStore, type ChatMessage } from '../../state/useMessagesStore';
+import { useProfileStore } from '../../state/useProfileStore';
+import { generateReply, replyDelay } from './replyEngine';
 import './messages.css';
 
 // Apple Messages replica: searchable conversation sidebar, blue/gray bubble
@@ -29,6 +31,7 @@ export function MessagesApp() {
   const [search, setSearch] = useState('');
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
+  const firstName = useProfileStore((s) => s.fullName).split(' ')[0];
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const sorted = useMemo(() =>
@@ -43,9 +46,20 @@ export function MessagesApp() {
 
   const send = () => {
     if (!active || !draft.trim()) return;
-    appendMessage(active.sender, draft.trim(), { fromMe: true });
+    const text = draft.trim();
+    appendMessage(active.sender, text, { fromMe: true });
     setDraft('');
     setTimeout(() => scrollRef.current?.scrollTo({ top: 999999, behavior: 'smooth' }), 50);
+    // Human contacts answer with a persona-appropriate contextual reply.
+    if (active.contact) {
+      const history: ChatMessage[] = [...active.messages, { text, at: new Date().toISOString(), fromMe: true }]
+        .map((m) => ({ from: m.fromMe ? 'me' as const : 'them' as const, text: m.text, at: m.at }));
+      const reply = generateReply(active.contact, text, history, firstName);
+      setTimeout(() => {
+        appendMessage(active.sender, reply);
+        setTimeout(() => scrollRef.current?.scrollTo({ top: 999999, behavior: 'smooth' }), 60);
+      }, replyDelay(reply));
+    }
   };
 
   return (
