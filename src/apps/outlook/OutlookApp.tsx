@@ -14,11 +14,6 @@ const FOLDER_LABELS: Record<EmailFolder, string> = {
   trash: 'Deleted Items',
 };
 
-function percentCount(text: string) {
-  const match = text.toUpperCase().match(/PROMOTION(%+)/);
-  return match ? match[1].length : 0;
-}
-
 function extractName(from: string) {
   const m = from.match(/^([^<]+)/);
   return (m?.[1] ?? from).trim();
@@ -223,7 +218,7 @@ function buildOnboardingEmail(meta: JobMeta): Omit<Email, 'id' | 'read' | 'starr
     subject: `Welcome to ${meta.company} — Onboarding Information`,
     date: new Date().toISOString(),
     folder: 'inbox',
-    body: `<p>Dear New Team Member,</p><p>Congratulations and welcome to <strong>${meta.company}</strong>! You are joining as a <strong>${meta.role}</strong>.</p><p><strong>Start Date:</strong> ${startDate}<br><strong>Manager:</strong> ${meta.managerName} · <a href="mailto:${mgEmail}" style="color:#0078d4">${mgEmail}</a></p><hr style="border:none;border-top:1px solid #e2e8f0;margin:12px 0"><p><strong>Compensation:</strong> Base salary of <strong>$${meta.compensation.toLocaleString()}/year</strong>, paid bi-weekly. Direct deposit enrollment instructions are in your onboarding portal.</p><hr style="border:none;border-top:1px solid #e2e8f0;margin:12px 0"><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:14px;margin:10px 0"><p style="margin:0 0 6px;font-weight:600">IRS Form W-4 — Employee's Withholding Certificate</p><p style="margin:0;font-size:13px"><strong>Employer:</strong> ${meta.company} · <strong>EIN:</strong> ${ein}<br><strong>Address:</strong> ${addr}</p></div><p>Please reply to this email confirming receipt. If you have any questions, contact <a href="mailto:${mgEmail}" style="color:#0078d4">${mgEmail}</a>.</p><p><em>Tip: reply with <strong>PROMOTION%</strong> to trigger a promotion review after settling in.</em></p><br><p>Best regards,<br><strong>${meta.recruiter}</strong><br>People Operations, ${meta.company}</p>`,
+    body: `<p>Dear New Team Member,</p><p>Congratulations and welcome to <strong>${meta.company}</strong>! You are joining as a <strong>${meta.role}</strong>.</p><p><strong>Start Date:</strong> ${startDate}<br><strong>Manager:</strong> ${meta.managerName} · <a href="mailto:${mgEmail}" style="color:#0078d4">${mgEmail}</a></p><hr style="border:none;border-top:1px solid #e2e8f0;margin:12px 0"><p><strong>Compensation:</strong> Base salary of <strong>$${meta.compensation.toLocaleString()}/year</strong>, paid bi-weekly. Direct deposit enrollment instructions are in your onboarding portal.</p><hr style="border:none;border-top:1px solid #e2e8f0;margin:12px 0"><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:14px;margin:10px 0"><p style="margin:0 0 6px;font-weight:600">IRS Form W-4 — Employee's Withholding Certificate</p><p style="margin:0;font-size:13px"><strong>Employer:</strong> ${meta.company} · <strong>EIN:</strong> ${ein}<br><strong>Address:</strong> ${addr}</p></div><p>Please reply to this email confirming receipt. If you have any questions, contact <a href="mailto:${mgEmail}" style="color:#0078d4">${mgEmail}</a>.</p><p><em>Promotions are granted through your manager and People Operations as part of the review cycle.</em></p><br><p>Best regards,<br><strong>${meta.recruiter}</strong><br>People Operations, ${meta.company}</p>`,
     jobMeta: { ...meta, stage: 'onboarding' },
   };
 }
@@ -255,6 +250,9 @@ export function processHousingAutomation(
   }
 }
 
+// Replying to a recruiting email advances the process the way it does in real
+// life — no magic codes. Any substantive reply moves scheduling forward; the
+// offer stage requires an explicit acceptance ("I accept").
 export function processAtsReply(
   original: Email,
   replyBody: string,
@@ -262,16 +260,18 @@ export function processAtsReply(
 ) {
   const { jobMeta } = original;
   if (!jobMeta) return;
-  const upper = replyBody.toUpperCase();
-  if (jobMeta.stage === 'confirmation' && upper.includes('ATS100')) {
+  // Only what the user actually typed counts — drop the quoted original.
+  const written = replyBody.split('________________________________')[0].trim();
+  if (written.length < 2) return;
+  if (jobMeta.stage === 'confirmation') {
     sendEmail(buildPhoneScreenEmail(jobMeta));
-  } else if (jobMeta.stage === 'phone-screen' && upper.includes('MANAGER100')) {
+  } else if (jobMeta.stage === 'phone-screen') {
     sendEmail(buildDirectorEmail(jobMeta));
-  } else if (jobMeta.stage === 'director' && upper.includes('PANELS100')) {
+  } else if (jobMeta.stage === 'director') {
     sendEmail(buildPanelEmail(jobMeta));
-  } else if (jobMeta.stage === 'panel' && upper.includes('THANK YOU')) {
+  } else if (jobMeta.stage === 'panel') {
     sendEmail(buildOfferEmail(jobMeta));
-  } else if (jobMeta.stage === 'offer' && upper.includes('I ACCEPT')) {
+  } else if (jobMeta.stage === 'offer' && /\bACCEPT\b/i.test(written)) {
     sendEmail(buildOnboardingEmail(jobMeta));
   }
 }
@@ -414,7 +414,6 @@ export function OutlookApp() {
   const loginOutlook = useCompanyStore((s) => s.loginOutlook);
   const logoutOutlook = useCompanyStore((s) => s.logoutOutlook);
   const ensureEmployerFromOffer = useCompanyStore((s) => s.ensureEmployerFromOffer);
-  const applyPromotionCommand = useCompanyStore((s) => s.applyPromotionCommand);
 
   const [emailInput, setEmailInput] = useState(activeOutlookEmail ?? 'user@workspace.aos');
   const [password, setPassword] = useState('workspace');
@@ -499,36 +498,15 @@ export function OutlookApp() {
     if (selected) {
       const upper = body.toUpperCase();
 
-      // ── ATS stage advance codes ──────────────────────────────────────────────
+      // ── Recruiting replies advance the hiring process ────────────────────────
       processAtsReply(selected, body, (e) => sendEmail({ ...e, folder: 'inbox' }));
 
       // ── Housing automation codes ─────────────────────────────────────────────
       processHousingAutomation(selected, body, (e) => sendEmail({ ...e, folder: 'inbox' }));
 
-      // ── PROMOTION% — find the matching employer account by email domain ──────
-      const pCount = percentCount(upper);
-      if (pCount > 0) {
-        const senderDomain = selected.from.match(/@([\w.-]+)>?$/)?.[1];
-        const matchedAcc = accounts.find((a) =>
-          a.companyEmail.toLowerCase() === activeOutlookEmail.toLowerCase() ||
-          (senderDomain && a.domain === senderDomain),
-        );
-        const emailForPromo = matchedAcc?.companyEmail ?? activeOutlookEmail;
-        const promo = applyPromotionCommand(emailForPromo, pCount, `email:${selected.subject}`);
-        if (promo) {
-          sendEmail({
-            from: `People Operations <hr@${matchedAcc?.domain ?? selected.from.split('@')[1]?.replace('>', '') ?? 'company.com'}>`,
-            to: activeOutlookEmail,
-            subject: `Promotion confirmed — ${promo.toTitle}`,
-            body: `<p>Congratulations! Your title has been updated from <strong>${promo.fromTitle}</strong> to <strong>${promo.toTitle}</strong>.</p><p>Your new base salary is <strong>$${promo.toComp.toLocaleString()}</strong>/year, effective immediately. This change is reflected in Workday and your next payroll cycle.</p><p>Best regards,<br><strong>People Operations</strong></p>`,
-            date: new Date().toISOString(),
-            folder: 'inbox',
-          });
-        }
-      }
-
-      // ── I ACCEPT on offer email — provision employer account ────────────────
-      if (upper.includes('I ACCEPT') && selected.jobMeta?.stage === 'offer') {
+      // ── Acceptance reply on offer email — provision employer account ────────
+      const writtenUpper = upper.split('________________________________')[0];
+      if (/\bACCEPT\b/.test(writtenUpper) && selected.jobMeta?.stage === 'offer') {
         const account = ensureEmployerFromOffer({
           companyName: selected.jobMeta.company,
           role: selected.jobMeta.role,

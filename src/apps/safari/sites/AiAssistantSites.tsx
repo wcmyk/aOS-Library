@@ -13,10 +13,10 @@ type Msg = { role: 'user' | 'assistant'; text: string };
 function assistantReply(service: AiService, q: string): string {
   const query = q.toLowerCase();
   if (/promot/i.test(query)) {
-    return 'Promotions in the simulation are earned through work quality and tenure. After onboarding, complete the assignments in Workday → My Tasks before their deadlines, then reply PROMOTION% to a work email from your company domain. Each additional % escalates the review level. Your new title and compensation flow to Workday, ADP, and payroll automatically.';
+    return 'Promotions are earned through work quality and tenure. Complete the assignments in Workday → My Tasks before their deadlines, and your manager and People Operations will recognize it in the review cycle. When a promotion lands, an HR confirmation arrives by email and your new title and compensation flow to Workday, ADP, and payroll automatically.';
   }
   if (/job|apply|interview|offer/.test(query)) {
-    return 'The hiring loop mirrors real life: find a role on LinkedIn Jobs and apply, then manage the process from your inbox — reply ATS100 to schedule the phone screen, MANAGER100 for the director round, PANELS100 for the panel, send a thank-you note after the panel, and reply "I Accept" to the written offer. Acceptance provisions your company email, Workday tenant, and biweekly payroll.';
+    return 'The hiring loop mirrors real life: find a role on LinkedIn Jobs and apply, then manage the process from your inbox — reply to the recruiter to schedule the phone screen, keep responding through the director round and the panel, send a thank-you note afterward, and reply "I Accept" to the written offer. Acceptance provisions your company email, Workday tenant, and biweekly payroll.';
   }
   if (/pay|salary|check|money|bank/.test(query)) {
     return 'Pay runs on a biweekly cycle from your start date. Gross pay divides your base salary by 26; federal, state, OASDI, Medicare, 401(k), and medical premiums come out pre-tax where applicable. You can inspect every line item in Workday (including a printed check view), reconcile statements in myADP, and watch deposits land in Chase Total Checking.';
