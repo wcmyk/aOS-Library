@@ -176,6 +176,15 @@ function hashStr(s: string): number {
 
 const BADGES: Array<AzProduct['badge']> = ['Best Seller', "Amazon's Choice", 'Overall Pick', 'Limited time deal'];
 
+// Dedicated product photography for specific devices (falls back to the
+// department photo when no match).
+const TITLE_PHOTO: Array<[RegExp, string]> = [
+  [/vr|virtual reality/i, 'vr.webp'],
+  [/action camera/i, 'actioncam.webp'],
+  [/e-?reader|e-?ink/i, 'ereader.webp'],
+  [/drone|quadcopter/i, 'drone.webp'],
+];
+
 export const AZ_PRODUCTS: AzProduct[] = AZ_CATEGORIES.flatMap((cat) =>
   DATA[cat].map((row, i) => {
     const [title, brand, price, list, rating, reviews, bullets] = row;
@@ -190,7 +199,7 @@ export const AZ_PRODUCTS: AzProduct[] = AZ_CATEGORIES.flatMap((cat) =>
       prime: h % 5 !== 0,
       badge: h % 4 === 0 ? BADGES[h % BADGES.length] : undefined,
       bullets,
-      photo: `${BASE_URL}assets/amazon/${CATEGORY_PHOTO[cat]}`,
+      photo: `${BASE_URL}assets/amazon/${TITLE_PHOTO.find(([re]) => re.test(title))?.[1] ?? CATEGORY_PHOTO[cat]}`,
       hue: (h % 36) * 10,
     };
   }),

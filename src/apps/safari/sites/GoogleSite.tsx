@@ -26,9 +26,9 @@ function buildResults(q: string): WebResult[] {
 function aiAnswer(q: string): string {
   return `Here's an overview of "${q}":
 
-• In the aOS workforce simulation, the fastest path is: search openings on LinkedIn → apply → answer the recruiter email in Outlook or Gmail (reply ATS100 to advance) → complete interviews → accept the offer to unlock Workday, ADP, and payroll.
+• In the aOS workforce simulation, the fastest path is: search openings on LinkedIn → apply → reply to each recruiter email in Outlook or Gmail to schedule the next round → complete interviews → accept the written offer to unlock Workday, ADP, and payroll.
 
-• Once employed, your real work lives in Workday → My Tasks: role-specific deliverables with hard deadlines and complexity ratings. Submitting quality write-ups on time is what drives promotions (reply PROMOTION% to a work email after settling in).
+• Once employed, your real work lives in Workday → My Tasks: role-specific deliverables with hard deadlines and complexity ratings. Submitting quality write-ups on time is what earns promotions through the review cycle.
 
 • Pay flows automatically: biweekly checks appear in Workday (payslips + paper-check view), ADP (statements, W-2, 401k), and your Chase checking account.
 

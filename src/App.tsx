@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { apps } from './data/apps';
 import { Dock } from './components/Dock';
+import { NotificationCenter } from './components/NotificationCenter';
 import { MenuBar } from './components/MenuBar';
 import { Spotlight } from './components/Spotlight';
 import { WindowFrame } from './components/WindowFrame';
@@ -31,6 +32,9 @@ const PyCharmApp = lazy(() => import('./apps/pycharm/PyCharmApp').then((m) => ({
 const XcodeApp = lazy(() => import('./apps/xcode/XcodeApp').then((m) => ({ default: m.XcodeApp })));
 const TeamsApp = lazy(() => import('./apps/teams/TeamsApp').then((m) => ({ default: m.TeamsApp })));
 const VSCodeApp = lazy(() => import('./apps/vscode/VSCodeApp').then((m) => ({ default: m.VSCodeApp })));
+const CalendarApp = lazy(() => import('./apps/calendar/CalendarApp').then((m) => ({ default: m.CalendarApp })));
+const MessagesApp = lazy(() => import('./apps/messages/MessagesApp').then((m) => ({ default: m.MessagesApp })));
+const ZoomApp = lazy(() => import('./apps/zoom/ZoomApp').then((m) => ({ default: m.ZoomApp })));
 const CalculatorApp = lazy(() => import('./apps/calculator/CalculatorApp').then((m) => ({ default: m.CalculatorApp })));
 const CircuitApp = lazy(() => import('./apps/circuit/CircuitApp').then((m) => ({ default: m.CircuitApp })));
 const ChemistryApp = lazy(() => import('./apps/chemistry/ChemistryApp').then((m) => ({ default: m.ChemistryApp })));
@@ -142,6 +146,9 @@ function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDoc
   if (window.appId === 'xcode') return <Suspense fallback={null}><XcodeApp /></Suspense>;
   if (window.appId === 'teams') return <Suspense fallback={null}><TeamsApp /></Suspense>;
   if (window.appId === 'vscode') return <Suspense fallback={null}><VSCodeApp /></Suspense>;
+  if (window.appId === 'calendar') return <Suspense fallback={null}><CalendarApp /></Suspense>;
+  if (window.appId === 'messages') return <Suspense fallback={null}><MessagesApp /></Suspense>;
+  if (window.appId === 'zoom') return <Suspense fallback={null}><ZoomApp /></Suspense>;
   if (window.appId === 'calculator') return <Suspense fallback={null}><CalculatorApp /></Suspense>;
   if (window.appId === 'circuit') return <Suspense fallback={null}><CircuitApp /></Suspense>;
   if (window.appId === 'chemistry') return <Suspense fallback={null}><ChemistryApp /></Suspense>;
@@ -307,6 +314,7 @@ export default function App() {
         ))}
 
         <Dock apps={visibleApps} windows={windows} onLaunch={openWindow} />
+        <Suspense fallback={null}><NotificationCenter /></Suspense>
       </div>
     </div>
   );

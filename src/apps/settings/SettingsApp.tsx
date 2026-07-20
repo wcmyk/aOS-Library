@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useProfileStore } from '../../state/useProfileStore';
 import { useMailStore, type JobMeta } from '../../state/useMailStore';
 import { useDevStore, AI_PLANS, CLAUDE_PLANS, type AiService } from '../../state/useDevStore';
+import { useCompanyStore } from '../../state/useCompanyStore';
 import { REAL_COMPANIES } from '../../data/companies';
 import { CompanyLogo, ClaudeSpark, ChatGptKnot, GeminiSpark } from '../../data/brands';
 import { personPhoto } from '../../data/people';
@@ -92,6 +93,50 @@ export function SettingsApp() {
   const [offerRoleIx, setOfferRoleIx] = useState(0);
   const [offerType, setOfferType] = useState<'Full-time' | 'Contract'>('Full-time');
   const [offerNote, setOfferNote] = useState('');
+  const employerAccounts = useCompanyStore((s) => s.employerAccounts);
+  const applyPromotionCommand = useCompanyStore((s) => s.applyPromotionCommand);
+  const promotable = employerAccounts.filter((a) => a.employmentStatus === 'active' || a.employmentStatus === 'onboarding');
+  const [promoAccountId, setPromoAccountId] = useState('');
+  const [promoSteps, setPromoSteps] = useState(1);
+  const [promoNote, setPromoNote] = useState('');
+
+  const endEmployment = useCompanyStore((s) => s.endEmployment);
+
+  const terminate = () => {
+    const acc = promotable.find((a) => a.id === promoAccountId) ?? promotable[0];
+    if (!acc) return;
+    const ended = endEmployment(acc.id);
+    if (!ended) return;
+    const finalPay = Math.round((acc.compensation / 26) * 100) / 100;
+    sendEmail({
+      from: `People Operations <hr@${acc.domain}>`,
+      to: 'user@workspace.aos',
+      subject: `Notice of separation — ${acc.companyName}`,
+      date: new Date().toISOString(),
+      folder: 'inbox',
+      body: `<p>This letter confirms that your employment with <strong>${acc.companyName}</strong> as ${acc.title} ends effective today.</p><ul><li><strong>Final paycheck:</strong> $${finalPay.toLocaleString(undefined, { minimumFractionDigits: 2 })} (current pay period), paid on the normal payroll date, including accrued unused PTO where required by state law.</li><li><strong>Benefits:</strong> Medical, dental, and vision coverage continue through the end of the month. A COBRA continuation-of-coverage election notice will arrive by mail within 14 days.</li><li><strong>Equipment:</strong> Return your badge and laptop within 5 business days using the prepaid label.</li><li><strong>Systems:</strong> Access to ${acc.companyName} email, Teams, and Workday self-service is now read-only for payroll and tax documents.</li></ul><p>You may be eligible for state unemployment insurance; you can file as early as your first day of unemployment.</p><p>We wish you the best going forward.</p><p>People Operations, ${acc.companyName}</p>`,
+    });
+    setPromoNote(`${acc.companyName}: employment ended. Separation notice sent to your personal inbox; payroll deposits stop after the final check.`);
+  };
+
+  const grantPromotion = () => {
+    const acc = promotable.find((a) => a.id === promoAccountId) ?? promotable[0];
+    if (!acc) return;
+    const promo = applyPromotionCommand(acc.companyEmail, promoSteps, 'developer-panel');
+    if (!promo) {
+      setPromoNote(`${acc.companyName}: already at the top of the ladder — no promotion applied.`);
+      return;
+    }
+    sendEmail({
+      from: `People Operations <hr@${acc.domain}>`,
+      to: acc.companyEmail,
+      subject: `Promotion confirmed — ${promo.toTitle}`,
+      date: new Date().toISOString(),
+      folder: 'inbox',
+      body: `<p>Congratulations! Following your performance review, your title has been updated from <strong>${promo.fromTitle}</strong> to <strong>${promo.toTitle}</strong>.</p><p>Your new base salary is <strong>$${promo.toComp.toLocaleString()}</strong>/year, effective immediately. This change is reflected in Workday and your next payroll cycle.</p><p>Best regards,<br><strong>People Operations</strong><br>${acc.companyName}</p>`,
+    });
+    setPromoNote(`${acc.companyName}: ${promo.fromTitle} → ${promo.toTitle}, now $${promo.toComp.toLocaleString()}/year. HR confirmation sent to ${acc.companyEmail}.`);
+  };
 
   const grantOffer = () => {
     const company = REAL_COMPANIES.find((c) => c.name === offerCompany) ?? REAL_COMPANIES[0];
@@ -283,7 +328,7 @@ export function SettingsApp() {
             <div className="mst-hero">
               <span className="mst-hero-icon" style={{ background: '#5e5ce6' }}>{IC.wrench}</span>
               <h1>Developer</h1>
-              <p>Simulation controls for facilitators: adjust cash and grant instant job offers.</p>
+              <p>Simulation controls for facilitators: adjust cash, grant instant job offers, and grant promotions.</p>
             </div>
             <div className="mst-group mst-form">
               <div className="mst-form-title">Cash controls — current adjustment ${cashAdjustment.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
@@ -313,6 +358,27 @@ export function SettingsApp() {
                 <button type="button" className="mst-btn-green" onClick={grantOffer}>Send Offer</button>
               </div>
               {offerNote && <div className="mst-note-ok">{offerNote}</div>}
+            </div>
+            <div className="mst-group mst-form">
+              <div className="mst-form-title">Grant promotion</div>
+              {promotable.length === 0 ? (
+                <div className="mst-note-muted">No active employment. Grant and accept a job offer first, then promotions become available here.</div>
+              ) : (
+                <div className="mst-inline">
+                  <CompanyLogo company={(promotable.find((a) => a.id === promoAccountId) ?? promotable[0]).companyName} size={36} />
+                  <select value={promoAccountId || promotable[0].id} onChange={(e) => setPromoAccountId(e.target.value)}>
+                    {promotable.map((a) => <option key={a.id} value={a.id}>{a.companyName} — {a.title}</option>)}
+                  </select>
+                  <select value={promoSteps} onChange={(e) => setPromoSteps(Number(e.target.value))}>
+                    <option value={1}>1 level up</option>
+                    <option value={2}>2 levels up</option>
+                    <option value={3}>3 levels up</option>
+                  </select>
+                  <button type="button" className="mst-btn-green" onClick={grantPromotion}>Promote</button>
+                  <button type="button" className="mst-btn-danger" onClick={terminate}>End employment</button>
+                </div>
+              )}
+              {promoNote && <div className="mst-note-ok">{promoNote}</div>}
             </div>
           </>
         )}
