@@ -76,6 +76,8 @@
 .az-rail .opt.link .lbl { color: var(--az-link); }
 .az-rail .opt.link:hover .lbl { color: #c7511f; text-decoration: underline; }
 .az-rail .prime-opt { gap: 8px; }
+.az-rail .dept-row { background: none; border: none; width: 100%; text-align: left; font: inherit; padding: 3px 0; }
+.az-rail .dept-row.active .lbl { color: #0f1111; }
 
 /* ── Results header ─────────────────────────────────────────────────────────── */
 .az-main { flex: 1; min-width: 0; padding: 14px 18px 30px; border-left: 1px solid #e7e7e7; }

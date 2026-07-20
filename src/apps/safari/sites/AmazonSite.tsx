@@ -4,28 +4,102 @@ import './amazon.css';
 const BASE_URL = import.meta.env.BASE_URL;
 const img = (id: string) => `${BASE_URL}assets/amazon/${id}.jpg`;
 
-/* ─── Product catalog (grocery: instant ramen, noodles, snacks & drinks) ─────── */
+/* ─── Product catalog ────────────────────────────────────────────────────────── */
 
+type Dept = 'electronics' | 'components' | 'grocery';
 type Badge = { kind: 'overall' | 'choice' | 'best' | 'deal'; text: string };
 
 type Product = {
   id: string;
   title: string;
+  dept?: Dept; // defaults to 'grocery'
   price: number;
   listPrice?: number;
   unit?: string;
-  rating: number; // 0-5
+  rating: number;
   reviews: number;
   bought?: string;
   badge?: Badge;
   sponsored?: boolean;
-  coupon?: number; // percent
+  coupon?: number;
   prime?: boolean;
   delivery: string;
   fastest?: string;
 };
 
 const PRODUCTS: Product[] = [
+  /* ── Electronics ── */
+  {
+    id: 'macbook', dept: 'electronics',
+    title: 'Apple MacBook Pro 14" Laptop — M4 chip, 16GB RAM, 512GB SSD, Space Black',
+    price: 1599, listPrice: 1799, rating: 4.8, reviews: 12840, bought: '2K+ bought in past month',
+    badge: { kind: 'best', text: '#1 Best Seller' }, coupon: 5, prime: true, delivery: 'Tomorrow, Jul 20', fastest: 'Today 7 PM',
+  },
+  {
+    id: 'samsung-phone', dept: 'electronics',
+    title: 'Samsung Galaxy S25 Ultra 5G Smartphone, 256GB, Titanium Gray (Unlocked)',
+    price: 1099.99, listPrice: 1299.99, rating: 4.7, reviews: 20310, bought: '3K+ bought in past month',
+    badge: { kind: 'choice', text: "Amazon's Choice" }, prime: true, delivery: 'Tomorrow, Jul 20',
+  },
+  {
+    id: 'pixel-phone', dept: 'electronics',
+    title: 'Google Pixel 9 Pro 5G Smartphone, 128GB, Hazel (Unlocked)',
+    price: 899, listPrice: 999, rating: 4.7, reviews: 15600, bought: '2K+ bought in past month',
+    badge: { kind: 'overall', text: 'Overall Pick' }, prime: true, delivery: 'Tomorrow, Jul 20',
+  },
+  {
+    id: 'samsung-tab', dept: 'electronics',
+    title: 'Samsung Galaxy Tab S10 11" Tablet, 128GB, WiFi, with S Pen',
+    price: 649.99, rating: 4.6, reviews: 8420, sponsored: true, prime: true, delivery: 'Tomorrow, Jul 20',
+  },
+  {
+    id: 'samsung-watch', dept: 'electronics',
+    title: 'Samsung Galaxy Watch7 Smartwatch, 44mm, Bluetooth, Health Tracking',
+    price: 279.99, listPrice: 329.99, rating: 4.5, reviews: 6110, coupon: 10, prime: true, delivery: 'Tomorrow, Jul 20',
+  },
+  {
+    id: 'pixel-buds', dept: 'electronics',
+    title: 'Google Pixel Buds Pro 2 Wireless Earbuds with Active Noise Cancellation',
+    price: 199.99, listPrice: 229.99, rating: 4.6, reviews: 9280, prime: true, delivery: 'Tomorrow, Jul 20', fastest: 'Today 7 PM',
+  },
+
+  /* ── Computers & Components ── */
+  {
+    id: 'gpu-ai', dept: 'components',
+    title: 'AI Accelerator GPU Graphics Card, 24GB GDDR6X, PCIe 4.0, Triple Fan',
+    price: 1599, listPrice: 1899, rating: 4.7, reviews: 5240, bought: '1K+ bought in past month',
+    badge: { kind: 'deal', text: 'Limited time deal' }, prime: true, delivery: 'Tomorrow, Jul 20',
+  },
+  {
+    id: 'cpu', dept: 'components',
+    title: '16-Core 32-Thread Desktop CPU Processor, Socket AM5, Unlocked',
+    price: 429, listPrice: 499, rating: 4.8, reviews: 24100, bought: '4K+ bought in past month',
+    badge: { kind: 'best', text: '#1 Best Seller' }, prime: true, delivery: 'Tomorrow, Jul 20', fastest: 'Today 7 PM',
+  },
+  {
+    id: 'ram', dept: 'components',
+    title: 'DDR5 Desktop Memory RAM 32GB (2 x 16GB) 6000MHz Kit, RGB',
+    price: 109.99, listPrice: 139.99, unit: '($3.44 / GB)', rating: 4.8, reviews: 33210, bought: '6K+ bought in past month',
+    badge: { kind: 'choice', text: "Amazon's Choice" }, coupon: 10, prime: true, delivery: 'Tomorrow, Jul 20',
+  },
+  {
+    id: 'ssd', dept: 'components',
+    title: '1TB NVMe PCIe Gen4 M.2 Internal SSD, up to 7,000 MB/s',
+    price: 79.99, listPrice: 109.99, rating: 4.8, reviews: 51200, bought: '9K+ bought in past month',
+    badge: { kind: 'best', text: '#1 Best Seller' }, prime: true, delivery: 'Tomorrow, Jul 20',
+  },
+  {
+    id: 'chips', dept: 'components',
+    title: 'Semiconductor Microcontroller Chips Assortment Kit (50 pcs, DIP & SMD)',
+    price: 24.99, rating: 4.5, reviews: 3120, prime: true, delivery: 'Mon, Jul 22',
+  },
+  {
+    id: 'wafer', dept: 'components',
+    title: 'Silicon Semiconductor Wafer Display Piece, 200mm (Collector Grade)',
+    price: 89.99, rating: 4.6, reviews: 870, sponsored: true, prime: true, delivery: 'Mon, Jul 22',
+  },
+
+  /* ── Grocery & Gourmet Food ── */
   {
     id: 'buldak-2x',
     title: 'Samyang Buldak Hot Chicken Flavor Ramen (2x Spicy), Pack of 5',
@@ -87,7 +161,7 @@ const PRODUCTS: Product[] = [
   {
     id: 'sapporo',
     title: 'Sapporo Ichiban Original Ramen Noodle Soup, Pack of 24',
-    price: 21.6, unit: '($0.90 / Count)', rating: 4.6, reviews: 9870, sponsored: true, prime: true, delivery: 'Mon, Jul 22',
+    price: 21.6, unit: '($0.90 / Count)', rating: 4.6, reviews: 9870, prime: true, delivery: 'Mon, Jul 22',
   },
   {
     id: 'maruchan',
@@ -118,8 +192,21 @@ const PRODUCTS: Product[] = [
   },
 ];
 
-const DEPARTMENTS = ['Grocery & Gourmet Food', 'Instant Ramen', 'Snack Foods', 'Beverages', 'International Foods', 'Candy & Chocolate'];
-const BRANDS = ['Samyang', 'Nissin', 'Nongshim', 'Maruchan', 'Indomie', 'Ottogi'];
+const DEPARTMENTS: { id: 'all' | Dept; label: string; query: string; results: string }[] = [
+  { id: 'all', label: 'All Departments', query: 'today’s deals', results: 'over 30,000' },
+  { id: 'electronics', label: 'Electronics', query: 'laptops, phones & tablets', results: 'over 8,000' },
+  { id: 'components', label: 'Computers & Components', query: 'pc components & chips', results: 'over 6,000' },
+  { id: 'grocery', label: 'Grocery & Gourmet Food', query: 'instant ramen', results: 'over 4,000' },
+];
+
+const BRANDS: Record<'all' | Dept, string[]> = {
+  all: ['Apple', 'Samsung', 'Google', 'NVIDIA', 'Nissin', 'Samyang'],
+  electronics: ['Apple', 'Samsung', 'Google', 'Sony', 'Anker'],
+  components: ['Intel', 'AMD', 'NVIDIA', 'Corsair', 'Kingston', 'Samsung'],
+  grocery: ['Samyang', 'Nissin', 'Nongshim', 'Maruchan', 'Indomie', 'Ottogi'],
+};
+
+const deptOf = (p: Product): Dept => p.dept ?? 'grocery';
 
 function Stars({ value }: { value: number }) {
   const pct = (value / 5) * 100;
@@ -133,17 +220,18 @@ function Stars({ value }: { value: number }) {
 
 function Price({ value, list, unit }: { value: number; list?: number; unit?: string }) {
   const [dollars, cents] = value.toFixed(2).split('.');
+  const whole = Number(dollars).toLocaleString('en-US');
   return (
     <div className="az-price-row">
       <span className="az-price">
         <span className="sym">$</span>
-        <span className="whole">{dollars}</span>
+        <span className="whole">{whole}</span>
         <span className="frac">{cents}</span>
       </span>
       {unit ? <span className="az-unit">{unit}</span> : null}
       {list ? (
         <span className="az-was">
-          List: <s>${list.toFixed(2)}</s>
+          List: <s>${list.toLocaleString('en-US', { minimumFractionDigits: 2 })}</s>
         </span>
       ) : null}
     </div>
@@ -165,19 +253,20 @@ function AmazonSmile({ scale = 1 }: { scale?: number }) {
 export function AmazonSite() {
   const [cart, setCart] = useState<Record<string, number>>({});
   const [added, setAdded] = useState<string | null>(null);
-  const [query, setQuery] = useState('instant ramen');
+  const [dept, setDept] = useState<'all' | Dept>('all');
   const [sort, setSort] = useState('featured');
 
+  const activeDept = DEPARTMENTS.find((d) => d.id === dept) ?? DEPARTMENTS[0];
   const cartCount = useMemo(() => Object.values(cart).reduce((a, b) => a + b, 0), [cart]);
 
   const products = useMemo(() => {
-    const copy = [...PRODUCTS];
+    const copy = PRODUCTS.filter((p) => dept === 'all' || deptOf(p) === dept);
     if (sort === 'price-asc') copy.sort((a, b) => a.price - b.price);
     else if (sort === 'price-desc') copy.sort((a, b) => b.price - a.price);
     else if (sort === 'rating') copy.sort((a, b) => b.rating - a.rating);
     else if (sort === 'reviews') copy.sort((a, b) => b.reviews - a.reviews);
     return copy;
-  }, [sort]);
+  }, [dept, sort]);
 
   const addToCart = (id: string) => {
     setCart((c) => ({ ...c, [id]: (c[id] ?? 0) + 1 }));
@@ -203,13 +292,12 @@ export function AmazonSite() {
           </span>
         </div>
         <form className="az-search" onSubmit={(e) => e.preventDefault()}>
-          <select className="az-search-cat" aria-label="Search category" defaultValue="grocery">
-            <option value="all">All</option>
-            <option value="grocery">Grocery</option>
-            <option value="ramen">Instant Ramen</option>
-            <option value="snacks">Snacks</option>
+          <select className="az-search-cat" aria-label="Search category" value={dept} onChange={(e) => setDept(e.target.value as 'all' | Dept)}>
+            {DEPARTMENTS.map((d) => (
+              <option key={d.id} value={d.id}>{d.id === 'all' ? 'All' : d.label}</option>
+            ))}
           </select>
-          <input value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search Amazon" placeholder="Search Amazon" />
+          <input value={activeDept.query} readOnly aria-label="Search Amazon" placeholder="Search Amazon" />
           <button type="submit" className="az-search-btn" aria-label="Search">
             <svg width="21" height="21" viewBox="0 0 24 24" fill="#111"><path d="M21.4 18.6l-5.3-5.3A6.8 6.8 0 1 0 10 17a6.8 6.8 0 0 0 3.3-.9l5.3 5.3a2 2 0 0 0 2.8-2.8zM5 10a5 5 0 1 1 5 5 5 5 0 0 1-5-5z" /></svg>
           </button>
@@ -245,15 +333,15 @@ export function AmazonSite() {
           <svg width="16" height="12" viewBox="0 0 16 12"><path d="M0 1h16M0 6h16M0 11h16" stroke="#fff" strokeWidth="1.6" /></svg>
           All
         </a>
-        <a>Today&apos;s Deals</a>
-        <a>Customer Service</a>
-        <a>Registry</a>
+        <a onClick={() => setDept('all')}>Today&apos;s Deals</a>
+        <a onClick={() => setDept('electronics')}>Electronics</a>
+        <a onClick={() => setDept('components')}>Computers</a>
+        <a onClick={() => setDept('grocery')}>Grocery</a>
         <a>Gift Cards</a>
-        <a>Grocery</a>
         <a>Sell</a>
         <span className="spacer" />
-        <a className="deal">
-          Shop deals in <b>Grocery</b>
+        <a className="deal" onClick={() => setDept('electronics')}>
+          New deals in <b>Electronics</b>
         </a>
       </div>
 
@@ -261,13 +349,18 @@ export function AmazonSite() {
       <div className="az-body">
         <aside className="az-rail">
           <h4>Department</h4>
-          {DEPARTMENTS.map((d, i) => (
-            <div key={d} className={`opt ${i === 0 ? '' : 'link'}`}>
-              <span className="lbl">{i === 0 ? <b>{d}</b> : d}</span>
-            </div>
+          {DEPARTMENTS.map((d) => (
+            <button
+              key={d.id}
+              type="button"
+              className={`opt dept-row ${dept === d.id ? 'active' : 'link'}`}
+              onClick={() => setDept(d.id)}
+            >
+              <span className="lbl">{dept === d.id ? <b>{d.label}</b> : d.label}</span>
+            </button>
           ))}
           <h4>Brands</h4>
-          {BRANDS.map((b) => (
+          {BRANDS[dept].map((b) => (
             <label key={b} className="opt">
               <input type="checkbox" /> <span className="lbl">{b}</span>
             </label>
@@ -277,9 +370,9 @@ export function AmazonSite() {
             <Stars value={4} /> <span className="lbl">&amp; Up</span>
           </div>
           <h4>Price</h4>
-          <div className="opt link"><span className="lbl">Under $10</span></div>
-          <div className="opt link"><span className="lbl">$10 to $20</span></div>
-          <div className="opt link"><span className="lbl">$20 &amp; Above</span></div>
+          <div className="opt link"><span className="lbl">Under $25</span></div>
+          <div className="opt link"><span className="lbl">$25 to $100</span></div>
+          <div className="opt link"><span className="lbl">$100 &amp; Above</span></div>
           <h4>Deals &amp; Discounts</h4>
           <label className="opt"><input type="checkbox" /> <span className="lbl">All Discounts</span></label>
           <label className="opt"><input type="checkbox" /> <span className="lbl">Today&apos;s Deals</span></label>
@@ -291,9 +384,9 @@ export function AmazonSite() {
           <div className="az-results-head">
             <div>
               <div className="count">
-                1-{products.length} of over 4,000 results for <span className="q">&ldquo;{query}&rdquo;</span>
+                1-{products.length} of {activeDept.results} results for <span className="q">&ldquo;{activeDept.query}&rdquo;</span>
               </div>
-              <h1>Results</h1>
+              <h1>{dept === 'all' ? 'Results' : activeDept.label}</h1>
               <div className="subnote">Check each product page for other buying options.</div>
             </div>
             <label className="az-sortbar">
