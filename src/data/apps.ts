@@ -91,7 +91,7 @@ export const apps: ShellApp[] = [
     icon: `${BASE_URL}assets/apps/settings.png`,
     description: 'Workspace, wallpaper, and keyboard shortcuts',
     accent: '#60a5fa',
-    defaultSize: { width: 520, height: 420 },
+    defaultSize: { width: 720, height: 560 },
   },
   {
     id: 'messages',
