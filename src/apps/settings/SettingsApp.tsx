@@ -5,6 +5,7 @@ import { useDevStore, AI_PLANS, CLAUDE_PLANS, type AiService } from '../../state
 import { REAL_COMPANIES } from '../../data/companies';
 import { CompanyLogo, ClaudeSpark, ChatGptKnot, GeminiSpark } from '../../data/brands';
 import { personPhoto } from '../../data/people';
+import { useWallpaperStore, WALLPAPERS } from '../../state/useWallpaperStore';
 import './settings.css';
 
 // macOS System Settings replica: dark translucent sidebar with colored icon
@@ -84,6 +85,8 @@ function Row({ label, value, onClick, first, last }: { label: string; value?: st
 export function SettingsApp() {
   const profile = useProfileStore();
   const sendEmail = useMailStore((s) => s.sendEmail);
+  const selectedWallpaper = useWallpaperStore((s) => s.selectedId);
+  const setWallpaper = useWallpaperStore((s) => s.setWallpaper);
   const { cashAdjustment, setCashAdjustment, addCash, subscriptions, subscribe, cancelSubscription, noteDevOffer, devOffersGranted } = useDevStore();
   const [pane, setPane] = useState<Pane>('general');
   const [search, setSearch] = useState('');
@@ -337,7 +340,35 @@ export function SettingsApp() {
             </div>
           </>
         )}
-        {(pane === 'bluetooth' || pane === 'network' || pane === 'vpn' || pane === 'accessibility' || pane === 'appearance' || pane === 'siri' || pane === 'controlcenter' || pane === 'desktop' || pane === 'displays' || pane === 'screensaver') && (
+        {pane === 'desktop' && (
+          <>
+            <div className="mst-hero">
+              <span className="mst-hero-icon" style={{ background: '#1c72e8' }}>{IC.dock}</span>
+              <h1>Desktop &amp; Dock</h1>
+              <p>Choose a wallpaper for your desktop and Lock Screen. Your selection applies instantly across aOS.</p>
+            </div>
+            <div className="mst-group">
+              <div className="mst-form-title">Wallpaper</div>
+              <div className="mst-wallpaper-grid">
+                {WALLPAPERS.map((w) => (
+                  <button
+                    key={w.id}
+                    type="button"
+                    className={`mst-wallpaper ${selectedWallpaper === w.id ? 'sel' : ''}`}
+                    onClick={() => setWallpaper(w.id)}
+                    title={w.name}
+                  >
+                    <span className="mst-wallpaper-thumb" style={{ backgroundImage: `url('${w.file}')` }}>
+                      {selectedWallpaper === w.id && <span className="mst-wallpaper-check">✓</span>}
+                    </span>
+                    <span className="mst-wallpaper-name">{w.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+        {(pane === 'bluetooth' || pane === 'network' || pane === 'vpn' || pane === 'accessibility' || pane === 'appearance' || pane === 'siri' || pane === 'controlcenter' || pane === 'displays' || pane === 'screensaver') && (
           <>
             <div className="mst-hero">
               <span className="mst-hero-icon" style={{ background: paneMeta?.bg ?? '#8e8e93' }}>{paneMeta?.icon}</span>

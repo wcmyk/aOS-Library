@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import './macsystem.css';
-
-const BASE_URL = import.meta.env.BASE_URL;
-const WALLPAPER = `${BASE_URL}assets/wallpaper.jpg`;
+import { useWallpaperStore, wallpaperById } from '../state/useWallpaperStore';
 
 type Notif = { id: number; app: string; title: string; body: string; icon: 'system' | 'update' | 'cloud' | 'battery' };
 
@@ -33,6 +31,7 @@ export function MacSystem() {
   });
   const [pwd, setPwd] = useState('');
   const [now, setNow] = useState(() => new Date());
+  const wallpaper = wallpaperById(useWallpaperStore((s) => s.selectedId)).file;
   const [notifs, setNotifs] = useState<Notif[]>([]);
 
   useEffect(() => {
@@ -78,7 +77,7 @@ export function MacSystem() {
   return (
     <>
       {locked ? (
-        <div className="mac-lock" style={{ backgroundImage: `url(${WALLPAPER})` }} onClick={() => setPwd((p) => p)}>
+        <div className="mac-lock" style={{ backgroundImage: `url(${wallpaper})` }} onClick={() => setPwd((p) => p)}>
           <div className="mac-lock-scrim" />
           <div className="mac-lock-clock">
             <div className="mac-lock-date">{date}</div>

@@ -94,6 +94,14 @@ export const apps: ShellApp[] = [
     defaultSize: { width: 520, height: 420 },
   },
   {
+    id: 'messages',
+    name: 'Messages',
+    icon: `${BASE_URL}assets/apps/messages.png`,
+    description: 'Chat with managers, recruiters & your network',
+    accent: '#34c759',
+    defaultSize: { width: 860, height: 600 },
+  },
+  {
     id: 'oracle',
     name: 'Oracle',
     icon: `${BASE_URL}assets/apps/Oracle.png`,
