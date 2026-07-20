@@ -109,6 +109,7 @@
 .az-title { font-size: 15px; line-height: 1.35; color: #0f1111; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 40px; cursor: pointer; }
 .az-title:hover { color: #c7511f; }
 
+.az-condition { display: inline-block; align-self: flex-start; font-size: 12px; color: #007600; font-weight: 700; }
 .az-rating { display: flex; align-items: center; gap: 6px; font-size: 13px; }
 .az-rating .val { color: #0f1111; font-size: 13px; }
 .az-stars { position: relative; display: inline-block; font-size: 15px; line-height: 1; letter-spacing: 1px; white-space: nowrap; }
@@ -149,6 +150,51 @@
   display: flex; align-items: center; gap: 8px;
 }
 .az-toast-check { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: #fff; color: #067d62; font-size: 12px; }
+
+/* ── Cart button reset ──────────────────────────────────────────────────────── */
+button.az-cart { background: none; color: #fff; font: inherit; }
+
+/* ── Checkout modal ─────────────────────────────────────────────────────────── */
+.az-modal-scrim { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 60; display: flex; justify-content: flex-end; }
+.az-checkout { width: 460px; max-width: 92%; height: 100%; background: #fff; box-shadow: -8px 0 30px rgba(0,0,0,0.3); display: flex; flex-direction: column; animation: az-slide 0.2s ease; }
+@keyframes az-slide { from { transform: translateX(30px); opacity: 0.6; } to { transform: none; opacity: 1; } }
+.az-checkout-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #e7e7e7; }
+.az-checkout-head h2 { margin: 0; font-size: 19px; font-weight: 700; }
+.az-x { background: none; border: none; font-size: 26px; line-height: 1; color: #565959; cursor: pointer; }
+.az-checkout-body { flex: 1; overflow-y: auto; padding: 6px 20px 20px; }
+
+.az-cart-lines { display: flex; flex-direction: column; }
+.az-cart-line { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+.az-cart-thumb { width: 56px; height: 56px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.az-cart-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; mix-blend-mode: multiply; }
+.az-cart-info { flex: 1; min-width: 0; }
+.az-cart-title { font-size: 13px; color: #0f1111; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.az-cart-qty { font-size: 12px; color: #565959; margin-top: 3px; }
+.az-cart-price { font-size: 14px; font-weight: 700; white-space: nowrap; }
+
+.az-pay { margin-top: 18px; }
+.az-pay h4, .az-summary + * h4 { font-size: 15px; margin: 0 0 8px; }
+.az-pay-card { display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid #d5d9d9; border-radius: 8px; margin-bottom: 8px; cursor: pointer; font-size: 13px; }
+.az-pay-card.sel { border-color: #007185; box-shadow: 0 0 0 1px #007185; background: #f0f7f8; }
+.az-pay-card input { accent-color: #007185; }
+.az-pay-chip { width: 30px; height: 20px; border-radius: 3px; background: linear-gradient(135deg, #1a4d8f, #2f7bd6); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2); }
+.az-pay-name { font-weight: 600; color: #0f1111; }
+.az-pay-num { color: #565959; font-size: 12px; white-space: nowrap; }
+
+.az-summary { margin-top: 18px; border-top: 1px solid #e7e7e7; padding-top: 14px; }
+.az-summary > div { display: flex; justify-content: space-between; font-size: 14px; color: #0f1111; padding: 3px 0; }
+.az-summary .az-free { color: #067d62; font-weight: 700; }
+.az-summary-total { font-size: 18px !important; font-weight: 700; color: #b12704 !important; border-top: 1px solid #e7e7e7; margin-top: 6px; padding-top: 10px !important; }
+.az-place-btn { width: 100%; margin-top: 14px; background: var(--az-yellow); border: 1px solid #fcd200; border-radius: 100px; padding: 10px; font-size: 15px; font-weight: 500; cursor: pointer; color: #0f1111; }
+.az-place-btn:hover { background: var(--az-yellow-h); }
+.az-place-note { font-size: 12px; color: #565959; text-align: center; margin: 8px 0 0; }
+
+.az-order-confirm, .az-cart-empty { padding: 30px 24px; text-align: center; }
+.az-confirm-check { width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%; background: #067d62; color: #fff; font-size: 30px; display: flex; align-items: center; justify-content: center; }
+.az-order-confirm h3 { margin: 0 0 6px; font-size: 18px; color: #067d62; }
+.az-order-no { font-weight: 700; margin: 0 0 10px; }
+.az-order-confirm p { font-size: 14px; color: #0f1111; margin: 0 0 10px; line-height: 1.5; }
+.az-confirm-note { font-size: 13px; color: #565959; background: #f7f8f8; border-radius: 8px; padding: 12px; }
 
 /* ── Footer ─────────────────────────────────────────────────────────────────── */
 .az-backtotop { background: #37475a; color: #fff; text-align: center; padding: 15px; font-size: 13px; cursor: pointer; }

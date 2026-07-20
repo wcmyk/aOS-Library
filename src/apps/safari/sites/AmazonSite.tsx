@@ -1,8 +1,17 @@
 import { useMemo, useState } from 'react';
 import './amazon.css';
+import { useWalletStore, nextOrderId, type WalletOrder } from '../../../state/useWalletStore';
 
 const BASE_URL = import.meta.env.BASE_URL;
 const img = (id: string) => `${BASE_URL}assets/amazon/${id}.jpg`;
+
+/** Payment methods mirror the Chase accounts in the banking app. */
+const CARDS: { id: string; kind: 'checking' | 'credit'; name: string; last4: string; network: string }[] = [
+  { id: 'chk', kind: 'checking', name: 'Chase Total Checking (Debit)', last4: '1666', network: 'Visa Debit' },
+  { id: 'cc-freedom', kind: 'credit', name: 'Chase Freedom Unlimited', last4: '6399', network: 'Visa' },
+  { id: 'cc-sapphire', kind: 'credit', name: 'Chase Sapphire Reserve', last4: '0077', network: 'Visa' },
+];
+const TAX_RATE = 0.08875; // NYC combined sales tax
 
 /* ─── Product catalog ────────────────────────────────────────────────────────── */
 
@@ -13,6 +22,7 @@ type Product = {
   id: string;
   title: string;
   dept?: Dept; // defaults to 'grocery'
+  condition?: string; // e.g. 'Renewed', 'Used - Like New'
   price: number;
   listPrice?: number;
   unit?: string;
@@ -62,6 +72,64 @@ const PRODUCTS: Product[] = [
     title: 'Google Pixel Buds Pro 2 Wireless Earbuds with Active Noise Cancellation',
     price: 199.99, listPrice: 229.99, rating: 4.6, reviews: 9280, prime: true, delivery: 'Tomorrow, Jul 20', fastest: 'Today 7 PM',
   },
+  {
+    id: 'console', dept: 'electronics',
+    title: 'Next-Gen 4K Gaming Console, 1TB SSD, with Wireless Controller',
+    price: 499, rating: 4.8, reviews: 42800, bought: '5K+ bought in past month',
+    badge: { kind: 'best', text: '#1 Best Seller' }, prime: true, delivery: 'Tomorrow, Jul 20',
+  },
+  {
+    id: 'headphones', dept: 'electronics',
+    title: 'Wireless Noise-Cancelling Over-Ear Headphones, 40-Hour Battery',
+    price: 249, listPrice: 349, rating: 4.7, reviews: 61300, bought: '8K+ bought in past month',
+    badge: { kind: 'choice', text: "Amazon's Choice" }, coupon: 15, prime: true, delivery: 'Tomorrow, Jul 20', fastest: 'Today 7 PM',
+  },
+  {
+    id: 'vr-headset', dept: 'electronics',
+    title: 'All-in-One VR Headset, 256GB, with Two Motion Controllers',
+    price: 499, rating: 4.7, reviews: 21400, badge: { kind: 'overall', text: 'Overall Pick' }, prime: true, delivery: 'Tomorrow, Jul 20',
+  },
+  {
+    id: 'drone', dept: 'electronics',
+    title: '4K Foldable Camera Drone with 3-Axis Gimbal, 46-Min Flight Time',
+    price: 799, listPrice: 999, rating: 4.6, reviews: 9260, badge: { kind: 'deal', text: 'Limited time deal' }, coupon: 10, prime: true, delivery: 'Tomorrow, Jul 20',
+  },
+  {
+    id: 'action-cam', dept: 'electronics',
+    title: '5K Waterproof Action Camera with HyperSteady Stabilization',
+    price: 299, rating: 4.5, reviews: 12470, sponsored: true, prime: true, delivery: 'Tomorrow, Jul 20',
+  },
+  {
+    id: 'speaker', dept: 'electronics',
+    title: 'Portable Waterproof Bluetooth Speaker, 24-Hour Playtime',
+    price: 89, rating: 4.6, reviews: 33200, bought: '4K+ bought in past month', prime: true, delivery: 'Tomorrow, Jul 20',
+  },
+  {
+    id: 'ereader', dept: 'electronics',
+    title: '6" Glare-Free E-Reader, 16GB, Waterproof, Adjustable Warm Light',
+    price: 139, rating: 4.7, reviews: 28900, badge: { kind: 'choice', text: "Amazon's Choice" }, prime: true, delivery: 'Tomorrow, Jul 20',
+  },
+  {
+    id: 'laptop-refurb', dept: 'electronics', condition: 'Renewed (Refurbished)',
+    title: 'Renewed Ultrabook Laptop 14", 16GB RAM, 512GB SSD, Silver',
+    price: 749, listPrice: 1099, rating: 4.5, reviews: 8210, bought: '1K+ bought in past month',
+    coupon: 8, prime: true, delivery: 'Tomorrow, Jul 20',
+  },
+  {
+    id: 'phone-renewed', dept: 'electronics', condition: 'Renewed',
+    title: 'Renewed Flagship 5G Smartphone, 256GB, Midnight Blue (Unlocked)',
+    price: 549, listPrice: 899, rating: 4.4, reviews: 15420, prime: true, delivery: 'Tomorrow, Jul 20',
+  },
+  {
+    id: 'tablet-used', dept: 'electronics', condition: 'Used - Like New',
+    title: 'Pre-Owned 11" Tablet, 128GB, WiFi — Inspected & Guaranteed',
+    price: 329, rating: 4.3, reviews: 3980, prime: true, delivery: 'Mon, Jul 22',
+  },
+  {
+    id: 'watch-renewed', dept: 'electronics', condition: 'Renewed',
+    title: 'Renewed Smartwatch, 44mm, GPS + Cellular, Sport Loop',
+    price: 189, listPrice: 279, rating: 4.4, reviews: 5210, coupon: 10, prime: true, delivery: 'Mon, Jul 22',
+  },
 
   /* ── Computers & Components ── */
   {
@@ -97,6 +165,28 @@ const PRODUCTS: Product[] = [
     id: 'wafer', dept: 'components',
     title: 'Silicon Semiconductor Wafer Display Piece, 200mm (Collector Grade)',
     price: 89.99, rating: 4.6, reviews: 870, sponsored: true, prime: true, delivery: 'Mon, Jul 22',
+  },
+  {
+    id: 'monitor', dept: 'components',
+    title: '27" 4K UHD Monitor, 144Hz, HDR400, USB-C, Height-Adjustable',
+    price: 329, listPrice: 429, rating: 4.7, reviews: 18720, bought: '2K+ bought in past month',
+    badge: { kind: 'best', text: '#1 Best Seller' }, coupon: 10, prime: true, delivery: 'Tomorrow, Jul 20',
+  },
+  {
+    id: 'keyboard', dept: 'components',
+    title: 'Mechanical Gaming Keyboard, Hot-Swappable, RGB, Tenkeyless',
+    price: 89, rating: 4.7, reviews: 24560, badge: { kind: 'choice', text: "Amazon's Choice" }, prime: true, delivery: 'Tomorrow, Jul 20',
+  },
+  {
+    id: 'mouse', dept: 'components',
+    title: 'Wireless Gaming Mouse, 26K DPI Sensor, 70-Hour Battery',
+    price: 59, listPrice: 79, rating: 4.6, reviews: 31240, coupon: 10, prime: true, delivery: 'Tomorrow, Jul 20',
+  },
+  {
+    id: 'webcam', dept: 'components',
+    title: '1080p HD Webcam with Dual Microphones & Privacy Cover',
+    price: 39, listPrice: 59, rating: 4.5, reviews: 40130, bought: '3K+ bought in past month',
+    coupon: 20, prime: true, delivery: 'Tomorrow, Jul 20',
   },
 
   /* ── Grocery & Gourmet Food ── */
@@ -255,9 +345,52 @@ export function AmazonSite() {
   const [added, setAdded] = useState<string | null>(null);
   const [dept, setDept] = useState<'all' | Dept>('all');
   const [sort, setSort] = useState('featured');
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [payCardId, setPayCardId] = useState('chk');
+  const [placedOrder, setPlacedOrder] = useState<WalletOrder | null>(null);
+  const addOrder = useWalletStore((s) => s.addOrder);
 
   const activeDept = DEPARTMENTS.find((d) => d.id === dept) ?? DEPARTMENTS[0];
   const cartCount = useMemo(() => Object.values(cart).reduce((a, b) => a + b, 0), [cart]);
+
+  const cartLines = useMemo(
+    () =>
+      Object.entries(cart)
+        .map(([id, qty]) => {
+          const p = PRODUCTS.find((x) => x.id === id);
+          if (!p) return null;
+          const price = p.coupon ? p.price * (1 - p.coupon / 100) : p.price;
+          return { id, title: p.title, price, qty };
+        })
+        .filter(Boolean) as { id: string; title: string; price: number; qty: number }[],
+    [cart],
+  );
+  const subtotal = cartLines.reduce((s, l) => s + l.price * l.qty, 0);
+  const tax = subtotal * TAX_RATE;
+  const orderTotal = subtotal + tax;
+
+  const placeOrder = () => {
+    if (cartLines.length === 0) return;
+    const card = CARDS.find((c) => c.id === payCardId) ?? CARDS[0];
+    const id = nextOrderId();
+    const order: WalletOrder = {
+      id,
+      date: new Date().toISOString(),
+      desc: `AMAZON.COM*${id} AMZN.COM/BILL WA`,
+      total: Math.round(orderTotal * 100) / 100,
+      itemCount: cartLines.reduce((s, l) => s + l.qty, 0),
+      items: cartLines,
+      accountId: card.id,
+      accountKind: card.kind,
+      last4: card.last4,
+      cardName: card.name,
+    };
+    addOrder(order);
+    setPlacedOrder(order);
+    setCart({});
+  };
+
+  const money = (n: number) => `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const products = useMemo(() => {
     const copy = PRODUCTS.filter((p) => dept === 'all' || deptOf(p) === dept);
@@ -314,7 +447,7 @@ export function AmazonSite() {
           <span className="l1">Returns</span>
           <span className="l2">&amp; Orders</span>
         </div>
-        <div className="az-cell az-cart">
+        <button type="button" className="az-cell az-cart" onClick={() => { setPlacedOrder(null); setCheckoutOpen(true); }}>
           <span className="az-cart-ico">
             <span className="count">{cartCount}</span>
             <svg width="38" height="32" viewBox="0 0 38 32" fill="none" aria-hidden="true">
@@ -324,7 +457,7 @@ export function AmazonSite() {
             </svg>
           </span>
           <span className="word">Cart</span>
-        </div>
+        </button>
       </div>
 
       {/* Sub nav */}
@@ -424,6 +557,7 @@ export function AmazonSite() {
                     <img src={img(p.id)} alt={p.title} loading="lazy" />
                   </div>
                   <div className="az-title">{p.title}</div>
+                  {p.condition ? <div className="az-condition">{p.condition}</div> : null}
                   <div className="az-rating">
                     <span className="val">{p.rating.toFixed(1)}</span>
                     <Stars value={p.rating} />
@@ -460,6 +594,74 @@ export function AmazonSite() {
       {added ? (
         <div className="az-toast">
           <span className="az-toast-check">✓</span> Added to Cart · {cartCount} item{cartCount === 1 ? '' : 's'}
+        </div>
+      ) : null}
+
+      {/* Cart / Checkout overlay */}
+      {checkoutOpen ? (
+        <div className="az-modal-scrim" onClick={() => setCheckoutOpen(false)}>
+          <div className="az-checkout" onClick={(e) => e.stopPropagation()}>
+            <div className="az-checkout-head">
+              <h2>{placedOrder ? 'Order placed' : 'Shopping Cart'}</h2>
+              <button type="button" className="az-x" aria-label="Close" onClick={() => setCheckoutOpen(false)}>×</button>
+            </div>
+
+            {placedOrder ? (
+              <div className="az-order-confirm">
+                <div className="az-confirm-check">✓</div>
+                <h3>Thank you, your order is confirmed</h3>
+                <p className="az-order-no">Order # {placedOrder.id}</p>
+                <p>
+                  {money(placedOrder.total)} charged to <b>{placedOrder.cardName}</b> (••{placedOrder.last4}).
+                </p>
+                <p className="az-confirm-note">
+                  This purchase now appears in your Chase account activity. Open the <b>Chase</b> app to see the transaction and updated balance.
+                </p>
+                <button type="button" className="az-place-btn" onClick={() => setCheckoutOpen(false)}>Continue shopping</button>
+              </div>
+            ) : cartLines.length === 0 ? (
+              <div className="az-cart-empty">
+                <p>Your Amazon Cart is empty.</p>
+                <button type="button" className="az-place-btn" onClick={() => setCheckoutOpen(false)}>Continue shopping</button>
+              </div>
+            ) : (
+              <div className="az-checkout-body">
+                <div className="az-cart-lines">
+                  {cartLines.map((l) => (
+                    <div key={l.id} className="az-cart-line">
+                      <div className="az-cart-thumb"><img src={img(l.id)} alt="" /></div>
+                      <div className="az-cart-info">
+                        <div className="az-cart-title">{l.title}</div>
+                        <div className="az-cart-qty">Qty: {l.qty}</div>
+                      </div>
+                      <div className="az-cart-price">{money(l.price * l.qty)}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="az-pay">
+                  <h4>Payment method</h4>
+                  {CARDS.map((c) => (
+                    <label key={c.id} className={`az-pay-card ${payCardId === c.id ? 'sel' : ''}`}>
+                      <input type="radio" name="paycard" checked={payCardId === c.id} onChange={() => setPayCardId(c.id)} />
+                      <span className="az-pay-chip" />
+                      <span className="az-pay-name">{c.name}</span>
+                      <span className="az-pay-num">{c.network} ••••{c.last4}</span>
+                    </label>
+                  ))}
+                </div>
+
+                <div className="az-summary">
+                  <div><span>Items ({cartCount}):</span><span>{money(subtotal)}</span></div>
+                  <div><span>Shipping:</span><span className="az-free">FREE</span></div>
+                  <div><span>Estimated tax:</span><span>{money(tax)}</span></div>
+                  <div className="az-summary-total"><span>Order total:</span><span>{money(orderTotal)}</span></div>
+                  <button type="button" className="az-place-btn" onClick={placeOrder}>Place your order</button>
+                  <p className="az-place-note">By placing your order the total is charged to your selected Chase card.</p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       ) : null}
 
