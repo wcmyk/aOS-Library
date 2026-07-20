@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import './amazon.css';
 import { useWalletStore, nextOrderId, type WalletOrder } from '../../../state/useWalletStore';
+import { AZ_PRODUCTS } from '../../../data/amazonCatalog';
 
 const BASE_URL = import.meta.env.BASE_URL;
-const img = (id: string) => `${BASE_URL}assets/amazon/${id}.jpg`;
+const img = (id: string) => id.includes('.') ? `${BASE_URL}assets/amazon/${id}` : `${BASE_URL}assets/amazon/${id}.jpg`;
 
 /** Payment methods mirror the Chase accounts in the banking app. */
 const CARDS: { id: string; kind: 'checking' | 'credit'; name: string; short: string; last4: string; network: string; grad: string }[] = [
@@ -26,7 +27,7 @@ const TAX_RATE = 0.08875; // NYC combined sales tax
 
 /* ─── Product catalog ────────────────────────────────────────────────────────── */
 
-type Dept = 'electronics' | 'components' | 'grocery' | 'chemicals';
+type Dept = 'electronics' | 'components' | 'grocery' | 'chemicals' | 'home-kitchen' | 'office' | 'clothing' | 'books' | 'toys' | 'health' | 'sports' | 'smarthome';
 type Badge = { kind: 'overall' | 'choice' | 'best' | 'deal'; text: string };
 
 type Product = {
@@ -349,12 +350,58 @@ const PRODUCTS: Product[] = [
   },
 ];
 
+/* ── Consumer catalog (100 products across 10 departments) mapped in from
+   data/amazonCatalog.ts so the general-store departments ship alongside the
+   specialty ones. ── */
+const CAT_TO_DEPT: Record<string, Dept> = {
+  'Electronics': 'electronics',
+  'Home & Kitchen': 'home-kitchen',
+  'Office Products': 'office',
+  'Clothing & Shoes': 'clothing',
+  'Books': 'books',
+  'Toys & Games': 'toys',
+  'Health & Personal Care': 'health',
+  'Grocery': 'grocery',
+  'Sports & Outdoors': 'sports',
+  'Smart Home': 'smarthome',
+};
+const AZ_BADGE: Record<string, Badge> = {
+  'Best Seller': { kind: 'best', text: '#1 Best Seller' },
+  "Amazon's Choice": { kind: 'choice', text: "Amazon's Choice" },
+  'Overall Pick': { kind: 'overall', text: 'Overall Pick' },
+  'Limited time deal': { kind: 'deal', text: 'Limited time deal' },
+};
+const CONSUMER_PRODUCTS: Product[] = AZ_PRODUCTS.map((p, i) => ({
+  id: p.id,
+  dept: CAT_TO_DEPT[p.category],
+  title: `${p.brand} ${p.title}`,
+  imageId: p.photo.split('/').pop(),
+  price: p.price,
+  listPrice: p.listPrice,
+  rating: p.rating,
+  reviews: p.reviews,
+  badge: p.badge ? AZ_BADGE[p.badge] : undefined,
+  bought: p.reviews > 60000 ? `${Math.min(9, Math.round(p.reviews / 40000))}K+ bought in past month` : undefined,
+  prime: p.prime,
+  coupon: p.listPrice && p.listPrice > p.price * 1.3 ? 5 : undefined,
+  delivery: i % 3 === 0 ? 'Tomorrow, Jul 20' : 'Mon, Jul 22',
+}));
+PRODUCTS.push(...CONSUMER_PRODUCTS);
+
 const DEPARTMENTS: { id: 'all' | Dept; label: string; query: string; results: string }[] = [
   { id: 'all', label: 'All Departments', query: 'today’s deals', results: 'over 30,000' },
   { id: 'electronics', label: 'Electronics', query: 'laptops, phones & tablets', results: 'over 8,000' },
   { id: 'components', label: 'Computers & Components', query: 'pc components & chips', results: 'over 6,000' },
   { id: 'chemicals', label: 'Industrial & Scientific', query: 'lab chemicals & reagents', results: 'over 5,000' },
   { id: 'grocery', label: 'Grocery & Gourmet Food', query: 'instant ramen', results: 'over 4,000' },
+  { id: 'home-kitchen', label: 'Home & Kitchen', query: 'air fryers & cookware', results: 'over 9,000' },
+  { id: 'office', label: 'Office Products', query: 'desks, chairs & supplies', results: 'over 5,000' },
+  { id: 'clothing', label: 'Clothing & Shoes', query: 'sneakers & essentials', results: 'over 12,000' },
+  { id: 'books', label: 'Books', query: 'bestsellers & new releases', results: 'over 20,000' },
+  { id: 'toys', label: 'Toys & Games', query: 'building sets & board games', results: 'over 7,000' },
+  { id: 'health', label: 'Health & Personal Care', query: 'vitamins & essentials', results: 'over 6,000' },
+  { id: 'sports', label: 'Sports & Outdoors', query: 'fitness & camping gear', results: 'over 8,000' },
+  { id: 'smarthome', label: 'Smart Home', query: 'cameras, plugs & hubs', results: 'over 3,000' },
 ];
 
 const BRANDS: Record<'all' | Dept, string[]> = {
@@ -363,6 +410,14 @@ const BRANDS: Record<'all' | Dept, string[]> = {
   components: ['Intel', 'AMD', 'NVIDIA', 'Corsair', 'Kingston', 'Samsung'],
   chemicals: ['LabPure', 'ChemWorld', 'Duda Energy', 'Pure Organic', 'Alpha Chem'],
   grocery: ['Samyang', 'Nissin', 'Nongshim', 'Maruchan', 'Indomie', 'Ottogi'],
+  'home-kitchen': ['Instant Pot', 'COSORI', "De'Longhi", 'Ninja', 'KitchenAid'],
+  office: ['HP', 'Logitech', 'Fellowes', 'Sharpie', 'Post-it'],
+  clothing: ['Levi\'s', 'Hanes', 'adidas', 'New Balance', 'Carhartt'],
+  books: ['Penguin', 'HarperCollins', 'Random House', 'Simon & Schuster'],
+  toys: ['LEGO', 'Hasbro', 'Mattel', 'Ravensburger', 'Melissa & Doug'],
+  health: ['Oral-B', 'Nature Made', 'CeraVe', 'Philips', 'Braun'],
+  sports: ['Gaiam', 'Bowflex', 'CamelBak', 'Coleman', 'Wilson'],
+  smarthome: ['Ring', 'ecobee', 'TP-Link', 'Kasa', 'Chamberlain myQ'],
 };
 
 const deptOf = (p: Product): Dept => p.dept ?? 'grocery';
