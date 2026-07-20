@@ -52,7 +52,8 @@
   color: #f2f2f2; font-size: 13px; text-align: left;
 }
 .mst-siderow:hover { background: rgba(255,255,255,0.06); }
-.mst-siderow.active { background: #0a63d6; }
+.mst-siderow.active { background: #e0a30b; color: #1d1d1f; font-weight: 600; }
+.mst-siderow.active .mst-sideicon svg { filter: none; }
 .mst-sideicon {
   width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
   display: inline-flex; align-items: center; justify-content: center;
@@ -60,7 +61,7 @@
 
 /* Content */
 .mst-content { flex: 1 1 320px; min-width: 0; overflow-y: auto; container-type: inline-size; padding: 14px clamp(16px, 5cqi, 40px) 48px; background: #1f1f1f; }
-.mst-navchev { display: flex; gap: 20px; color: rgba(255,255,255,0.35); font-size: 20px; padding: 4px 0 8px; }
+.mst-navchev { display: flex; gap: 16px; align-items: center; }
 
 .mst-hero {
   background: #292929; border: 1px solid #3a3a3a; border-radius: 12px;
@@ -132,3 +133,90 @@
 }
 .mst-plan-chip:hover { background: rgba(0,122,255,0.1); border-color: #0a84ff; color: #0a84ff; }
 .mst-note-muted { font-size: 12.5px; color: rgba(120,120,128,0.9); }
+
+/* ── Pane header (back/forward + title, like real System Settings) ── */
+.mst-pane-header {
+  display: flex; align-items: center; gap: 16px;
+  position: sticky; top: -14px; z-index: 5;
+  background: #1f1f1f; margin: -14px calc(-1 * clamp(16px, 5cqi, 40px)) 14px;
+  padding: 14px clamp(16px, 5cqi, 40px) 10px;
+}
+.mst-pane-header h2 { margin: 0; font-size: 15px; font-weight: 700; }
+
+/* ── Sidebar extras ── */
+.mst-suggestrow {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  width: 100%; background: none; border: none; cursor: pointer;
+  padding: 4px 10px 8px; color: #f2f2f2; font-size: 13px; text-align: left;
+  border-radius: 7px; line-height: 1.25;
+}
+.mst-suggestrow:hover { background: rgba(255,255,255,0.06); }
+.mst-redbadge {
+  min-width: 19px; height: 19px; border-radius: 10px; background: #ff453a; color: #fff;
+  font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center;
+  padding: 0 5px; flex-shrink: 0;
+}
+.mst-promorow {
+  display: block; width: 100%; background: none; border: none; cursor: pointer;
+  padding: 2px 10px 10px; color: #f2f2f2; font-size: 13px; text-align: left; border-radius: 7px;
+}
+.mst-promorow:hover { background: rgba(255,255,255,0.06); }
+
+/* ── Cards ── */
+.mst-card {
+  background: #292929; border: 1px solid #3a3a3a; border-radius: 10px;
+  margin-bottom: 16px; overflow: hidden;
+}
+.mst-card-after { display: flex; justify-content: flex-end; margin: -6px 0 16px; }
+.mst-section-label { font-size: 13.5px; font-weight: 700; margin: 20px 2px 8px; }
+
+/* ── Toggle (accent to match reference) ── */
+.mst-toggle {
+  width: 40px; height: 24px; border-radius: 13px; flex-shrink: 0;
+  background: rgba(120,120,128,0.32); border: none; cursor: pointer;
+  position: relative; transition: background 0.18s ease; padding: 0;
+}
+.mst-toggle.on { background: #e0a30b; }
+.mst-toggle-knob {
+  position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
+  border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+  transition: transform 0.18s ease;
+}
+.mst-toggle.on .mst-toggle-knob { transform: translateX(16px); }
+
+/* ── Wi-Fi pane ── */
+.mst-wifi-master { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; }
+.mst-wifi-appicon {
+  width: 30px; height: 30px; border-radius: 8px; background: #2d7ff9; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center; margin-top: 2px;
+}
+.mst-wifi-appicon svg { width: 17px; height: 17px; }
+.mst-wifi-master-text { flex: 1; min-width: 0; }
+.mst-wifi-master-text strong { font-size: 14px; display: block; margin-bottom: 3px; }
+.mst-wifi-master-text p { margin: 0; font-size: 12.5px; color: rgba(255,255,255,0.6); line-height: 1.45; }
+.mst-wifi-master-text a { color: #2997ff; text-decoration: none; }
+.mst-wifi-current {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 16px; border-top: 1px solid rgba(255,255,255,0.07);
+}
+.mst-wifi-current-name { flex: 1; font-size: 14px; }
+.mst-wifi-connected { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+.mst-greendot { width: 8px; height: 8px; border-radius: 50%; background: #30d158; display: inline-block; }
+.mst-mini-btn {
+  background: rgba(255,255,255,0.14); border: none; border-radius: 6px;
+  color: #f2f2f2; font-size: 12.5px; font-weight: 500; padding: 4px 12px; cursor: pointer;
+}
+.mst-mini-btn:hover { background: rgba(255,255,255,0.2); }
+.mst-netrow {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.07);
+}
+.mst-netrow:first-child { border-top: none; }
+.mst-netrow:hover { background: rgba(255,255,255,0.04); }
+.mst-netcheck { width: 16px; display: inline-flex; justify-content: center; flex-shrink: 0; }
+.mst-netname { flex: 1; font-size: 14px; }
+.mst-neticons { display: inline-flex; align-items: center; gap: 12px; }
+.mst-togglerow { display: flex; align-items: flex-start; gap: 16px; padding: 13px 16px; }
+.mst-togglerow > div { flex: 1; }
+.mst-togglerow strong { font-size: 14px; display: block; margin-bottom: 3px; font-weight: 600; }
+.mst-togglerow p { margin: 0; font-size: 12.5px; color: rgba(255,255,255,0.6); line-height: 1.45; }

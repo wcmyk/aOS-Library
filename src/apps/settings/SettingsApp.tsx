@@ -74,6 +74,33 @@ const SIDEBAR: Array<{ id: Pane; label: string; bg: string; icon: React.ReactNod
   { id: 'developer', label: 'Developer', bg: '#5e5ce6', icon: IC.wrench, group: 3 },
 ];
 
+function Toggle({ on, onChange }: { on: boolean; onChange?: (v: boolean) => void }) {
+  return (
+    <button type="button" role="switch" aria-checked={on}
+      className={`mst-toggle ${on ? 'on' : ''}`}
+      onClick={() => onChange?.(!on)}>
+      <span className="mst-toggle-knob" />
+    </button>
+  );
+}
+
+const WIFI_IC = {
+  lock: <svg width="11" height="13" viewBox="0 0 24 24" fill="rgba(255,255,255,0.55)"><path d="M7 10V8a5 5 0 0 1 10 0v2h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V8a3 3 0 0 0-6 0z"/></svg>,
+  signal: <svg width="16" height="13" viewBox="0 0 24 20" fill="rgba(255,255,255,0.75)"><path d="M12 16.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM12 11c-2.5 0-4.8 1-6.4 2.6l2 2A6.5 6.5 0 0 1 12 13.9c1.7 0 3.3.7 4.4 1.8l2-2A9 9 0 0 0 12 11zm0-5.5c-3.9 0-7.5 1.6-10 4.1l2 2a11 11 0 0 1 16 0l2-2c-2.5-2.5-6.1-4.1-10-4.1z"/></svg>,
+  more: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.65)" strokeWidth="1.4"><circle cx="12" cy="12" r="9.2"/><circle cx="7.5" cy="12" r="1.15" fill="rgba(255,255,255,0.65)" stroke="none"/><circle cx="12" cy="12" r="1.15" fill="rgba(255,255,255,0.65)" stroke="none"/><circle cx="16.5" cy="12" r="1.15" fill="rgba(255,255,255,0.65)" stroke="none"/></svg>,
+  check: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6"><path d="m4.5 12.5 5 5L19.5 7"/></svg>,
+};
+
+function NetIcons({ lock = true, more = true }: { lock?: boolean; more?: boolean }) {
+  return (
+    <span className="mst-neticons">
+      {lock && WIFI_IC.lock}
+      {WIFI_IC.signal}
+      {more && WIFI_IC.more}
+    </span>
+  );
+}
+
 function Row({ label, value, onClick, first, last }: { label: string; value?: string; onClick?: () => void; first?: boolean; last?: boolean }) {
   return (
     <button type="button" className={`mst-row ${first ? 'first' : ''} ${last ? 'last' : ''}`} onClick={onClick}>
@@ -91,6 +118,9 @@ export function SettingsApp() {
   const { cashAdjustment, setCashAdjustment, addCash, subscriptions, subscribe, cancelSubscription, noteDevOffer, devOffersGranted } = useDevStore();
   const [pane, setPane] = useState<Pane>('general');
   const [search, setSearch] = useState('');
+  const [wifiOn, setWifiOn] = useState(true);
+  const [askJoin, setAskJoin] = useState(true);
+  const [askHotspot, setAskHotspot] = useState(true);
   const [cashInput, setCashInput] = useState('');
   const [offerCompany, setOfferCompany] = useState(REAL_COMPANIES.find((c) => c.name === 'Google')?.name ?? REAL_COMPANIES[0].name);
   const [offerRoleIx, setOfferRoleIx] = useState(0);
@@ -192,6 +222,11 @@ export function SettingsApp() {
             <div className="mst-account-sub">Apple Account</div>
           </div>
         </button>
+        <button type="button" className="mst-suggestrow" onClick={() => setPane('account')}>
+          <span>Apple Account<br />Suggestions</span>
+          <span className="mst-redbadge">3</span>
+        </button>
+        <button type="button" className="mst-promorow" onClick={() => setPane('siri')}>Image Playground Is Here</button>
         {[1, 2, 3].map((group) => (
           <div key={group} className="mst-sidegroup">
             {filteredSidebar.filter((r) => r.group === group).map((r) => (
@@ -206,9 +241,13 @@ export function SettingsApp() {
 
       {/* Content */}
       <main className="mst-content">
-        <div className="mst-navchev">
-          <span>‹</span><span>›</span>
-        </div>
+        <header className="mst-pane-header">
+          <span className="mst-navchev">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2.4"><path d="M14.5 5 8 12l6.5 7" /></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2.4"><path d="M9.5 5 16 12l-6.5 7" /></svg>
+          </span>
+          <h2>{pane === 'account' ? 'Apple Account' : pane === 'about' ? 'About' : paneMeta?.label ?? 'Settings'}</h2>
+        </header>
 
         {pane === 'general' && (
           <>
@@ -388,12 +427,73 @@ export function SettingsApp() {
 
         {pane === 'wifi' && (
           <>
-            <div className="mst-hero"><span className="mst-hero-icon" style={{ background: '#2d7ff9' }}>{IC.wifi}</span><h1>Wi-Fi</h1><p>Connected to aOS-Workspace-5G.</p></div>
-            <div className="mst-group">
-              <Row first label="aOS-Workspace-5G" value="Connected" />
-              <Row label="aOS-Guest" />
-              <Row last label="Other Networks" />
+            <div className="mst-card">
+              <div className="mst-wifi-master">
+                <span className="mst-wifi-appicon">{IC.wifi}</span>
+                <div className="mst-wifi-master-text">
+                  <strong>Wi-Fi</strong>
+                  <p>Set up Wi-Fi to wirelessly connect your Mac to the internet. Turn on Wi-Fi, then choose a network to join. <a href="#" onClick={(e) => e.preventDefault()}>Learn More…</a></p>
+                </div>
+                <Toggle on={wifiOn} onChange={setWifiOn} />
+              </div>
+              {wifiOn && (
+                <div className="mst-wifi-current">
+                  <div className="mst-wifi-current-name">
+                    <span>eduroam</span>
+                    <span className="mst-wifi-connected"><i className="mst-greendot" /> Connected</span>
+                  </div>
+                  <NetIcons more={false} />
+                  <button type="button" className="mst-mini-btn">Details…</button>
+                </div>
+              )}
             </div>
+
+            {wifiOn && (
+              <>
+                <div className="mst-section-label">Known Network</div>
+                <div className="mst-card">
+                  <div className="mst-netrow">
+                    <span className="mst-netcheck">{WIFI_IC.check}</span>
+                    <span className="mst-netname">eduroam</span>
+                    <NetIcons />
+                  </div>
+                </div>
+
+                <div className="mst-section-label">Other Networks</div>
+                <div className="mst-card">
+                  <div className="mst-netrow">
+                    <span className="mst-netcheck" />
+                    <span className="mst-netname">CSCC</span>
+                    <NetIcons />
+                  </div>
+                  <div className="mst-netrow">
+                    <span className="mst-netcheck" />
+                    <span className="mst-netname">CSCC-Visitor</span>
+                    <span className="mst-neticons">{WIFI_IC.signal}{WIFI_IC.more}</span>
+                  </div>
+                </div>
+                <div className="mst-card-after"><button type="button" className="mst-mini-btn">Other…</button></div>
+
+                <div className="mst-card">
+                  <div className="mst-togglerow">
+                    <div>
+                      <strong>Ask to join networks</strong>
+                      <p>Known networks will be joined automatically. If no known networks are available, you will have to manually select a network.</p>
+                    </div>
+                    <Toggle on={askJoin} onChange={setAskJoin} />
+                  </div>
+                </div>
+                <div className="mst-card">
+                  <div className="mst-togglerow">
+                    <div>
+                      <strong>Ask to join hotspots</strong>
+                      <p>Allow this Mac to automatically discover nearby personal hotspots when no Wi-Fi network is available.</p>
+                    </div>
+                    <Toggle on={askHotspot} onChange={setAskHotspot} />
+                  </div>
+                </div>
+              </>
+            )}
           </>
         )}
         {pane === 'battery' && (
