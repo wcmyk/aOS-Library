@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useCompanyStore, type EmployerAccount } from '../../state/useCompanyStore';
 import { useProfileStore } from '../../state/useProfileStore';
+import { useMessagesStore } from '../../state/useMessagesStore';
 import { buildPerson, personPhoto } from '../../data/people';
 import { CompanyLogo } from '../../data/brands';
 import { generateRoleTasks } from '../../data/simulator/roleTasks';
@@ -88,6 +89,9 @@ export function TeamsApp() {
   const [selectedId, setSelectedId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const issueVerificationCode = useMessagesStore((s) => s.issueVerificationCode);
+  const [mfa, setMfa] = useState<{ accountId: string; code: string } | null>(null);
+  const [mfaInput, setMfaInput] = useState('');
   const [view, setView] = useState<TmsView>('teams');
   const [channel, setChannel] = useState('General');
   const [chatTarget, setChatTarget] = useState(0);
@@ -118,7 +122,38 @@ export function TeamsApp() {
             </svg>
           </div>
           <h1>Microsoft Teams</h1>
-          {accounts.length === 0 ? (
+          {mfa ? (
+            <>
+              <p className="tms-login-sub">Verify your identity</p>
+              <div className="tms-login-note">
+                We texted a verification code to your phone on file. Open <strong>Messages</strong> to
+                read it, then enter it below.
+              </div>
+              <input
+                className="tms-login-input"
+                inputMode="numeric"
+                placeholder="6-digit code"
+                value={mfaInput}
+                maxLength={6}
+                onChange={(e) => setMfaInput(e.target.value.replace(/\D/g, ''))}
+                onKeyDown={(e) => { if (e.key === 'Enter') document.getElementById('tms-mfa-btn')?.click(); }}
+              />
+              <button id="tms-mfa-btn" type="button" className="tms-primary" onClick={() => {
+                if (mfaInput === mfa.code) {
+                  setSessionAccountId(mfa.accountId);
+                  setMfa(null); setMfaInput(''); setPassword(''); setError('');
+                } else {
+                  setError("That code doesn't match. Check the latest text in Messages.");
+                }
+              }}>Verify</button>
+              {error && <div className="tms-login-error">{error}</div>}
+              <button type="button" className="tms-linklike" onClick={() => {
+                const acc = accounts.find((a) => a.id === mfa.accountId);
+                if (acc) setMfa({ accountId: acc.id, code: issueVerificationCode('teams', acc.companyName) });
+                setError('');
+              }}>Resend code</button>
+            </>
+          ) : accounts.length === 0 ? (
             <>
               <p className="tms-login-sub">Teams access is provisioned by your employer.</p>
               <div className="tms-login-note">
@@ -154,8 +189,8 @@ export function TeamsApp() {
                 const acc = accounts.find((a) => a.id === selectedId);
                 if (!acc) { setError('Select your organization.'); return; }
                 if (acc.outlookPassword !== password) { setError("That password doesn't match this organization's account. Check your offer packet."); return; }
-                setSessionAccountId(acc.id);
-                setPassword('');
+                setMfa({ accountId: acc.id, code: issueVerificationCode('teams', acc.companyName) });
+                setError('');
               }}>Sign in</button>
               {error && <div className="tms-login-error">{error}</div>}
               <div className="tms-login-note">

@@ -1035,7 +1035,7 @@ Talent Acquisition, ${job.company}<br>
                     <button type="button" className="lk-btn-outline">Save</button>
                   </div>
                   {state === 'applied' && (
-                    <div className="lk-applied-note">Application sent — a confirmation email is in your Outlook inbox. Reply <strong>ATS100</strong> to it to advance.</div>
+                    <div className="lk-applied-note">Application sent — a confirmation email is in your Outlook inbox. Reply to the recruiter to schedule your first interview.</div>
                   )}
 
                   <section className="lk-detail-section">

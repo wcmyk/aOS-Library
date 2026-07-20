@@ -7,6 +7,7 @@ import { GoogleSite } from './sites/GoogleSite';
 import { ClaudeSite, ChatGptSite, GeminiSite } from './sites/AiAssistantSites';
 import { AmazonSite } from './sites/AmazonSite';
 import { GitHubSite, GitHubMark } from './sites/GitHubSite';
+import { TurboTaxSite } from './sites/TurboTaxSite';
 import { ProjectHubSite } from './sites/ProjectHubSite';
 import { WorkfrontSite } from './sites/WorkfrontSite';
 import { RadarSite } from './sites/RadarSite';
@@ -31,6 +32,7 @@ type SiteId =
   | 'gemini'
   | 'amazon'
   | 'github'
+  | 'turbotax'
   | 'workfront'
   | 'radar'
   | 'buganizer'
@@ -93,6 +95,7 @@ const CORE_SITES: SiteEntry[] = [
   { id: 'gmail',         title: 'Gmail',                 domain: 'mail.google.com',             component: GmailSite },
   { id: 'amazon',        title: 'Amazon',                domain: 'amazon.com',                  component: AmazonSite },
   { id: 'github',        title: 'GitHub',                domain: 'github.com',                  component: GitHubSite },
+  { id: 'turbotax',      title: 'TurboTax',              domain: 'turbotax.intuit.com',         component: TurboTaxSite },
   { id: 'claude',        title: 'Claude',                domain: 'claude.ai',                   component: ClaudeSite },
   { id: 'chatgpt',       title: 'ChatGPT',               domain: 'chatgpt.com',                 component: ChatGptSite },
   { id: 'gemini',        title: 'Gemini',                domain: 'gemini.google.com',           component: GeminiSite },
@@ -129,9 +132,10 @@ const FAVICON_COLORS: Record<string, string> = {
 };
 
 function SiteFavicon({ siteId, size = 28 }: { siteId: string; size?: number }) {
-  const wrap = (child: ReactNode, bg = '#fff') => (
+  const wrap = (child: ReactNode, bg = '#fff', border = true) => (
     <span style={{
       width: size, height: size, borderRadius: size * 0.22, background: bg,
+      border: border && (bg === '#fff' || bg === 'transparent') ? '1px solid rgba(0,0,0,0.08)' : 'none',
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
       overflow: 'hidden', flexShrink: 0,
     }}>{child}</span>
@@ -146,9 +150,9 @@ function SiteFavicon({ siteId, size = 28 }: { siteId: string; size?: number }) {
     case 'chatgpt': return wrap(<ChatGptKnot size={size * 0.68} color="#fff" />, '#000');
     case 'gemini': return wrap(<GeminiSpark size={size * 0.68} />);
     case 'workday': return wrap(<WorkdayLogo height={size * 0.6} />);
-    case 'adp': return wrap(<AdpLogo height={size * 0.52} />, 'transparent');
-    case 'radar': return wrap(<CompanyLogo company="Apple" size={size} />, 'transparent');
-    case 'buganizer': return wrap(<span style={{ fontSize: size * 0.55 }}>🐛</span>);
+    case 'adp': return wrap(<AdpLogo height={size * 0.52} />, 'transparent', false);
+    case 'radar': return wrap(<CompanyLogo company="Apple" size={size} />, 'transparent', false);
+    case 'buganizer': return wrap(<svg width={size * 0.6} height={size * 0.6} viewBox="0 0 32 32"><ellipse cx="16" cy="19" rx="8" ry="10" fill="#34a853"/><circle cx="16" cy="8" r="5" fill="#34a853"/><path d="M4 14 l6 3 M4 22 l6 1 M28 14 l-6 3 M28 22 l-6 1" stroke="#34a853" strokeWidth="2" strokeLinecap="round"/><path d="M12 15 v8 M16 14 v10 M20 15 v8" stroke="#fff" strokeWidth="1.6"/></svg>);
     case 'amazon': return wrap(
       <svg width={size * 0.72} height={size * 0.72} viewBox="0 0 32 32" style={{ flexShrink: 0 }}>
         <text x="16" y="17" textAnchor="middle" fontFamily="Helvetica Neue, Arial" fontWeight="800" fontSize="9.5" letterSpacing="-0.6" fill="#131921">amazon</text>
@@ -157,6 +161,9 @@ function SiteFavicon({ siteId, size = 28 }: { siteId: string; size?: number }) {
       </svg>,
       '#fff',
     );
+    case 'github': return wrap(<GitHubMark size={size * 0.82} color="#fff" />, '#1f2328');
+    case 'turbotax': return wrap(
+      <svg width={size * 0.7} height={size * 0.7} viewBox="0 0 32 32"><circle cx="16" cy="16" r="15" fill="#d52b1e" /><path d="m9.5 16.5 4.5 4.5 8.5-9.5" fill="none" stroke="#fff" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" /></svg>, '#fff');
     default: {
       const color = FAVICON_COLORS[siteId] ?? '#475569';
       const letter = (siteId.charAt(0) ?? 'W').toUpperCase();

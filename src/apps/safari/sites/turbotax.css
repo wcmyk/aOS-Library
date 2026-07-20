@@ -1,0 +1,85 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   TURBOTAX (tt- namespace) — intuit turbotax filing replica
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.tt-shell {
+  min-height: 100%;
+  background: #f4f5f8;
+  color: #21242b;
+  font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
+}
+.tt-shell button { font-family: inherit; cursor: pointer; }
+
+.tt-header {
+  display: flex; align-items: center; gap: 18px;
+  background: #fff; border-bottom: 1px solid #e3e5ea; padding: 12px 22px;
+}
+.tt-logo { font-size: 19px; display: inline-flex; align-items: baseline; gap: 6px; }
+.tt-logo-intuit { color: #236cff; font-weight: 600; font-size: 13px; }
+.tt-logo strong { color: #d52b1e; font-weight: 800; letter-spacing: -0.4px; }
+.tt-refund-meter { font-size: 13.5px; }
+.tt-header-user { margin-left: auto; font-size: 13px; color: #5c6270; }
+
+.tt-hero {
+  min-height: 460px; background-size: cover; background-position: center;
+  display: flex; align-items: center; padding: 40px;
+}
+.tt-hero-card {
+  background: rgba(255,255,255,0.96); border-radius: 16px; padding: 34px;
+  max-width: 480px; box-shadow: 0 16px 50px rgba(0,0,0,0.18);
+}
+.tt-hero-card h1 { margin: 0 0 10px; font-size: 27px; }
+.tt-hero-card p { margin: 0 0 10px; color: #4a4f5c; line-height: 1.5; }
+.tt-hero-note { font-size: 13px; }
+
+.tt-cta {
+  background: #d52b1e; color: #fff; border: none; border-radius: 26px;
+  padding: 12px 28px; font-size: 15px; font-weight: 700; margin-top: 14px;
+}
+.tt-cta:hover { background: #ba2114; }
+.tt-cta:disabled { background: #cbced6; cursor: default; }
+
+.tt-progress {
+  display: flex; gap: 26px; justify-content: center;
+  background: #fff; border-bottom: 1px solid #e3e5ea; padding: 12px;
+}
+.tt-prog-step { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #9aa0ad; }
+.tt-prog-step i {
+  width: 22px; height: 22px; border-radius: 50%; font-style: normal; font-size: 12px; font-weight: 700;
+  background: #e6e8ee; color: #9aa0ad; display: inline-flex; align-items: center; justify-content: center;
+}
+.tt-prog-step.active { color: #21242b; font-weight: 600; }
+.tt-prog-step.active i { background: #d52b1e; color: #fff; }
+
+.tt-wizard { display: flex; justify-content: center; padding: 34px 22px 60px; }
+.tt-card {
+  background: #fff; border: 1px solid #e3e5ea; border-radius: 14px;
+  padding: 30px 34px; width: 640px; max-width: 100%;
+  box-shadow: 0 8px 30px rgba(20,24,40,0.06);
+}
+.tt-card h1 { margin: 0 0 14px; font-size: 23px; }
+.tt-sub { margin: -6px 0 16px; color: #5c6270; }
+.tt-kv {
+  display: flex; justify-content: space-between; gap: 14px;
+  padding: 10px 0; border-bottom: 1px solid #eef0f4; font-size: 14px;
+}
+.tt-kv span { color: #5c6270; }
+.tt-choice-note {
+  background: #eaf6ee; border: 1px solid #bfe3cb; color: #127e30;
+  border-radius: 10px; padding: 10px 14px; font-size: 13.5px; margin-top: 14px;
+}
+.tt-total { font-size: 24px; font-weight: 800; padding: 16px 0 6px; }
+.tt-fine { display: block; font-size: 11.5px; color: #9aa0ad; margin-top: 12px; line-height: 1.5; }
+
+.tt-w2 { border: 1px solid #e3e5ea; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+.tt-w2-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.tt-w2-head strong { display: block; font-size: 14.5px; }
+.tt-w2-head span { font-size: 12px; color: #5c6270; }
+.tt-w2-boxes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; }
+.tt-w2-boxes > div { display: flex; justify-content: space-between; font-size: 13px; border-bottom: 1px dashed #eef0f4; padding: 5px 0; }
+.tt-w2-boxes span { color: #5c6270; }
+
+.tt-filed { text-align: center; }
+.tt-filed-check { margin-bottom: 8px; }
+.tt-filed-amount { font-size: 26px; font-weight: 800; margin: 10px 0 4px; }

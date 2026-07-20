@@ -1,199 +1,130 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { personPhoto } from '../../data/people';
-import {
-  useMessagesStore,
-  nextMsgId,
-  type Contact,
-  type ChatMessage,
-} from '../../state/useMessagesStore';
-import { generateReply, replyDelay } from './replyEngine';
+import { useMemo, useRef, useState } from 'react';
+import { useMessagesStore } from '../../state/useMessagesStore';
 import './messages.css';
 
-// A curated roster of people the user actually talks to: their manager,
-// recruiters, LinkedIn connections, a mentor, a teammate, HR, and a client.
-// Each has a relationship that drives how the reply engine responds.
-export const CONTACTS: Contact[] = [
-  { id: 'manager', name: 'Elena Vasquez', role: 'Engineering Manager', company: 'your team', relationship: 'manager', status: 'Your manager · Active now' },
-  { id: 'recruiter', name: 'Rafael Iyer', role: 'Senior Technical Recruiter', company: 'Google', relationship: 'recruiter', status: 'Recruiter · Google' },
-  { id: 'mentor', name: 'Marcus Thornton', role: 'VP of Engineering', company: 'Stripe', relationship: 'mentor', status: 'Mentor · Usually replies fast' },
-  { id: 'linkedin', name: 'Priya Hartwell', role: 'Staff Product Designer', company: 'Figma', relationship: 'linkedin', status: 'LinkedIn connection' },
-  { id: 'colleague', name: 'Darius Chen', role: 'Software Engineer', company: 'your team', relationship: 'colleague', status: 'Teammate · Active now' },
-  { id: 'hr', name: 'Naomi Calloway', role: 'People Operations Partner', company: 'your company', relationship: 'hr', status: 'People Ops · Confidential' },
-  { id: 'client', name: 'Ingrid Voss', role: 'Director of Operations', company: 'Northwind Co.', relationship: 'client', status: 'Client · Northwind Co.' },
-];
+// Apple Messages replica: searchable conversation sidebar, blue/gray bubble
+// thread, iMessage composer. Verification codes for enterprise sign-ins
+// (Teams, Workday) arrive here from shortcodes, like real MFA texts.
 
-// Seeded openers so each thread starts mid-relationship, feeling lived-in.
-const OPENERS: Record<string, string> = {
-  manager: 'Hey Michael — nice work closing out those tickets this week. Let me know if anything is blocking you before our 1:1.',
-  recruiter: "Hi Michael! I came across your profile and I think you'd be a great fit for a role on our team. Are you open to a quick chat?",
-  mentor: "Michael! It's been a minute. How's everything going on your end — still enjoying the work?",
-  linkedin: 'Thanks for connecting, Michael! Loved your recent post. Let me know if you ever want to swap notes.',
-  colleague: 'yo did you see the build broke on main 😅 i think it was the merge from yesterday',
-  hr: 'Hi Michael, this is Naomi from People Ops. Just a reminder that open enrollment closes at the end of the month — let me know if you have any questions!',
-  client: 'Hello Michael, looking forward to kicking off the next phase. Let us know what you need from our side.',
-};
-
-const contactById = (id: string) => CONTACTS.find((c) => c.id === id) ?? CONTACTS[0];
-
-function fmtTime(ts: number): string {
-  return new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+function threadColor(sender: string): string {
+  let h = 0;
+  for (let i = 0; i < sender.length; i++) h = (h * 31 + sender.charCodeAt(i)) >>> 0;
+  return ['#8e8e93', '#5e5ce6', '#ff9f0a', '#30b0c7', '#bf5af2'][h % 5];
 }
 
-function Avatar({ name, size = 34 }: { name: string; size?: number }) {
-  return <img className="msg-avatar" src={personPhoto(name)} alt="" width={size} height={size} />;
+function timeLabel(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  const yesterday = new Date(now.getTime() - 86400000);
+  if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+  return d.toLocaleDateString('en-US', { weekday: 'long' });
 }
 
 export function MessagesApp() {
-  const { conversations, ensureConversation, appendMessage, markRead } = useMessagesStore();
-  const [activeId, setActiveId] = useState<string>('manager');
+  const threads = useMessagesStore((s) => s.threads);
+  const appendMessage = useMessagesStore((s) => s.appendMessage);
+  const markThreadRead = useMessagesStore((s) => s.markThreadRead);
+  const lastRead = useMessagesStore((s) => s.lastRead);
+  const [search, setSearch] = useState('');
+  const [activeId, setActiveId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
-  const [typing, setTyping] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const timerRef = useRef<number | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  // Seed every thread with its opener on first mount.
-  useEffect(() => {
-    CONTACTS.forEach((c, i) => ensureConversation(c.id, OPENERS[c.id], Date.now() - (CONTACTS.length - i) * 3600_000));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const sorted = useMemo(() =>
+    [...threads].sort((a, b) => {
+      const la = a.messages[a.messages.length - 1]?.at ?? '';
+      const lb = b.messages[b.messages.length - 1]?.at ?? '';
+      return lb.localeCompare(la);
+    }).filter((t) => !search.trim() || t.sender.toLowerCase().includes(search.toLowerCase()) || t.messages.some((m) => m.text.toLowerCase().includes(search.toLowerCase()))),
+    [threads, search]);
 
-  const active = contactById(activeId);
-  const conv = conversations[activeId];
-  const messages = useMemo(() => conv?.messages ?? [], [conv]);
-
-  useEffect(() => {
-    markRead(activeId);
-  }, [activeId, messages.length, markRead]);
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [messages.length, typing]);
-
-  useEffect(() => () => { if (timerRef.current) window.clearTimeout(timerRef.current); }, []);
+  const active = sorted.find((t) => t.id === activeId) ?? sorted[0] ?? null;
 
   const send = () => {
-    const text = draft.trim();
-    if (!text) return;
-    const myMsg: ChatMessage = { id: nextMsgId(), from: 'me', text, ts: Date.now() };
-    appendMessage(activeId, myMsg);
+    if (!active || !draft.trim()) return;
+    appendMessage(active.sender, draft.trim(), { fromMe: true });
     setDraft('');
-
-    // Contextual reply after a realistic typing delay.
-    const reply = generateReply(active, text, [...messages, myMsg]);
-    setTyping(true);
-    timerRef.current = window.setTimeout(() => {
-      setTyping(false);
-      appendMessage(activeId, { id: nextMsgId(), from: 'them', text: reply, ts: Date.now() });
-    }, replyDelay(reply));
-  };
-
-  const onKey = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      send();
-    }
+    setTimeout(() => scrollRef.current?.scrollTo({ top: 999999, behavior: 'smooth' }), 50);
   };
 
   return (
     <div className="msg-shell">
-      {/* Conversation list */}
       <aside className="msg-sidebar">
-        <div className="msg-sidebar-head">
-          <span className="msg-title">Messages</span>
-          <button type="button" className="msg-compose" title="New Message" aria-label="New Message">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M12 4H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-7" strokeLinecap="round" /><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          </button>
+        <div className="msg-search">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(120,120,128,0.8)" strokeWidth="2.2"><circle cx="10.5" cy="10.5" r="6" /><path d="m15 15 5 5" /></svg>
+          <input placeholder="Search" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        <div className="msg-search"><span>🔍</span><input placeholder="Search" readOnly /></div>
         <div className="msg-list">
-          {CONTACTS.map((c) => {
-            const cc = conversations[c.id];
-            const last = cc?.messages[cc.messages.length - 1];
+          {sorted.map((t) => {
+            const last = t.messages[t.messages.length - 1];
+            const unread = last && !last.fromMe && (!lastRead[t.id] || new Date(last.at).getTime() > lastRead[t.id]);
             return (
-              <button
-                key={c.id}
-                type="button"
-                className={`msg-list-item ${activeId === c.id ? 'active' : ''}`}
-                onClick={() => setActiveId(c.id)}
-              >
-                <Avatar name={c.name} size={44} />
-                <div className="msg-list-body">
-                  <div className="msg-list-top">
-                    <span className="msg-list-name">{c.name}</span>
-                    <span className="msg-list-time">{last ? fmtTime(last.ts) : ''}</span>
-                  </div>
-                  <div className="msg-list-preview">
-                    {cc?.unread && activeId !== c.id ? <span className="msg-dot" /> : null}
-                    <span className={cc?.unread && activeId !== c.id ? 'unread' : ''}>
-                      {last ? (last.from === 'me' ? 'You: ' : '') + last.text : c.role}
-                    </span>
-                  </div>
-                </div>
+              <button key={t.id} type="button"
+                className={`msg-row ${active?.id === t.id ? 'active' : ''}`}
+                onClick={() => { setActiveId(t.id); markThreadRead(t.id); }}>
+                <span className={`msg-unread-dot ${unread ? 'on' : ''}`} />
+                <span className="msg-avatar" style={{ background: threadColor(t.sender) }}>
+                  {t.shortcode
+                    ? <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M4 5h16a1.5 1.5 0 0 1 1.5 1.5v11A1.5 1.5 0 0 1 20 19H4a1.5 1.5 0 0 1-1.5-1.5v-11A1.5 1.5 0 0 1 4 5zm8 7.2L4.8 7h14.4z" /></svg>
+                    : <svg width="17" height="17" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="8.5" r="3.8" /><path d="M4 20.5a8 8 0 0 1 16 0z" /></svg>}
+                </span>
+                <span className="msg-row-main">
+                  <span className="msg-row-top">
+                    <strong>{t.sender}</strong>
+                    <span className="msg-row-time">{last ? timeLabel(last.at) : ''}</span>
+                  </span>
+                  <span className="msg-row-preview">{last?.text ?? ''}</span>
+                </span>
               </button>
             );
           })}
         </div>
       </aside>
 
-      {/* Active thread */}
-      <section className="msg-thread">
-        <header className="msg-thread-head">
-          <Avatar name={active.name} size={30} />
-          <div className="msg-thread-title">
-            <span className="msg-thread-name">{active.name}</span>
-            <span className="msg-thread-sub">{active.status}</span>
-          </div>
-          <div className="msg-thread-actions">
-            <button type="button" aria-label="Audio call">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11.4 11.4 0 0 0 3.6.58 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .58 3.6 1 1 0 0 1-.25 1z" /></svg>
-            </button>
-            <button type="button" aria-label="Video call">
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="6" width="13" height="12" rx="2.5" /><path d="M17 10l5-3v10l-5-3z" /></svg>
-            </button>
-            <button type="button" aria-label="Details">ⓘ</button>
-          </div>
-        </header>
-
-        <div className="msg-scroll" ref={scrollRef}>
-          <div className="msg-contact-card">
-            <Avatar name={active.name} size={62} />
-            <div className="msg-contact-name">{active.name}</div>
-            <div className="msg-contact-role">{active.role}{active.company !== 'your team' && active.company !== 'your company' ? ` · ${active.company}` : ''}</div>
-          </div>
-          {messages.map((m, i) => {
-            const prev = messages[i - 1];
-            const grouped = prev && prev.from === m.from && m.ts - prev.ts < 120_000;
-            return (
-              <div key={m.id} className={`msg-row ${m.from === 'me' ? 'me' : 'them'} ${grouped ? 'grouped' : ''}`}>
-                {m.from === 'them' && !grouped ? <Avatar name={active.name} size={26} /> : <span className="msg-avatar-spacer" />}
-                <div className="msg-bubble">{m.text}</div>
+      <section className="msg-main">
+        {active ? (
+          <>
+            <header className="msg-head">
+              <span className="msg-avatar msg-avatar-sm" style={{ background: threadColor(active.sender) }}>
+                {active.shortcode
+                  ? <svg width="13" height="13" viewBox="0 0 24 24" fill="#fff"><path d="M4 5h16a1.5 1.5 0 0 1 1.5 1.5v11A1.5 1.5 0 0 1 20 19H4a1.5 1.5 0 0 1-1.5-1.5v-11A1.5 1.5 0 0 1 4 5zm8 7.2L4.8 7h14.4z" /></svg>
+                  : <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="8.5" r="3.8" /><path d="M4 20.5a8 8 0 0 1 16 0z" /></svg>}
+              </span>
+              <div>
+                <div className="msg-head-name">{active.sender}</div>
+                {active.shortcode && <div className="msg-head-sub">Automated messages — do not reply</div>}
               </div>
-            );
-          })}
-          {typing ? (
-            <div className="msg-row them">
-              <Avatar name={active.name} size={26} />
-              <div className="msg-bubble msg-typing"><span /><span /><span /></div>
+              <div className="msg-head-actions">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a84ff" strokeWidth="1.8"><path d="M5 4.5h3l1.8 4.2-2 1.6a13 13 0 0 0 5.9 5.9l1.6-2 4.2 1.8v3a1.5 1.5 0 0 1-1.6 1.5C10.7 20 4 13.3 3.5 6.1A1.5 1.5 0 0 1 5 4.5z" /></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a84ff" strokeWidth="1.8"><rect x="3" y="6" width="12" height="12" rx="2.5" /><path d="M15 12.5 21 16V8z" /></svg>
+              </div>
+            </header>
+            <div className="msg-thread" ref={scrollRef}>
+              <div className="msg-daychip">iMessage · {active.shortcode ? 'Text Message' : 'Today'}</div>
+              {active.messages.map((m, i) => (
+                <div key={i} className={`msg-bubble-row ${m.fromMe ? 'me' : ''}`}>
+                  <div className={`msg-bubble ${m.fromMe ? 'blue' : 'gray'}`}>{m.text}</div>
+                </div>
+              ))}
             </div>
-          ) : null}
-        </div>
-
-        <div className="msg-compose-bar">
-          <button type="button" className="msg-plus" aria-label="Attach">+</button>
-          <div className="msg-input-wrap">
-            <textarea
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={onKey}
-              placeholder={`Message ${active.name.split(' ')[0]}`}
-              rows={1}
-            />
-            <button type="button" className={`msg-send ${draft.trim() ? 'on' : ''}`} onClick={send} aria-label="Send">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l8 8h-5v10h-6V11H4z" /></svg>
-            </button>
-          </div>
-        </div>
+            <footer className="msg-composer">
+              <button type="button" className="msg-plus" aria-label="Apps">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M12 4v16M4 12h16" /></svg>
+              </button>
+              <div className="msg-input-pill">
+                <input placeholder={active.shortcode ? 'Text Message' : 'iMessage'} value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') send(); }} />
+                <button type="button" className="msg-send" onClick={send} disabled={!draft.trim()} aria-label="Send">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="#fff"><path d="M12 3.5 5 11h4.5v9h5v-9H19z" /></svg>
+                </button>
+              </div>
+            </footer>
+          </>
+        ) : (
+          <div className="msg-empty">No Conversation Selected</div>
+        )}
       </section>
     </div>
   );

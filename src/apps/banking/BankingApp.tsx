@@ -136,6 +136,11 @@ export function BankingApp() {
   const profileName = useProfileStore((s) => s.fullName);
   const cashAdjustment = useDevStore((s) => s.cashAdjustment);
   const subscriptions = useDevStore((s) => s.subscriptions);
+  const bankTransfers = useDevStore((s) => s.bankTransfers);
+  const cardCharges = useDevStore((s) => s.cardCharges);
+  const addTransfer = useDevStore((s) => s.addTransfer);
+  const taxRefunds = useDevStore((s) => s.taxRefunds);
+  const payCard = useDevStore((s) => s.payCard);
   const orders = useWalletStore((s) => s.orders);
   const [tab, setTab] = useState<Tab>('accounts');
   const [from, setFrom] = useState('chk');
@@ -183,6 +188,23 @@ export function BankingApp() {
       const merchant = c.service === 'claude' ? 'ANTHROPIC PBC — CLAUDE PRO' : c.service === 'chatgpt' ? 'OPENAI *CHATGPT PLUS' : 'GOOGLE *AI PRO';
       txns.push({ id: c.id, accountId: 'chk', date: c.date, desc: `Recurring Payment — ${merchant}`, amount: -c.amount, balance: 0 });
     });
+    const accName = (id: string) => id === 'chk' ? 'Chase Total Checking (...1666)' : id === 'sav' ? 'Chase Savings (...5462)' : id === 'card-freedom' ? 'Freedom Unlimited (...6399)' : id === 'card-sapphire' ? 'Sapphire Reserve (...0077)' : id;
+    bankTransfers.forEach((t) => {
+      txns.push({ id: `${t.id}-out`, accountId: t.from, date: t.date, desc: `Online Transfer to ${accName(t.to)}`, amount: -t.amount, balance: 0 });
+      if (t.to === 'chk' || t.to === 'sav') {
+        txns.push({ id: `${t.id}-in`, accountId: t.to, date: t.date, desc: `Online Transfer from ${accName(t.from)}`, amount: t.amount, balance: 0 });
+      }
+    });
+    taxRefunds.forEach((r) => {
+      txns.push({
+        id: r.id, accountId: 'chk', date: r.date,
+        desc: r.amount >= 0 ? 'IRS TREAS 310 — TAX REF' : 'IRS USATAXPYMT — Balance Due',
+        amount: r.amount, balance: 0,
+      });
+    });
+    cardCharges.forEach((c) => {
+      txns.push({ id: c.id, accountId: `cc-${c.card}`, date: c.date, desc: c.desc, amount: -c.amount, balance: 0 });
+    });
     orders.forEach((o) => {
       // Debit accounts: money out (negative). Credit cards: balance owed goes up (positive).
       const amount = o.accountKind === 'credit' ? o.total : -o.total;
@@ -190,7 +212,7 @@ export function BankingApp() {
     });
     txns.push(...transfers);
     return txns;
-  }, [cashAdjustment, subscriptions, orders, transfers]);
+  }, [cashAdjustment, subscriptions, bankTransfers, cardCharges, taxRefunds, orders]);
 
   const salaryTxns = useMemo<Txn[]>(() => {
     if (activeEmployment.length === 0) return [];

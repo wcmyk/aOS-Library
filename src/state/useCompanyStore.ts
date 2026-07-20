@@ -72,6 +72,7 @@ type CompanyStore = {
   loginColab: (accountId: string, password: string) => boolean;
   logoutColab: () => void;
   applyPromotionCommand: (companyEmail: string, percentCount: number, trigger: string) => PromotionRecord | null;
+  endEmployment: (accountId: string) => EmployerAccount | null;
 };
 
 const curatedCompanies: CompanyDirectoryItem[] = REAL_COMPANIES.slice(0, 24).map((c, idx) => ({
@@ -223,6 +224,19 @@ export const useCompanyStore = create<CompanyStore>()(
           } : a),
         }));
         return record;
+      },
+      endEmployment: (accountId) => {
+        const acc = get().employerAccounts.find((a) => a.id === accountId);
+        if (!acc || acc.employmentStatus === 'inactive') return null;
+        set((s) => ({
+          employerAccounts: s.employerAccounts.map((a) => a.id === accountId ? { ...a, employmentStatus: 'inactive' } : a),
+          sessions: {
+            ...s.sessions,
+            activeWorkdayAccountId: s.sessions.activeWorkdayAccountId === accountId ? null : s.sessions.activeWorkdayAccountId,
+            activeColabAccountId: s.sessions.activeColabAccountId === accountId ? null : s.sessions.activeColabAccountId,
+          },
+        }));
+        return acc;
       },
     }),
     { name: 'aos-company-store-v1' },
