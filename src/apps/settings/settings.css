@@ -15,7 +15,7 @@
 
 /* Sidebar */
 .mst-sidebar {
-  width: 300px; flex-shrink: 0; overflow-y: auto;
+  flex: 0 1 300px; min-width: 208px; overflow-y: auto;
   background: #363636;
   border-right: 1px solid #1e1e1e;
   padding: 12px 10px 20px;
@@ -59,12 +59,12 @@
 }
 
 /* Content */
-.mst-content { flex: 1; overflow-y: auto; padding: 14px 40px 48px; background: #1f1f1f; }
+.mst-content { flex: 1 1 320px; min-width: 0; overflow-y: auto; container-type: inline-size; padding: 14px clamp(16px, 5cqi, 40px) 48px; background: #1f1f1f; }
 .mst-navchev { display: flex; gap: 20px; color: rgba(255,255,255,0.35); font-size: 20px; padding: 4px 0 8px; }
 
 .mst-hero {
   background: #292929; border: 1px solid #3a3a3a; border-radius: 12px;
-  padding: 28px 24px; text-align: center; margin-bottom: 20px;
+  padding: clamp(18px, 4cqi, 28px) clamp(16px, 4cqi, 24px); text-align: center; margin-bottom: 20px;
 }
 .mst-hero-icon {
   width: 64px; height: 64px; border-radius: 15px;
@@ -72,8 +72,8 @@
   margin-bottom: 12px;
 }
 .mst-hero-icon svg { width: 32px; height: 32px; }
-.mst-hero h1 { margin: 0 0 8px; font-size: 26px; font-weight: 700; }
-.mst-hero p { margin: 0 auto; max-width: 560px; font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.5; }
+.mst-hero h1 { margin: 0 0 8px; font-size: clamp(19px, 6cqi, 26px); font-weight: 700; overflow-wrap: break-word; }
+.mst-hero p { margin: 0 auto; max-width: 560px; font-size: clamp(12.5px, 3.4cqi, 14px); color: rgba(255,255,255,0.6); line-height: 1.5; }
 .mst-hero-photo { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; }
 
 .mst-group {
@@ -134,7 +134,7 @@
 
 /* ── Wallpaper picker (Desktop & Dock pane) ─────────────────────────────── */
 .mst-wallpaper-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(clamp(112px, 30cqi, 150px), 1fr));
   gap: 14px; margin-top: 10px;
 }
 .mst-wallpaper {
