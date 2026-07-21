@@ -99,3 +99,23 @@
   background: #0a84ff; display: inline-flex; align-items: center; justify-content: center;
 }
 .msg-send:disabled { background: rgba(120,120,128,0.3); cursor: default; }
+
+/* ═══ Light appearance — colors only, layout untouched ═══ */
+:root[data-theme='light'] .msg-shell { color: #1d1d1f; }
+:root[data-theme='light'] .msg-sidebar {
+  background: rgba(243, 243, 247, 0.62);
+  border-right: 1px solid rgba(0,0,0,0.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+}
+:root[data-theme='light'] .msg-search { background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.08); box-shadow: inset 0 1px 2px rgba(0,0,0,0.08); }
+:root[data-theme='light'] .msg-search input { color: #1d1d1f; }
+:root[data-theme='light'] .msg-row-time, :root[data-theme='light'] .msg-row-preview { color: rgba(60,60,67,0.6); }
+:root[data-theme='light'] .msg-main { background: #fff; }
+:root[data-theme='light'] .msg-head { border-bottom-color: rgba(0,0,0,0.1); }
+:root[data-theme='light'] .msg-head-sub { color: rgba(60,60,67,0.6); }
+:root[data-theme='light'] .msg-daychip { color: rgba(60,60,67,0.55); }
+:root[data-theme='light'] .msg-bubble.gray { background: #e9e9eb; color: #1d1d1f; box-shadow: none; }
+:root[data-theme='light'] .msg-empty { color: rgba(0,0,0,0.35); }
+:root[data-theme='light'] .msg-plus { background: rgba(0,0,0,0.06); color: rgba(0,0,0,0.55); }
+:root[data-theme='light'] .msg-input-pill { border-color: rgba(0,0,0,0.18); box-shadow: none; }
+:root[data-theme='light'] .msg-input-pill input { color: #1d1d1f; }

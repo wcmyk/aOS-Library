@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useMailStore } from '../../../state/useMailStore';
+import { WorkfrontLogo } from '../../../data/brands';
 
 const COMPANY_PM: Array<{ match: RegExp; tool: string; notes: string }> = [
   { match: /samsung/i, tool: 'Samsung Project Life Cycle Management Portal + CognitiV Network Ops Suite', notes: 'Global synchronized sprints across KR/US/IN/VN and ML-driven bottleneck prediction.' },
@@ -24,7 +25,7 @@ export function ProjectHubSite() {
   return (
     <div className="workfront-shell">
       <aside className="workfront-rail">
-        <div className="workfront-logo">Workfront</div>
+        <div className="workfront-logo"><WorkfrontLogo height={20} /></div>
         <button className="active" type="button">My Work</button>
         <button type="button">Projects</button>
         <button type="button">Requests</button>

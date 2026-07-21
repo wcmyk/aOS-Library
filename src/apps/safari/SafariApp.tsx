@@ -17,7 +17,7 @@ import { CoLabSite } from './sites/CoLabSite';
 import { SamsungPortalSite } from './sites/SamsungPortalSite';
 import { CurcuitSite } from './sites/CurcuitSite';
 import { useSafariStore } from '../../state/useSafariStore';
-import { CompanyLogo, GmailM, ClaudeSpark, ChatGptKnot, GeminiSpark, WorkdayLogo, AdpLogo, ChaseOctagon } from '../../data/brands';
+import { CompanyLogo, GmailM, ClaudeSpark, ChatGptKnot, GeminiSpark, WorkdayMark, WorkfrontMark, AdpLogo, ChaseOctagon } from '../../data/brands';
 import './safari.css';
 import { useCompanyStore } from '../../state/useCompanyStore';
 
@@ -149,7 +149,8 @@ function SiteFavicon({ siteId, size = 28 }: { siteId: string; size?: number }) {
     case 'claude': return wrap(<ClaudeSpark size={size * 0.68} />, '#F0EEE6');
     case 'chatgpt': return wrap(<ChatGptKnot size={size * 0.68} color="#fff" />, '#000');
     case 'gemini': return wrap(<GeminiSpark size={size * 0.68} />);
-    case 'workday': return wrap(<WorkdayLogo height={size * 0.6} />);
+    case 'workday': return wrap(<WorkdayMark size={size * 0.74} />);
+    case 'workfront': return wrap(<WorkfrontMark size={size} />, 'transparent', false);
     case 'adp': return wrap(<AdpLogo height={size * 0.52} />, 'transparent', false);
     case 'radar': return wrap(<CompanyLogo company="Apple" size={size} />, 'transparent', false);
     case 'buganizer': return wrap(<svg width={size * 0.6} height={size * 0.6} viewBox="0 0 32 32"><ellipse cx="16" cy="19" rx="8" ry="10" fill="#34a853"/><circle cx="16" cy="8" r="5" fill="#34a853"/><path d="M4 14 l6 3 M4 22 l6 1 M28 14 l-6 3 M28 22 l-6 1" stroke="#34a853" strokeWidth="2" strokeLinecap="round"/><path d="M12 15 v8 M16 14 v10 M20 15 v8" stroke="#fff" strokeWidth="1.6"/></svg>);

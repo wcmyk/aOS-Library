@@ -7,6 +7,7 @@ import { REAL_COMPANIES } from '../../data/companies';
 import { CompanyLogo, ClaudeSpark, ChatGptKnot, GeminiSpark } from '../../data/brands';
 import { personPhoto } from '../../data/people';
 import { useWallpaperStore, WALLPAPERS } from '../../state/useWallpaperStore';
+import { useThemeStore, type ThemeMode } from '../../state/useThemeStore';
 import './settings.css';
 
 const BASE_URL = import.meta.env.BASE_URL;
@@ -134,6 +135,8 @@ export function SettingsApp() {
   const sendEmail = useMailStore((s) => s.sendEmail);
   const selectedWallpaper = useWallpaperStore((s) => s.selectedId);
   const setWallpaper = useWallpaperStore((s) => s.setWallpaper);
+  const themeMode = useThemeStore((s) => s.mode);
+  const setThemeMode = useThemeStore((s) => s.setMode);
   const { cashAdjustment, setCashAdjustment, addCash, subscriptions, subscribe, cancelSubscription, noteDevOffer, devOffersGranted } = useDevStore();
   const [pane, setPane] = useState<Pane>('general');
   const [search, setSearch] = useState('');
@@ -563,7 +566,45 @@ export function SettingsApp() {
             </div>
           </>
         )}
-        {(pane === 'bluetooth' || pane === 'network' || pane === 'vpn' || pane === 'accessibility' || pane === 'appearance' || pane === 'siri' || pane === 'controlcenter' || pane === 'displays' || pane === 'screensaver') && (
+        {pane === 'appearance' && (
+          <>
+            <div className="mst-hero">
+              <span className="mst-hero-icon" style={{ background: '#1c1c1e' }}>{IC.paint}</span>
+              <h1>Appearance</h1>
+              <p>Choose a Light or Dark appearance. Your selection applies instantly to Safari, Messages, Calendar, and System Settings.</p>
+            </div>
+            <div className="mst-group">
+              <div className="mst-form-title">Appearance</div>
+              <div className="mst-appearance-row">
+                {(['light', 'dark'] as ThemeMode[]).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    className={`mst-appearance-opt ${themeMode === m ? 'sel' : ''}`}
+                    onClick={() => setThemeMode(m)}
+                  >
+                    <span className={`mst-appearance-thumb ${m}`}>
+                      <span className="mst-app-mini-side" />
+                      <span className="mst-app-mini-body">
+                        <span className="mst-app-mini-bar" />
+                        <span className="mst-app-mini-line" />
+                        <span className="mst-app-mini-line short" />
+                      </span>
+                    </span>
+                    <span className="mst-appearance-name">{m === 'light' ? 'Light' : 'Dark'}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="mst-group">
+              <Row first label="Accent color" value="Multicolor" />
+              <Row label="Highlight color" value="Accent Color" />
+              <Row label="Sidebar icon size" value="Medium" />
+              <Row last label="Allow wallpaper tinting in windows" value="On" />
+            </div>
+          </>
+        )}
+        {(pane === 'bluetooth' || pane === 'network' || pane === 'vpn' || pane === 'accessibility' || pane === 'siri' || pane === 'controlcenter' || pane === 'displays' || pane === 'screensaver') && (
           <>
             <div className="mst-hero">
               <span className="mst-hero-icon" style={{ background: paneMeta?.bg ?? '#8e8e93' }}>{paneMeta?.icon}</span>
