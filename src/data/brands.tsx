@@ -502,6 +502,33 @@ export function GeminiSpark({ size = 20 }: { size?: number }) {
   );
 }
 
+export function WorkdayMark({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" style={{ flexShrink: 0 }}>
+      <circle cx="16" cy="16" r="15" fill="#F38B00" />
+      <path d="M7 12 l3.2 9 3-7.4 2.8 7.4 3-7.4 2.8 7.4 3.2-9" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function WorkfrontMark({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" style={{ flexShrink: 0 }}>
+      <rect width="32" height="32" rx="7" fill="#EB1000" />
+      <text x="16" y="21.5" textAnchor="middle" fontFamily="'Adobe Clean', 'Helvetica Neue', Arial, sans-serif" fontWeight="700" fontSize="14.5" fill="#fff" letterSpacing="-0.5">Wf</text>
+    </svg>
+  );
+}
+
+export function WorkfrontLogo({ height = 22 }: { height?: number }) {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: height * 0.32, lineHeight: 1 }}>
+      <WorkfrontMark size={height} />
+      <span style={{ fontFamily: "'Adobe Clean', 'Helvetica Neue', Arial, sans-serif", fontWeight: 700, fontSize: height * 0.68, color: 'currentColor', letterSpacing: '-0.01em' }}>Workfront</span>
+    </span>
+  );
+}
+
 export function WorkdayLogo({ height = 22 }: { height?: number }) {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: height * 0.28, lineHeight: 1 }}>

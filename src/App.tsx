@@ -12,6 +12,7 @@ import { useCircuitLabStore } from './state/useCircuitLabStore';
 import { useEdenStore } from './state/useEdenStore';
 import { useThothWidgetStore } from './state/useThothWidgetStore';
 import { useWallpaperStore, wallpaperById } from './state/useWallpaperStore';
+import { useThemeStore } from './state/useThemeStore';
 
 const AccelApp = lazy(() => import('./apps/accel/AccelApp').then((m) => ({ default: m.AccelApp })));
 const OracleApp = lazy(() => import('./apps/oracle/OracleApp').then((m) => ({ default: m.OracleApp })));
@@ -203,6 +204,12 @@ export default function App() {
   const edenUnlocked = useEdenStore((s) => s.unlocked);
   const { widgets } = useThothWidgetStore();
   const wallpaperFile = wallpaperById(useWallpaperStore((s) => s.selectedId)).file;
+  const themeMode = useThemeStore((s) => s.mode);
+
+  // System appearance — themed apps restyle via [data-theme] CSS, layout untouched.
+  useEffect(() => {
+    document.documentElement.dataset.theme = themeMode;
+  }, [themeMode]);
 
   // Desktop wallpaper — reactively follows the user's choice in Settings.
   useEffect(() => {
