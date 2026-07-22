@@ -67,9 +67,10 @@ export const apps: ShellApp[] = [
     id: 'terminal',
     name: 'Terminal',
     icon: `${BASE_URL}assets/apps/terminal.png`,
-    description: 'Developer terminal with job status and logs',
+    description: 'zsh shell wired into the simulation: files, apps, jobs, bank, appearance',
     accent: '#14b8a6',
-    defaultSize: { width: 720, height: 460 },
+    defaultSize: { width: 760, height: 500 },
+    frameless: true,
   },
   {
     id: 'neural',

@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useMailStore, type JobMeta } from '../../../state/useMailStore';
 import { useProfileStore } from '../../../state/useProfileStore';
 import { CompanyLogo, getCompanyBanner, getBrandColor } from '../../../data/brands';
-import { buildPerson, buildProfileExtras, personPhoto, type Person } from '../../../data/people';
+import { buildPerson, buildProfileExtras, personPhoto, uniqueName, type Person } from '../../../data/people';
 import './linkedin.css';
 
 // ── Seeded random ─────────────────────────────────────────────────────────────
@@ -26,26 +26,16 @@ function strHash(s: string): number {
 }
 
 // ── Name algorithm ────────────────────────────────────────────────────────────
-
-const FIRST_NAMES = [
-  'Marcus','Elena','Julian','Sophia','Kieran','Priya','Devon','Nadia',
-  'Ethan','Cassandra','Rohan','Isabelle','Theo','Mei','Malik','Serena',
-  'Cade','Yuna','Levi','Anastasia','Omar','Vivienne','Flynn','Leila',
-  'Ashton','Zara','Darius','Iris','Remy','Naomi','Colton','Ingrid',
-  'Rafael','Amara','Pierce','Solen','Brennan','Lyra','Cyrus','Wren',
-];
-
-const LAST_NAMES = [
-  'Hartwell','Chen','Vasquez','Nakamura','Whitfield','Okafor','Patel',
-  'Dumont','Reyes','Bergmann','Wolfe','Tanaka','Calloway','Erikson',
-  'Mensah','Thornton','Delacroix','Kimura','Osei','Harrington',
-  'Stroud','Okoro','Voss','Aldridge','Iyer','Fontaine','Brandt',
-  'Adeyemi','Castillo','Lindqvist','Moran','Nakashima','Ferreira',
-];
-
-function makeName(rng: () => number) {
-  return `${pick(FIRST_NAMES, rng)} ${pick(LAST_NAMES, rng)}`;
-}
+// All names come from the shared unique-person registry in data/people.ts.
+// Each surface owns a disjoint slot range so one name = one position:
+//   0–399   job recruiters        400–799  hiring managers
+//   800–819 people-you-may-know   830–839  jobs-page "also viewed" rail
+//   840–1239 profile neighbors / search
+const SLOT_RECRUITER = 0;
+const SLOT_MANAGER = 400;
+const SLOT_PYMK = 800;
+const SLOT_RAIL = 830;
+const SLOT_NEIGHBOR = 840;
 
 // ── Company name algorithm ────────────────────────────────────────────────────
 
@@ -489,7 +479,7 @@ function generateJobs(count: number, start = 0): Job[] {
       categoryLabel: CATEGORY_LABELS[category],
       description: pickDescription(category, archetype, rng),
       requirements: pickRequirements(category, archetype, rng),
-      recruiter: makeName(rng),
+      recruiter: uniqueName(SLOT_RECRUITER + i),
       postedDays: Math.floor(rng() * 30) + 1,
       meetingTool,
       meetingLink: generateMeetingLink(company, meetingTool),
@@ -507,8 +497,8 @@ const PAGE_SIZE = 10;
 // ── Manager name generation ───────────────────────────────────────────────────
 
 function generateManagerName(jobId: string): string {
-  const rng = seeded(strHash(jobId + 'mgr'));
-  return makeName(rng);
+  const index = Number(jobId.replace('job-', ''));
+  return uniqueName(SLOT_MANAGER + (Number.isFinite(index) ? index : strHash(jobId) % 400));
 }
 
 // ── Feed posts ────────────────────────────────────────────────────────────────
@@ -1103,7 +1093,7 @@ Talent Acquisition, ${job.company}<br>
           <div className="lk-pymk-grid">
             {Array.from({ length: 12 }, (_, i) => {
               const rng = seeded(i * 4211 + 9973);
-              const name = makeName(rng);
+              const name = uniqueName(SLOT_PYMK + i);
               const company = makeCompany(rng);
               const cat = pick(CATEGORIES, rng);
               const role = pick([...ROLE_MAP[cat]], rng);
@@ -1191,8 +1181,7 @@ Talent Acquisition, ${job.company}<br>
           )}
           {Object.entries(sentMessages).map(([idx, msgs]) => {
             const i = Number(idx);
-            const rng = seeded(i * 4211 + 9973);
-            const name = makeName(rng);
+            const name = uniqueName(SLOT_PYMK + i);
             return (
               <div key={idx} className="lk-conv-row">
                 <img className="lk-photo lk-avatar-48" src={personPhoto(name)} alt="" />
@@ -1298,7 +1287,7 @@ Talent Acquisition, ${job.company}<br>
             <ul className="lk-people-viewed">
               {Array.from({ length: 5 }, (_, i) => {
                 const rng = seeded(i * 631 + 41);
-                const name = makeName(rng);
+                const name = uniqueName(SLOT_RAIL + i);
                 const company = makeCompany(rng);
                 return (
                   <li key={i}>
@@ -1378,12 +1367,13 @@ function PersonProfileModal({ person, onClose, onView }: { person: Person; onClo
     const h = strHash(person.name);
     const rows: Person[] = [];
     for (let i = 0; i < 5; i++) {
-      const first = FIRST_NAMES[(h + i * 7) % FIRST_NAMES.length];
-      const last = LAST_NAMES[(h + i * 13) % LAST_NAMES.length];
-      const name = `${first} ${last}`;
+      // Neighbor slots are scattered per-profile but the role is derived from
+      // the NAME, so the same neighbor never shows up with a second position.
+      const name = uniqueName(SLOT_NEIGHBOR + ((h % 360) + i * 73) % 400);
       if (name === person.name) continue;
       const roles = ['Software Engineer', 'Senior Product Manager', 'Data Analyst', 'Engagement Manager', 'Technical Recruiter'];
-      rows.push(buildPerson(name, roles[(h + i) % roles.length], person.company));
+      const nh = strHash(name);
+      rows.push(buildPerson(name, roles[nh % roles.length], COMPANY_POOL[nh % COMPANY_POOL.length]));
     }
     return rows.slice(0, 4);
   }, [person]);

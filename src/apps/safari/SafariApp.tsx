@@ -10,6 +10,7 @@ import { GitHubSite, GitHubMark } from './sites/GitHubSite';
 import { TurboTaxSite } from './sites/TurboTaxSite';
 import { ProjectHubSite } from './sites/ProjectHubSite';
 import { WorkfrontSite } from './sites/WorkfrontSite';
+import { ChaseSite } from './sites/ChaseSite';
 import { RadarSite } from './sites/RadarSite';
 import { BuganizerSite } from './sites/BuganizerSite';
 import { ProjectSailSite } from './sites/ProjectSailSite';
@@ -41,6 +42,7 @@ type SiteId =
   | 'colab'
   | 'samsung-portal'
   | 'curcuit'
+  | 'chase'
   | 'company-site'
   | 'new-tab';
 
@@ -96,6 +98,7 @@ const CORE_SITES: SiteEntry[] = [
   { id: 'amazon',        title: 'Amazon',                domain: 'amazon.com',                  component: AmazonSite },
   { id: 'github',        title: 'GitHub',                domain: 'github.com',                  component: GitHubSite },
   { id: 'turbotax',      title: 'TurboTax',              domain: 'turbotax.intuit.com',         component: TurboTaxSite },
+  { id: 'chase',         title: 'Chase',                 domain: 'chase.com',                   component: ChaseSite },
   { id: 'claude',        title: 'Claude',                domain: 'claude.ai',                   component: ClaudeSite },
   { id: 'chatgpt',       title: 'ChatGPT',               domain: 'chatgpt.com',                 component: ChatGptSite },
   { id: 'gemini',        title: 'Gemini',                domain: 'gemini.google.com',           component: GeminiSite },
@@ -150,6 +153,7 @@ function SiteFavicon({ siteId, size = 28 }: { siteId: string; size?: number }) {
     case 'chatgpt': return wrap(<ChatGptKnot size={size * 0.68} color="#fff" />, '#000');
     case 'gemini': return wrap(<GeminiSpark size={size * 0.68} />);
     case 'workday': return wrap(<WorkdayMark size={size * 0.74} />);
+    case 'chase': return wrap(<ChaseOctagon size={size * 0.58} color="#fff" />, '#117aca', false);
     case 'workfront': return wrap(<WorkfrontMark size={size} />, 'transparent', false);
     case 'adp': return wrap(<AdpLogo height={size * 0.52} />, 'transparent', false);
     case 'radar': return wrap(<CompanyLogo company="Apple" size={size} />, 'transparent', false);
