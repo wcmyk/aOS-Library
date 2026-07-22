@@ -29,7 +29,7 @@ const BASE_ACCOUNTS: Account[] = [
   { id: 'mort', kind: 'mortgage', name: 'Home Mortgage', last4: '6798', routing: '021000021', accountNumber: '1177392281', balance: 0 },
 ];
 
-const shortCompany = (name: string) => name.split(/\s+/).map((p) => p[0]).join('').slice(0, 5).toUpperCase();
+const shortCompany = (name: string | undefined) => (name ?? 'CO').split(/\s+/).map((p) => p[0]).join('').slice(0, 5).toUpperCase();
 
 // ── Card art primitives ───────────────────────────────────────────────────────
 
@@ -221,15 +221,16 @@ export function BankingApp() {
 
   const payrollAccounts = useMemo<Account[]>(() => activeEmployment.map((emp) => {
     const accountId = `income-${emp.id}`;
+    const employeeId = String(emp.employeeId ?? emp.id ?? '0000');
     const accountTxns = salaryTxns.filter((t) => t.accountId === accountId);
     const balance = accountTxns.reduce((sum, t) => sum + t.amount, 0);
     return {
       id: accountId,
       kind: 'income' as const,
       name: `${shortCompany(emp.companyName)} Payroll`,
-      last4: emp.employeeId.slice(-4),
+      last4: employeeId.slice(-4),
       routing: 'PAYROLL',
-      accountNumber: emp.employeeId,
+      accountNumber: employeeId,
       balance,
       available: balance,
     };

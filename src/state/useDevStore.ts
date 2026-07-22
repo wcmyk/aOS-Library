@@ -94,11 +94,14 @@ export const useDevStore = create<DevStore>()(
 // Monthly charges for active subscriptions, rendered as bank transactions.
 export function subscriptionCharges(subs: Record<AiService, Subscription>): Array<{ id: string; service: AiService; label: string; amount: number; date: string }> {
   const out: Array<{ id: string; service: AiService; label: string; amount: number; date: string }> = [];
-  (Object.keys(subs) as AiService[]).forEach((svc) => {
-    const sub = subs[svc];
-    if (!sub.active || !sub.since) return;
-    const plan = svc === 'claude' && sub.plan
-      ? { plan: CLAUDE_PLANS[sub.plan].label, monthly: sub.plan === 'team' ? CLAUDE_PLANS.team.monthly * 5 : CLAUDE_PLANS[sub.plan].monthly }
+  // Iterate only the services this build knows about — persisted snapshots from
+  // older builds may carry extra keys or legacy plan names, and must not crash.
+  (Object.keys(AI_PLANS) as AiService[]).forEach((svc) => {
+    const sub = subs?.[svc];
+    if (!sub || !sub.active || !sub.since) return;
+    const claudePlan = sub.plan ? CLAUDE_PLANS[sub.plan] : undefined;
+    const plan = svc === 'claude' && claudePlan
+      ? { plan: claudePlan.label, monthly: sub.plan === 'team' ? CLAUDE_PLANS.team.monthly * 5 : claudePlan.monthly }
       : AI_PLANS[svc];
     if (plan.monthly === 0) return; // employer-provided plans do not bill the user
     const start = new Date(sub.since);
