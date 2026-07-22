@@ -14,6 +14,14 @@ const BASE_URL = import.meta.env.BASE_URL;
 export const apps: ShellApp[] = [
 
   {
+    id: 'forge',
+    name: 'Forge',
+    icon: `${BASE_URL}assets/apps/forge.png`,
+    description: 'Design, build, and scale computing hardware — from a gaming PC to an AI data center',
+    accent: '#f97316',
+    defaultSize: { width: 1180, height: 760 },
+  },
+  {
     id: 'sentinel-flow',
     name: 'SentinelFlow',
     icon: `${BASE_URL}assets/apps/sentinel-flow.png`,
