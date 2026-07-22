@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { WindowState } from '../state/useShellStore';
+import { AppErrorBoundary } from './AppErrorBoundary';
 
 type ResizeDir = 'nw' | 'ne' | 'sw' | 'se';
 
@@ -229,7 +230,7 @@ export function WindowFrame({
               type="button"
             />
           </div>
-          <div className="window-body window-body-full">{children}</div>
+          <div className="window-body window-body-full"><AppErrorBoundary appTitle={frame.title}>{children}</AppErrorBoundary></div>
         </>
       ) : (
         <>
@@ -251,7 +252,7 @@ export function WindowFrame({
             </div>
             <span className="window-title">{frame.title}</span>
           </div>
-          <div className="window-body">{children}</div>
+          <div className="window-body"><AppErrorBoundary appTitle={frame.title}>{children}</AppErrorBoundary></div>
         </>
       )}
     </section>

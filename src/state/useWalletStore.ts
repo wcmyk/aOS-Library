@@ -33,7 +33,17 @@ const read = (): WalletOrder[] => {
   if (typeof window === 'undefined') return [];
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as WalletOrder[]) : [];
+    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    // Persisted data may come from an older build with a different shape;
+    // anything that isn't a well-formed order list is discarded.
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (o): o is WalletOrder =>
+        !!o && typeof o === 'object' &&
+        typeof (o as WalletOrder).id === 'string' &&
+        typeof (o as WalletOrder).accountId === 'string' &&
+        typeof (o as WalletOrder).total === 'number',
+    );
   } catch {
     return [];
   }
