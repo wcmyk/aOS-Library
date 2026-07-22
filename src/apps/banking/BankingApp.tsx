@@ -149,6 +149,7 @@ export function BankingApp() {
   const [confirmation, setConfirmation] = useState('');
   const [selectedAccountId, setSelectedAccountId] = useState('chk');
   const [lockedCards, setLockedCards] = useState<Record<string, boolean>>({});
+  const [showAcctNumber, setShowAcctNumber] = useState(false);
 
   const activeEmployment = employerAccounts.filter((a) => a.employmentStatus === 'active' || a.employmentStatus === 'onboarding');
   const holderName = profileName || 'AOS MEMBER';
@@ -392,7 +393,20 @@ export function BankingApp() {
                     </div>
                     <div className="chb-hero-details">
                       <div><span>Routing number</span><strong>{selectedAccount.routing}</strong></div>
-                      <div><span>Account number</span><strong>···{selectedAccount.accountNumber.slice(-4)}</strong></div>
+                      <div>
+                        <span>Account number</span>
+                        <strong className="chb-acct-number">
+                          {showAcctNumber ? selectedAccount.accountNumber : `···· ···· ${selectedAccount.accountNumber.slice(-4)}`}
+                          <button
+                            type="button"
+                            className="chb-reveal"
+                            onClick={() => setShowAcctNumber((v) => !v)}
+                            aria-label={showAcctNumber ? 'Hide account number' : 'Show account number'}
+                          >
+                            {showAcctNumber ? 'Hide' : 'Show'}
+                          </button>
+                        </strong>
+                      </div>
                       <div><span>Overdraft protection</span><strong>On</strong></div>
                     </div>
                   </section>

@@ -1,0 +1,119 @@
+/* Launchpad — full-screen frosted-glass app grid (macOS style). */
+.lp-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 9990;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(20, 20, 26, 0.28);
+  backdrop-filter: blur(46px) saturate(1.7);
+  -webkit-backdrop-filter: blur(46px) saturate(1.7);
+  animation: lp-fade 0.18s ease-out;
+}
+@keyframes lp-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.lp-search-wrap {
+  padding-top: 44px;
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.lp-search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 260px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+.lp-search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #fff;
+  font-size: 14px;
+  font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif;
+}
+.lp-search input::placeholder { color: rgba(255, 255, 255, 0.65); }
+
+.lp-grid-wrap {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+.lp-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 118px);
+  row-gap: 30px;
+  column-gap: 20px;
+  padding: 12px 24px;
+  justify-content: center;
+  align-content: center;
+}
+
+.lp-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 118px;
+}
+.lp-icon {
+  width: 74px;
+  height: 74px;
+  border-radius: 17px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  transition: transform 0.12s ease;
+}
+.lp-tile:hover .lp-icon { transform: scale(1.06); }
+.lp-tile:active .lp-icon { transform: scale(0.96); }
+.lp-label {
+  font-size: 13px;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+  max-width: 108px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif;
+}
+
+.lp-dots {
+  display: flex;
+  gap: 9px;
+  padding-bottom: 104px; /* clear the Dock */
+  flex-shrink: 0;
+}
+.lp-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.3);
+  transition: background 0.15s ease;
+}
+.lp-dot.active { background: rgba(255, 255, 255, 0.85); }
+
+/* Light appearance: soften the frosted tint so it reads on a light wallpaper. */
+:root[data-theme='light'] .lp-overlay { background: rgba(235, 235, 240, 0.3); }
+:root[data-theme='light'] .lp-search { background: rgba(0, 0, 0, 0.08); border-color: rgba(0, 0, 0, 0.1); }
+:root[data-theme='light'] .lp-search input { color: #1d1d1f; }
+:root[data-theme='light'] .lp-search input::placeholder { color: rgba(0, 0, 0, 0.45); }
+:root[data-theme='light'] .lp-label { color: #1d1d1f; text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6); }
+:root[data-theme='light'] .lp-dot { background: rgba(0, 0, 0, 0.25); }
+:root[data-theme='light'] .lp-dot.active { background: rgba(0, 0, 0, 0.7); }

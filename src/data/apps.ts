@@ -191,7 +191,7 @@ export const apps: ShellApp[] = [
   {
     id: 'teams',
     name: 'Microsoft Teams',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23464775'/%3E%3Crect x='8' y='20' width='30' height='30' rx='6' fill='%23fff' opacity='0.96'/%3E%3Ctext x='23' y='42' text-anchor='middle' font-size='18' font-weight='700' fill='%23464775' font-family='Segoe UI, sans-serif'%3ET%3C/text%3E%3Ccircle cx='47' cy='24' r='7' fill='%237B83EB'/%3E%3Cpath d='M38 34h14a3 3 0 0 1 3 3v6a10 10 0 0 1-10 10h-1a10 10 0 0 1-8.6-4.9z' fill='%237B83EB'/%3E%3C/svg%3E`,
+    icon: `${BASE_URL}assets/apps/teams.png`,
     description: 'Org-scoped Microsoft Teams: channels, chats, and meetings for your employer tenant',
     accent: '#5b5fc7',
     defaultSize: { width: 1240, height: 780 },
@@ -217,7 +217,7 @@ export const apps: ShellApp[] = [
   {
     id: 'zoom',
     name: 'Zoom',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b5cff'/%3E%3Crect x='12' y='22' width='26' height='20' rx='5' fill='%23fff'/%3E%3Cpath d='M40 29l12-6v18l-12-6z' fill='%23fff'/%3E%3C/svg%3E`,
+    icon: `${BASE_URL}assets/apps/zoom.png`,
     description: 'Video meetings: join live phone screens, director rounds, and panel interviews',
     accent: '#0b5cff',
     defaultSize: { width: 1220, height: 760 },
@@ -225,7 +225,7 @@ export const apps: ShellApp[] = [
   {
     id: 'vscode',
     name: 'Visual Studio Code',
-    icon: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231e1e1e'/%3E%3Cpath d='M44 10 22 30l-8-6-4 3 9 5-9 5 4 3 8-6 22 20 10-5V15z' fill='%23007ACC'/%3E%3Cpath d='M44 22v20L30 32z' fill='%231e1e1e'/%3E%3C/svg%3E`,
+    icon: `${BASE_URL}assets/apps/vscode.png`,
     description: 'Visual Studio Code: explorer, TypeScript editor, integrated terminal, source control',
     accent: '#007acc',
     defaultSize: { width: 1280, height: 800 },

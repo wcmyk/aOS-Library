@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { apps } from './data/apps';
 import { Dock } from './components/Dock';
+import { Launchpad } from './components/Launchpad';
 import { NotificationCenter } from './components/NotificationCenter';
 import { MenuBar } from './components/MenuBar';
 import { MacSystem } from './components/MacSystem';
@@ -161,6 +162,8 @@ export default function App() {
     spotlightQuery,
     toggleSpotlight,
     setSpotlightQuery,
+    launchpadOpen,
+    toggleLaunchpad,
     openWindow,
     focusWindow,
     closeWindow,
@@ -295,7 +298,8 @@ export default function App() {
           </Suspense>
         ))}
 
-        <Dock apps={visibleApps} windows={windows} onLaunch={openWindow} />
+        <Launchpad />
+        <Dock apps={visibleApps} windows={windows} onLaunch={openWindow} onLaunchpad={() => toggleLaunchpad()} launchpadOpen={launchpadOpen} />
         <Suspense fallback={null}><NotificationCenter /></Suspense>
       </div>
 

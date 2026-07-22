@@ -76,7 +76,8 @@
 .sf-layout { flex: 1; display: flex; min-height: 0; }
 .sf-sidebar {
   width: 220px; flex-shrink: 0; overflow-y: auto;
-  background: #eceff4; border-right: 1px solid #d8d8dc;
+  background: rgba(38, 40, 44, 0.6); border-right: 1px solid rgba(0,0,0,0.4);
+  backdrop-filter: blur(60px) saturate(1.8);
   padding: 10px 8px;
 }
 .sf-sidebar-label {
@@ -88,26 +89,26 @@
   display: flex; align-items: center; gap: 9px; width: 100%;
   background: none; border: none; cursor: pointer;
   padding: 6px 8px; border-radius: 7px;
-  font-size: 13px; color: #1d1d1f; text-align: left;
+  font-size: 13px; color: #e8e8ed; text-align: left;
 }
-.sf-sidebar-row:hover { background: rgba(0,0,0,0.05); }
-.sf-sidebar-row.active { background: rgba(0,122,255,0.16); }
+.sf-sidebar-row:hover { background: rgba(255,255,255,0.07); }
+.sf-sidebar-row.active { background: rgba(0,122,255,0.32); }
 .sf-sidebar-row span:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.sf-view { flex: 1; overflow: hidden; background: #fff; }
-.sf-loading-page { height: 100%; display: flex; align-items: center; justify-content: center; background: #fff; }
+.sf-view { flex: 1; overflow: hidden; background: #1c1c1e; }
+.sf-loading-page { height: 100%; display: flex; align-items: center; justify-content: center; background: #1c1c1e; }
 
 /* ── Start page ── */
 .sf-start {
   height: 100%;
   overflow-y: auto;
   background:
-    radial-gradient(1200px 500px at 80% -10%, rgba(160, 190, 255, 0.25), transparent 60%),
-    radial-gradient(900px 500px at 10% 110%, rgba(255, 190, 200, 0.18), transparent 60%),
-    #f4f4f7;
+    radial-gradient(1200px 500px at 80% -10%, rgba(90, 120, 190, 0.28), transparent 60%),
+    radial-gradient(900px 500px at 10% 110%, rgba(150, 90, 110, 0.22), transparent 60%),
+    #1c1c1e;
 }
 .sf-start-inner { max-width: 860px; margin: 0 auto; padding: 44px 28px 60px; }
-.sf-start-title { font-size: 20px; font-weight: 700; color: #1d1d1f; margin: 26px 0 14px; }
+.sf-start-title { font-size: 20px; font-weight: 700; color: #f2f2f7; margin: 26px 0 14px; }
 .sf-start-title:first-child { margin-top: 0; }
 .sf-fav-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px;
@@ -117,7 +118,7 @@
   background: none; border: none; cursor: pointer;
   padding: 12px 6px; border-radius: 12px;
 }
-.sf-fav:hover { background: rgba(0,0,0,0.05); }
+.sf-fav:hover { background: rgba(255,255,255,0.07); }
 .sf-fav-icon {
   width: 64px; height: 64px; border-radius: 14px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.14);
@@ -127,15 +128,22 @@
 .sf-fav-icon > span, .sf-fav-icon > svg, .sf-fav-icon > div {
   width: 100% !important; height: 100% !important; border-radius: 14px !important;
 }
-.sf-fav-label { font-size: 12px; color: #1d1d1f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.sf-fav-label { font-size: 12px; color: #e8e8ed; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 
 .sf-privacy-card {
-  margin-top: 34px; background: rgba(255,255,255,0.75);
-  border: 1px solid rgba(0,0,0,0.06); border-radius: 14px;
+  margin-top: 34px; background: rgba(60,60,66,0.5);
+  border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;
   padding: 16px 18px; backdrop-filter: blur(10px);
 }
 .sf-privacy-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 14px; }
-.sf-privacy-card p { margin: 0; font-size: 13px; color: #58585c; }
+.sf-privacy-card p { margin: 0; font-size: 13px; color: #b8b8c0; }
+
+/* New Tab surface (Safari's own page — follows theme). */
+.sf-newtab {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; gap: 8px; background: #1c1c1e; color: #8a8a90;
+}
+.sf-newtab-glyph { font-size: 32px; opacity: 0.3; }
 
 /* ═══ Light appearance — colors only, layout untouched ═══ */
 :root[data-theme='light'] .sf-toolbar {
@@ -152,3 +160,25 @@
   color: #1d1d1f;
 }
 :root[data-theme='light'] .sf-address.editing { background: #fff; }
+
+/* Light-mode restoration for Safari's own surfaces (sidebar, start, content). */
+:root[data-theme='light'] .sf-sidebar {
+  background: #eceff4; border-right: 1px solid #d8d8dc; backdrop-filter: none;
+}
+:root[data-theme='light'] .sf-sidebar-row { color: #1d1d1f; }
+:root[data-theme='light'] .sf-sidebar-row:hover { background: rgba(0,0,0,0.05); }
+:root[data-theme='light'] .sf-sidebar-row.active { background: rgba(0,122,255,0.16); }
+:root[data-theme='light'] .sf-view,
+:root[data-theme='light'] .sf-loading-page { background: #fff; }
+:root[data-theme='light'] .sf-start {
+  background:
+    radial-gradient(1200px 500px at 80% -10%, rgba(160, 190, 255, 0.25), transparent 60%),
+    radial-gradient(900px 500px at 10% 110%, rgba(255, 190, 200, 0.18), transparent 60%),
+    #f4f4f7;
+}
+:root[data-theme='light'] .sf-start-title { color: #1d1d1f; }
+:root[data-theme='light'] .sf-fav:hover { background: rgba(0,0,0,0.05); }
+:root[data-theme='light'] .sf-fav-label { color: #1d1d1f; }
+:root[data-theme='light'] .sf-privacy-card { background: rgba(255,255,255,0.75); border-color: rgba(0,0,0,0.06); }
+:root[data-theme='light'] .sf-privacy-card p { color: #58585c; }
+:root[data-theme='light'] .sf-newtab { background: #fff; color: #86868b; }

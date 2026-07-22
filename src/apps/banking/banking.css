@@ -92,6 +92,12 @@
 .chb-hero-details div { display: flex; flex-direction: column; gap: 2px; }
 .chb-hero-details span { font-size: 11px; color: #75777a; }
 .chb-hero-details strong { font-size: 14px; font-weight: 600; }
+.chb-acct-number { display: inline-flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+.chb-reveal {
+  border: 1px solid #b7c2cf; background: #fff; color: #1069d6; font-size: 11px; font-weight: 600;
+  padding: 1px 8px; border-radius: 999px; cursor: pointer; line-height: 1.5;
+}
+.chb-reveal:hover { background: #eef4fb; }
 
 .chb-panel { background: #fff; border: 1px solid #d9e1ea; border-radius: 8px; padding: 16px 20px 20px; }
 .chb-panel h1 { font-size: 22px; font-weight: 400; margin: 0 0 16px; }

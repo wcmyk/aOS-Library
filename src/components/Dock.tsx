@@ -6,6 +6,8 @@ type DockProps = {
   apps: ShellApp[];
   windows: WindowState[];
   onLaunch: (appId: string) => void;
+  onLaunchpad: () => void;
+  launchpadOpen: boolean;
 };
 
 const DOCK_ORDER_KEY = 'aos-dock-order-v2';
@@ -13,7 +15,7 @@ const BASE_SIZE = 52; // preferred icon size
 const MIN_SIZE = 30; // shrink floor before the dock would overflow
 const GAP = 8;
 
-export function Dock({ apps, windows, onLaunch }: DockProps) {
+export function Dock({ apps, windows, onLaunch, onLaunchpad, launchpadOpen }: DockProps) {
   const [launchingId, setLaunchingId] = useState<string | null>(null);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
@@ -68,7 +70,7 @@ export function Dock({ apps, windows, onLaunch }: DockProps) {
   };
 
   return (
-    <div className="dock" style={{ gap: GAP }} onMouseLeave={() => setHoverIndex(null)}>
+    <div className="dock" style={{ gap: GAP, ...(launchpadOpen ? { zIndex: 9991 } : null) }} onMouseLeave={() => setHoverIndex(null)}>
       {orderedApps.map((app, index) => {
         const dist = hoverIndex == null || !canMagnify ? 99 : Math.abs(hoverIndex - index);
         const scale = dist === 0 ? 1.34 : dist === 1 ? 1.2 : dist === 2 ? 1.08 : 1;
@@ -104,7 +106,7 @@ export function Dock({ apps, windows, onLaunch }: DockProps) {
       <button
         className="dock-item"
         onMouseEnter={() => setHoverIndex(null)}
-        onClick={() => onLaunch('appcenter')}
+        onClick={onLaunchpad}
         style={{ width: size, height: size }}
         type="button"
         aria-label="Open Launchpad"
@@ -115,7 +117,7 @@ export function Dock({ apps, windows, onLaunch }: DockProps) {
           ))}
         </span>
         <span className="dock-label">Launchpad</span>
-        {openApps.has('appcenter') && <span className="dock-indicator" />}
+        {launchpadOpen && <span className="dock-indicator" />}
       </button>
     </div>
   );

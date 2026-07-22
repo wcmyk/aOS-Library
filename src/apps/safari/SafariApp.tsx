@@ -17,6 +17,9 @@ import { ProjectSailSite } from './sites/ProjectSailSite';
 import { CoLabSite } from './sites/CoLabSite';
 import { SamsungPortalSite } from './sites/SamsungPortalSite';
 import { CurcuitSite } from './sites/CurcuitSite';
+import { AppleSite } from './sites/AppleSite';
+import { JPMorganSite } from './sites/JPMorganSite';
+import { SamsungSite } from './sites/SamsungSite';
 import { useSafariStore } from '../../state/useSafariStore';
 import { CompanyLogo, GmailM, ClaudeSpark, ChatGptKnot, GeminiSpark, WorkdayMark, WorkfrontMark, AdpLogo, ChaseOctagon } from '../../data/brands';
 import './safari.css';
@@ -43,6 +46,9 @@ type SiteId =
   | 'samsung-portal'
   | 'curcuit'
   | 'chase'
+  | 'apple'
+  | 'jpmorgan'
+  | 'samsung'
   | 'company-site'
   | 'new-tab';
 
@@ -50,8 +56,8 @@ type SiteEntry = { id: SiteId; title: string; domain: string; component: Compone
 
 function NewTabPage() {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#0f1218', color: '#64748b', flexDirection: 'column', gap: 8 }}>
-      <div style={{ fontSize: 32, opacity: 0.3 }}>⊕</div>
+    <div className="sf-newtab">
+      <div className="sf-newtab-glyph">⊕</div>
       <div style={{ fontSize: 13 }}>New Tab</div>
     </div>
   );
@@ -111,6 +117,11 @@ const CORE_SITES: SiteEntry[] = [
   { id: 'samsung-portal',title: 'Samsung PLCM',          domain: 'portal.samsung-dev.net',      component: SamsungPortalSite },
   { id: 'curcuit',       title: 'CIRCUTE',               domain: 'circute.aos',                 component: CurcuitSite },
   { id: 'google',        title: 'Google',                domain: 'google.com',                  component: GoogleSite },
+  // Consumer sites — placed AFTER their internal-tool namesakes (radar.apple.com,
+  // projectsail.jpmorgan.com) so the substring matcher resolves each correctly.
+  { id: 'apple',         title: 'Apple',                 domain: 'apple.com',                   component: AppleSite },
+  { id: 'jpmorgan',      title: 'J.P. Morgan',           domain: 'jpmorgan.com',                component: JPMorganSite },
+  { id: 'samsung',       title: 'Samsung',               domain: 'samsung.com',                 component: SamsungSite },
   { id: 'company-site',  title: 'Company',               domain: '.com',                        component: CompanySite },
   { id: 'new-tab',       title: 'New Tab',               domain: '',                            component: NewTabPage },
 ];
@@ -131,7 +142,7 @@ const FAVICON_COLORS: Record<string, string> = {
   linkedin: '#0a66c2', workday: '#f38b00', adp: '#d0271d', gmail: '#ea4335', google: '#4285f4', amazon: '#131921', claude: '#D97757', chatgpt: '#10a37f', gemini: '#4285F4', workfront: '#e8232a',
   radar: '#0071e3', buganizer: '#34a853', 'project-sail': '#003087',
   'project-hub': '#6366f1', colab: '#5b5fc7', 'samsung-portal': '#1428a0',
-  curcuit: '#7dd3fc',
+  curcuit: '#7dd3fc', apple: '#1d1d1f', jpmorgan: '#123a6b', samsung: '#1428a0',
 };
 
 function SiteFavicon({ siteId, size = 28 }: { siteId: string; size?: number }) {

@@ -30,6 +30,8 @@ type ShellStore = {
   zCounter: number;
   spotlightOpen: boolean;
   spotlightQuery: string;
+  launchpadOpen: boolean;
+  toggleLaunchpad: (value?: boolean) => void;
   openWindow: (appId: string) => void;
   focusWindow: (id: string) => void;
   closeWindow: (id: string) => void;
@@ -53,6 +55,8 @@ export const useShellStore = create<ShellStore>((set, get) => ({
   zCounter: 10,
   spotlightOpen: false,
   spotlightQuery: '',
+  launchpadOpen: false,
+  toggleLaunchpad: (value) => set((state) => ({ launchpadOpen: value ?? !state.launchpadOpen })),
   openWindow: (appId) =>
     set((state) => {
       const existing = state.windows.find((window) => window.appId === appId);
@@ -67,6 +71,7 @@ export const useShellStore = create<ShellStore>((set, get) => ({
           ),
           zCounter: nextZ,
           spotlightOpen: false,
+          launchpadOpen: false,
         };
       }
 
@@ -92,6 +97,7 @@ export const useShellStore = create<ShellStore>((set, get) => ({
         windows: [...state.windows, newWindow],
         zCounter: nextZ,
         spotlightOpen: false,
+        launchpadOpen: false,
       };
     }),
   focusWindow: (id) =>
