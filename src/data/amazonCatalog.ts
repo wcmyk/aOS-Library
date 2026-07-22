@@ -183,6 +183,12 @@ const TITLE_PHOTO: Array<[RegExp, string]> = [
   [/action camera/i, 'actioncam.webp'],
   [/e-?reader|e-?ink/i, 'ereader.webp'],
   [/drone|quadcopter/i, 'drone.webp'],
+  [/gaming monitor|qhd.*monitor|monitor.*hz/i, 'gaming-monitor.webp'],
+  [/mechanical keyboard/i, 'mech-keyboard.webp'],
+  [/portable ssd|external ssd/i, 'portable-ssd.webp'],
+  [/standing desk/i, 'standing-desk.webp'],
+  [/building blocks/i, 'building-blocks.webp'],
+  [/robot building kit|stem robot/i, 'robot-kit.webp'],
 ];
 
 export const AZ_PRODUCTS: AzProduct[] = AZ_CATEGORIES.flatMap((cat) =>

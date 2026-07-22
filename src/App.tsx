@@ -48,6 +48,7 @@ const NotepadApp = lazy(() => import('./apps/notepad/NotepadApp').then((m) => ({
 const EdenGardenApp = lazy(() => import('./apps/eden/EdenGardenApp').then((m) => ({ default: m.EdenGardenApp })));
 const ChessApp = lazy(() => import('./apps/chess/ChessApp').then((m) => ({ default: m.ChessApp })));
 const ForgeApp = lazy(() => import('./apps/forge/ForgeApp').then((m) => ({ default: m.ForgeApp })));
+const TerminalApp = lazy(() => import('./apps/terminal/TerminalApp').then((m) => ({ default: m.TerminalApp })));
 
 const artifacts = [
   { title: 'Roadmap.md', kind: 'Report', updated: '2h ago', detail: 'Phase 1 delivery outline', accent: '#7c8cff' },
@@ -104,40 +105,7 @@ function renderWindowContent(window: WindowState, onOpenDocument: (doc: DriveDoc
     );
   }
 
-  if (window.appId === 'terminal') {
-    return (
-      <div className="window-grid">
-        {jobs.map((job) => (
-          <div key={job.title} className="card">
-            <div className="card-title">{job.title}</div>
-            <div className="card-subtitle">Process status: {job.status}</div>
-            <div style={{ marginTop: 8, height: 6, borderRadius: 999, background: 'rgba(255,255,255,0.08)' }}>
-              <div
-                style={{
-                  width: `${job.progress}%`,
-                  height: '100%',
-                  borderRadius: 999,
-                  background: getStatusColor(job.status),
-                }}
-              />
-            </div>
-          </div>
-        ))}
-        <div className="card">
-          <div className="pill" style={{ background: 'rgba(112,207,255,0.18)', borderColor: 'rgba(112,207,255,0.28)' }}>
-            Live Logs
-          </div>
-          <div className="card-subtitle" style={{ marginTop: 6 }}>
-            {agentLog.map((log) => (
-              <div key={log.time} style={{ marginBottom: 4 }}>
-                <strong>{log.time}</strong> — {log.text}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (window.appId === 'terminal') return <Suspense fallback={null}><TerminalApp /></Suspense>;
 
   if (window.appId === 'neural') return <Suspense fallback={null}><NeuralApp /></Suspense>;
   if (window.appId === 'virtue') return <Suspense fallback={null}><VirtueApp /></Suspense>;

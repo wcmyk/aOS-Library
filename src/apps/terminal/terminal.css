@@ -1,0 +1,57 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   TERMINAL (term- namespace) — macOS Terminal.app replica
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.term-shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: rgba(24, 24, 27, 0.86);
+  backdrop-filter: blur(40px) saturate(1.4);
+  color: #e6e6e6;
+  font-family: 'SF Mono', ui-monospace, Menlo, Monaco, 'Cascadia Mono', monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  overflow: hidden;
+  cursor: text;
+}
+
+.term-titlebar {
+  height: 34px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(180deg, rgba(64,64,68,0.9), rgba(48,48,52,0.9));
+  border-bottom: 1px solid rgba(0,0,0,0.5);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+  color: rgba(235,235,245,0.72);
+  font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif;
+  font-size: 13px; font-weight: 500;
+  user-select: none; cursor: default;
+}
+
+.term-scroll { flex: 1; overflow-y: auto; padding: 8px 10px 12px; }
+.term-line { white-space: pre-wrap; word-break: break-word; }
+.term-line.cmd { color: #ffffff; }
+.term-line.err { color: #ff6b63; }
+
+.term-inputrow { display: flex; align-items: baseline; gap: 7px; }
+.term-prompt { color: #ffffff; font-weight: 600; white-space: nowrap; }
+.term-input {
+  flex: 1; border: none; outline: none; background: transparent;
+  color: #e6e6e6; font: inherit; caret-color: #b8b8bd; padding: 0;
+}
+
+/* ═══ Light appearance — Terminal "Basic" profile ═══ */
+:root[data-theme='light'] .term-shell {
+  background: rgba(255, 255, 255, 0.88);
+  color: #1d1d1f;
+}
+:root[data-theme='light'] .term-titlebar {
+  background: linear-gradient(180deg, #ececec, #dcdcdc);
+  border-bottom: 1px solid rgba(0,0,0,0.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+  color: rgba(0,0,0,0.65);
+}
+:root[data-theme='light'] .term-line.cmd { color: #000; }
+:root[data-theme='light'] .term-line.err { color: #c41e12; }
+:root[data-theme='light'] .term-prompt { color: #000; }
+:root[data-theme='light'] .term-input { color: #1d1d1f; caret-color: #333; }

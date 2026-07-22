@@ -72,6 +72,50 @@ function hash(s: string): number {
   return h >>> 0;
 }
 
+// ── Unique person registry ────────────────────────────────────────────────────
+// Every simulated professional is minted from one shared combination space so
+// a given full name can only ever hold ONE position. Surfaces reserve disjoint
+// slot ranges (recruiters, hiring managers, feed, network, …) and the bijective
+// stride guarantees two different slots never produce the same name.
+
+export const POOL_FIRST = [
+  'Marcus', 'Elena', 'Julian', 'Sophia', 'Kieran', 'Priya', 'Devon', 'Nadia',
+  'Ethan', 'Cassandra', 'Rohan', 'Isabelle', 'Theo', 'Mei', 'Malik', 'Serena',
+  'Cade', 'Yuna', 'Levi', 'Anastasia', 'Omar', 'Vivienne', 'Flynn', 'Leila',
+  'Ashton', 'Zara', 'Darius', 'Iris', 'Remy', 'Naomi', 'Colton', 'Ingrid',
+  'Rafael', 'Amara', 'Pierce', 'Solen', 'Brennan', 'Lyra', 'Cyrus', 'Wren',
+];
+
+export const POOL_LAST = [
+  'Hartwell', 'Chen', 'Vasquez', 'Nakamura', 'Whitfield', 'Okafor', 'Patel',
+  'Dumont', 'Reyes', 'Bergmann', 'Wolfe', 'Tanaka', 'Calloway', 'Erikson',
+  'Mensah', 'Thornton', 'Delacroix', 'Kimura', 'Osei', 'Harrington',
+  'Stroud', 'Okoro', 'Voss', 'Aldridge', 'Iyer', 'Fontaine', 'Brandt',
+  'Adeyemi', 'Castillo', 'Lindqvist', 'Moran', 'Nakashima', 'Ferreira',
+];
+
+// Canonical people with fixed roles elsewhere in the sim (Messages contacts,
+// hardcoded LinkedIn feed authors). Excluded from the mintable space so the
+// generator can never hand their name a second position.
+const RESERVED_NAMES = new Set([
+  'Marcus Thornton', 'Naomi Calloway',                    // Messages contacts
+  'Priya Hartwell', 'Elena Vasquez', 'Darius Chen',       // LinkedIn feed authors
+]);
+
+const NAME_SPACE: string[] = [];
+for (const last of POOL_LAST) {
+  for (const first of POOL_FIRST) {
+    const name = `${first} ${last}`;
+    if (!RESERVED_NAMES.has(name)) NAME_SPACE.push(name);
+  }
+}
+
+export function uniqueName(slot: number): string {
+  const len = NAME_SPACE.length; // 1315 — coprime with the 617 stride
+  const idx = ((slot % len) + len) % len;
+  return NAME_SPACE[(idx * 617) % len];
+}
+
 export function personPhoto(name: string, senior = false): string {
   const h = hash(name);
   const first = name.split(' ')[0];
