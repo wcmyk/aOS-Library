@@ -594,7 +594,11 @@ function AmazonSmile({ scale = 1 }: { scale?: number }) {
 }
 
 export function AmazonSite() {
-  const [cart, setCart] = useState<Record<string, number>>({});
+  // Cart lives in the persisted wallet store so an in-progress order (and the
+  // full purchase history behind Inventory) survives a page refresh.
+  const cart = useWalletStore((s) => s.cart);
+  const setCartQty = useWalletStore((s) => s.setCartQty);
+  const clearCart = useWalletStore((s) => s.clearCart);
   const [added, setAdded] = useState<string | null>(null);
   const [dept, setDept] = useState<'all' | Dept>('all');
   const [sort, setSort] = useState('featured');
@@ -640,7 +644,7 @@ export function AmazonSite() {
     };
     addOrder(order);
     setPlacedOrder(order);
-    setCart({});
+    clearCart();
   };
 
   const money = (n: number) => `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -655,7 +659,7 @@ export function AmazonSite() {
   }, [dept, sort]);
 
   const addToCart = (id: string) => {
-    setCart((c) => ({ ...c, [id]: (c[id] ?? 0) + 1 }));
+    setCartQty(id, (cart[id] ?? 0) + 1);
     setAdded(id);
     window.setTimeout(() => setAdded((cur) => (cur === id ? null : cur)), 1600);
   };

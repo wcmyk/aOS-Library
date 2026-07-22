@@ -1,0 +1,119 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   CHASE.COM (chs- namespace) — public homepage replica
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.chs-page {
+  height: 100%; overflow-y: auto; background: #fff; color: #414042;
+  font-family: 'Open Sans', -apple-system, 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
+}
+.chs-page button { font-family: inherit; cursor: pointer; }
+
+/* Utility bar */
+.chs-utility { background: #fff; border-bottom: 1px solid #e2e2e2; }
+.chs-utility-inner { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; padding: 0 18px; }
+.chs-utility-left button, .chs-utility-right button {
+  background: none; border: none; padding: 10px 12px; font-size: 13px; color: #414042;
+}
+.chs-utility-left button.active { box-shadow: inset 0 -3px 0 #0b6efd; color: #0a4386; font-weight: 600; }
+.chs-utility-left button:hover, .chs-utility-right button:hover { color: #0a4386; }
+
+/* Brand header */
+.chs-header { background: #117aca; }
+.chs-header-inner { max-width: 1100px; margin: 0 auto; padding: 14px 18px 0; }
+.chs-brand { display: flex; align-items: center; gap: 10px; }
+.chs-wordmark { color: #fff; font-size: 26px; font-weight: 700; letter-spacing: 3px; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.chs-nav { display: flex; flex-wrap: wrap; margin-top: 8px; }
+.chs-nav button {
+  background: none; border: none; color: #fff; font-size: 13.5px; padding: 12px 14px 14px;
+  border-bottom: 3px solid transparent;
+}
+.chs-nav button:hover { border-bottom-color: #fff; }
+.chs-caret { font-size: 9px; opacity: 0.8; }
+
+/* Hero */
+.chs-hero { background: linear-gradient(120deg, #0a4386 0%, #117aca 55%, #3f9de0 100%); }
+.chs-hero-inner {
+  max-width: 1100px; margin: 0 auto; padding: 28px 18px 34px;
+  display: grid; grid-template-columns: 300px 1fr; gap: 26px; align-items: start;
+}
+
+/* Sign-in module */
+.chs-signin {
+  background: #fff; border-radius: 8px; padding: 18px 18px 14px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+}
+.chs-signin h2 { margin: 0 0 12px; font-size: 20px; font-weight: 400; color: #414042; }
+.chs-field { display: block; margin-bottom: 12px; }
+.chs-field span { display: block; font-size: 12px; color: #6e6e6e; margin-bottom: 4px; }
+.chs-field input {
+  width: 100%; box-sizing: border-box; border: 1px solid #949494; border-radius: 4px;
+  padding: 9px 10px; font-size: 14px; outline: none; color: #414042; background: #fff;
+}
+.chs-field input:focus { border-color: #0b6efd; box-shadow: 0 0 0 2px rgba(11,110,253,0.2); }
+.chs-pw-wrap { position: relative; }
+.chs-pw-wrap input { padding-right: 52px; }
+.chs-showpw {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: #0a4386; font-size: 12.5px; font-weight: 600;
+}
+.chs-signin-row { display: flex; gap: 16px; margin-bottom: 12px; }
+.chs-check { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: #414042; }
+.chs-signin-btn {
+  width: 100%; background: #117aca; border: none; border-radius: 22px;
+  color: #fff; font-size: 15px; font-weight: 600; padding: 10px 0;
+}
+.chs-signin-btn:hover { background: #0a4386; }
+.chs-signin-links { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin-top: 12px; }
+.chs-signin-links button { background: none; border: none; padding: 0; color: #0a4386; font-size: 13px; }
+.chs-signin-links button:hover { text-decoration: underline; }
+
+/* Offer card */
+.chs-offer-card { color: #fff; position: relative; padding: 8px 6px 0; }
+.chs-offer-kicker { font-size: 12.5px; letter-spacing: 1.5px; font-weight: 700; opacity: 0.9; }
+.chs-offer-card h1 { margin: 8px 0 10px; font-size: 34px; font-weight: 700; line-height: 1.15; max-width: 480px; }
+.chs-offer-card p { margin: 0 0 16px; font-size: 14.5px; line-height: 1.55; max-width: 460px; color: rgba(255,255,255,0.92); }
+.chs-offer-ctas { display: flex; gap: 12px; }
+.chs-cta-primary {
+  background: #fff; color: #0a4386; border: none; border-radius: 22px;
+  font-size: 14px; font-weight: 700; padding: 10px 26px;
+}
+.chs-cta-ghost {
+  background: transparent; color: #fff; border: 1.5px solid #fff; border-radius: 22px;
+  font-size: 14px; font-weight: 600; padding: 10px 22px;
+}
+.chs-offer-card-art { position: absolute; right: -6px; top: -18px; }
+.chs-card-photo {
+  width: 240px; height: auto; object-fit: contain;
+  filter: drop-shadow(0 16px 28px rgba(0,0,0,0.4));
+}
+
+/* Product tiles */
+.chs-tiles {
+  max-width: 1100px; margin: 0 auto; padding: 34px 18px 8px;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 26px;
+}
+.chs-tile h3 { margin: 0 0 8px; font-size: 19px; color: #414042; font-weight: 600; }
+.chs-tile p { margin: 0 0 10px; font-size: 13.5px; line-height: 1.6; color: #58595b; }
+.chs-tile-link { background: none; border: none; padding: 0; color: #0a4386; font-size: 13.5px; font-weight: 600; }
+.chs-tile-link:hover { text-decoration: underline; }
+
+.chs-more {
+  max-width: 1100px; margin: 18px auto 0; padding: 18px;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px;
+  border-top: 1px solid #e2e2e2;
+}
+.chs-more-item h4 { margin: 0 0 6px; font-size: 15px; color: #414042; }
+.chs-more-item p { margin: 0; font-size: 12.5px; line-height: 1.55; color: #6e6e6e; }
+
+/* Footer */
+.chs-footer { margin-top: 26px; background: #f5f7fa; border-top: 1px solid #e2e2e2; padding: 20px 18px 30px; }
+.chs-footer-links { max-width: 1100px; margin: 0 auto 12px; display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.chs-footer-links button { background: none; border: none; padding: 0; color: #0a4386; font-size: 12.5px; }
+.chs-footer-links button:hover { text-decoration: underline; }
+.chs-legal { max-width: 1100px; margin: 0 auto 8px; font-size: 11.5px; color: #6e6e6e; line-height: 1.5; }
+
+@media (max-width: 900px) {
+  .chs-hero-inner { grid-template-columns: 1fr; }
+  .chs-offer-card-art { display: none; }
+}
